@@ -285,9 +285,9 @@
 </div>
 
 <script>
-    // НАСТРОЙКИ ЗА ОБЛАК
-    const GITHUB_TOKEN = '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';
-    const GIST_ID = 'acb9feaca418167d9e52a0284ac1f61f';
+    // НАСТРОЙКИ ЗА ОБЛАК (Въведете вашите данни тук)
+    const GITHUB_TOKEN = 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;
+    const GIST_ID = acb9feaca418167d9e52a0284ac1f61f;
 
     const allPlayers = ["Гошо", "Мария", "Иван", "Петър", "Елена", "Деси"];
     let matches = JSON.parse(localStorage.getItem('boardgame_matches')) || [];
@@ -297,16 +297,9 @@
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
         document.getElementById('tab-' + tabId).classList.add('active');
-        
-        // Намиране на правилния бутон, който е извикал функцията
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        }
-        
+        event.currentTarget.classList.add('active');
         if(tabId === 'stats') renderStats();
-        if(tabId === 'history') {
-            renderHistory();
-        }
+        if(tabId === 'history') renderHistory();
     }
 
     function updatePlayerInputs() {
@@ -360,7 +353,8 @@
         localStorage.setItem('boardgame_matches', JSON.stringify(matches));
         alert('Партията е записана успешно!');
         
-        if(GITHUB_TOKEN && GITHUB_TOKEN !== 'ТУК_СЛОЖЕТЕ_ВАШИЯ_GH_TOKEN') {
+        // Автоматичен ъпдейт на облака, ако е настроен
+        if(GITHUB_TOKEN !== 'ТУК_СЛОЖЕТЕ_ВАШИЯ_GH_TOKEN') {
             syncUpload(true);
         }
     }
@@ -374,10 +368,6 @@
     function renderHistory() {
         const tbody = document.querySelector('#historyTable tbody');
         tbody.innerHTML = '';
-        if(matches.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Няма записани партии все още.</td></tr>`;
-            return;
-        }
         matches.forEach(m => {
             tbody.innerHTML += `
                 <tr>
@@ -452,6 +442,10 @@
 
     // ОБЛАЧНИ ФУНКЦИИ (GIST)
     async function syncUpload(silent = false) {
+        if(GITHUB_TOKEN === 'ТУК_СЛОЖЕТЕ_ВАШИЯ_GH_TOKEN') {
+            if(!silent) alert('Моля, попълнете GITHUB_TOKEN и GIST_ID в кода!');
+            return;
+        }
         try {
             const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
                 method: 'PATCH',
@@ -470,7 +464,7 @@
             if(response.ok) {
                 if(!silent) alert('Успешно качване в облака!');
             } else {
-                if(!silent) alert('Грешка при качване! Проверете токена.');
+                if(!silent) alert('Грешка при качване!');
             }
         } catch(e) {
             if(!silent) alert('Възникна мрежова грешка.');
@@ -478,6 +472,10 @@
     }
 
     async function syncDownload() {
+        if(GIST_ID === 'ТУК_СЛОЖЕТЕ_ВАШИЯ_GIST_ID') {
+            alert('Моля, попълнете GIST_ID в кода!');
+            return;
+        }
         try {
             const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
             const data = await response.json();
