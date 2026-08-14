@@ -60,13 +60,16 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 .scope-btn{flex:1;margin:0;background:white;color:#495057;border:2px solid #ced4da}
 .scope-btn.active{background:#f0f4ff;border-color:var(--blue);color:#0056b3}
 .detail-filters select{margin:0}
+
 .player-selector-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:15px}
 .player-filter-btn{background:#f1f3f5;color:#495057;border:2px solid #dee2e6;padding:10px 18px;border-radius:20px;font-weight:bold;white-space:nowrap;margin:0;width:auto;cursor:pointer}
 .player-filter-btn.active{background:#f0fdf4;border-color:var(--green);color:var(--green-dark)}
+
 .winrate-bar-container{display:flex;align-items:center;gap:8px;min-width:130px}
 .winrate-track{flex:1;background:#e9ecef;height:10px;border-radius:5px;overflow:hidden;position:relative}
 .winrate-fill{height:100%;border-radius:5px;transition:width .4s ease}
 .winrate-text{font-size:13px;font-weight:bold;min-width:42px;text-align:right}
+
 .dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0 25px}
 .stat-card{background:#f8f9fa;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
 .stat-card .num{font-size:25px;font-weight:800;color:var(--green-dark)}.stat-card .label{font-size:12px;color:var(--muted);margin-top:3px}
@@ -137,6 +140,12 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 
     <div id="manage" class="tab-content">
         <h2>Управление на колекцията</h2>
+        
+        <label style="color:#28a745">☁️ GitHub Gist Синхронизация</label>
+        <button class="btn-info" style="background:#28a745" onclick="syncWithGist()">🔄 Синхронизирай с GitHub Gist</button>
+        <div class="small">Зарежда и записва данните директно от вашия отдалечен Gist.</div>
+        <hr>
+
         <label>Добави нова игра</label>
         <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
         <label>Тип на играта</label>
@@ -165,9 +174,10 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 </div>
 
 <script>
-// --- НАСТРОЙКИ ЗА GITHUB GIST ---
-const GIST_ID = acb9feaca418167d9e52a0284ac1f61f;
-const GITHUB_TOKEN = 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;
+// --- КОНФИГУРАЦИЯ ЗА GITHUB GIST ---
+const GIST_ID = "acb9feaca418167d9e52a0284ac1f61f"; 
+const GITHUB_TOKEN = "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";
+// -----------------------------------
 
 const initialGames = {
     "Everdell": "pvp",
@@ -190,83 +200,73 @@ const initialGames = {
     "Имхотеп - двубоят": "pvp"
 };
 
-let myGamesObj = initialGames;
-let myPlayers = ['Нина','Митко'];
-let gameLogs = [];
+let myGamesObj = loadJSON('myGamesObj', initialGames);
+let myPlayers = loadJSON('myPlayers', ['Нина','Митко']);
+let gameLogs = loadJSON('gameLogs', []);
 let currentLogFilter = 'pvp';
 let selectedCoopResult = null;
 let selectedStatPlayer = null;
 
-function loadJSON(key, fallback){
-    try{const v=JSON.parse(localStorage.getItem(key));return v ?? fallback}catch(e){return fallback}
-}
-
-// Зареждане на данни от Gist (с fallback към localStorage, ако няма въведени ключове)
-async function loadDataFromGist() {
-    if(!GIST_ID || GIST_ID === 'ТУКА_СЛОЖИ_ID_ТО_НА_GIST_А') {
-        myGamesObj = loadJSON('myGamesObj', initialGames);
-        myPlayers = loadJSON('myPlayers', ['Нина','Митко']);
-        gameLogs = loadJSON('gameLogs', []);
-        updateUI();
-        return;
-    }
-
+// Функции за GitHub Gist синхронизация
+async function syncWithGist() {
+    if (GIST_ID.includes("ПОСТАВИ") || !GIST_ID) return alert("Моля, попълнете коректно GIST_ID и GITHUB_TOKEN в кода.");
+    
+    const data = { myGamesObj, myPlayers, gameLogs };
     try {
         const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-        });
-        const data = await response.json();
-        const fileContent = data.files['board_game_data.json']?.content;
-        
-        if(fileContent) {
-            const parsed = JSON.parse(fileContent);
-            myGamesObj = parsed.myGamesObj || initialGames;
-            myPlayers = parsed.myPlayers || ['Нина','Митко'];
-            gameLogs = parsed.gameLogs || [];
-        } else {
-            myGamesObj = loadJSON('myGamesObj', initialGames);
-            myPlayers = loadJSON('myPlayers', ['Нина','Митко']);
-            gameLogs = loadJSON('gameLogs', []);
-        }
-    } catch(err) {
-        console.error('Грешка при зареждане от Gist, ползваме локални данни:', err);
-        myGamesObj = loadJSON('myGamesObj', initialGames);
-        myPlayers = loadJSON('myPlayers', ['Нина','Митко']);
-        gameLogs = loadJSON('gameLogs', []);
-    }
-    updateUI();
-}
-
-// Запазване на данни в localStorage и обновяване на Gist-а в GitHub
-async function saveAll() {
-    localStorage.setItem('myGamesObj', JSON.stringify(myGamesObj));
-    localStorage.setItem('myPlayers', JSON.stringify(myPlayers));
-    localStorage.setItem('gameLogs', JSON.stringify(gameLogs));
-
-    if(!GIST_ID || GIST_ID === 'ТУКА_СЛОЖИ_ID_ТО_НА_GIST_А') return;
-
-    const payload = {
-        files: {
-            'board_game_data.json': {
-                content: JSON.stringify({ myGamesObj, myPlayers, gameLogs }, null, 2)
-            }
-        }
-    };
-
-    try {
-        await fetch(`https://api.github.com/gists/${GIST_ID}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `token ${GITHUB_TOKEN}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                files: {
+                    "board-game-data.json": {
+                        content: JSON.stringify(data, null, 2)
+                    }
+                }
+            })
         });
-    } catch(err) {
-        console.error('Грешка при обновяване на Gist:', err);
+
+        if (response.ok) {
+            alert("Успешно синхронизирано с GitHub Gist!");
+        } else {
+            const err = await response.json();
+            alert("Грешка при синхронизация: " + (err.message || 'Възникна проблем'));
+        }
+    } catch (e) {
+        alert("Мрежова грешка при връзка с GitHub.");
     }
 }
 
+async function loadFromGist() {
+    if (GIST_ID.includes("ПОСТАВИ") || !GIST_ID) return;
+    try {
+        const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.files && data.files["board-game-data.json"]) {
+            const parsed = JSON.parse(data.files["board-game-data.json"].content);
+            if (parsed.myGamesObj) myGamesObj = parsed.myGamesObj;
+            if (parsed.myPlayers) myPlayers = parsed.myPlayers;
+            if (parsed.gameLogs) gameLogs = parsed.gameLogs;
+            saveAll();
+            updateUI();
+            console.log("Данните са успешно заредени от Gist!");
+        }
+    } catch (e) {
+        console.log("Неуспешно зареждане от Gist, ползвам локални данни.");
+    }
+}
+
+function loadJSON(key, fallback){
+    try{const v=JSON.parse(localStorage.getItem(key));return v ?? fallback}catch(e){return fallback}
+}
+function saveAll(){
+    localStorage.setItem('myGamesObj',JSON.stringify(myGamesObj));
+    localStorage.setItem('myPlayers',JSON.stringify(myPlayers));
+    localStorage.setItem('gameLogs',JSON.stringify(gameLogs));
+}
 function esc(v){
     return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -616,13 +616,13 @@ function renderPlayerStats(){
                 <td>${gameType}</td>
                 <td>${data.played}</td>
                 <td class="${tdClass}">${winDisplay}</td>
-                <td>${data.losses}</td>
+                <td style="color:${data.losses>0?'#991b1b':'inherit'}">${data.losses}</td>
                 <td>
                     <div class="winrate-bar-container">
                         <div class="winrate-track">
-                            <div class="winrate-fill" style="width: ${rate}%; background: ${barColor};"></div>
+                            <div class="winrate-fill" style="width:${rate}%; background-color:${barColor};"></div>
                         </div>
-                        <div class="winrate-text">${rate.toFixed(0)}%</div>
+                        <div class="winrate-text">${rate.toFixed(1)}%</div>
                     </div>
                 </td>
             </tr>`;
@@ -633,189 +633,401 @@ function renderPlayerStats(){
     out.innerHTML = html;
 }
 
-function renderDetailedStats(){
-    const out = document.getElementById('statsDetailOutput');
-    let logs = gameLogs;
-    if(detailScope === 'specific'){
-        const selectedGame = document.getElementById('detailGameSelect').value;
-        logs = gameLogs.filter(l => l.game === selectedGame);
-    }
-
-    if(!logs.length){
-        out.innerHTML = '<div class="empty">Няма намерени записи за тези критерии.</div>';
-        return;
-    }
-
-    const sortedLogs = [...logs].reverse();
-    out.innerHTML = `
-        <div class="table-responsive">
-            <table>
-                <tr>
-                    <th>Дата</th>
-                    <th>Игра</th>
-                    <th>Тип</th>
-                    <th>Участници / Резултат</th>
-                    <th>Действие</th>
-                </tr>
-                ${sortedLogs.map((l) => {
-                    const originalIndex = gameLogs.indexOf(l);
-                    let details = '';
-                    if(l.type === 'pvp'){
-                        const scoresArr = Object.entries(l.scores || {}).map(([pl, sc]) => `${pl}: <b>${sc}</b>`).join(', ');
-                        const winnersStr = (l.winners || [l.winner]).join(', ');
-                        details = `Победител(и): <span class="success">${esc(winnersStr)}</span> | Точки: (${scoresArr})`;
-                    } else {
-                        const coopBadge = l.coopResult === 'win' ? '<span class="success">🏆 Победа</span>' : '<span class="error">❌ Загуба</span>';
-                        const partStr = (l.participants || []).join(', ');
-                        details = `Отбор: [${esc(partStr)}] — ${coopBadge}`;
-                    }
-                    return `<tr>
-                        <td>${formatDate(l.date)}</td>
-                        <td><b>${esc(l.game)}</b></td>
-                        <td>${l.type === 'coop' ? 'Co-op' : 'PvP'}</td>
-                        <td style="text-align:left">${details}</td>
-                        <td><button class="btn-danger" style="padding:4px 8px;font-size:12px;width:auto;margin:0" onclick="deleteLogEntry(${originalIndex})">Изтрий</button></td>
-                    </tr>`;
-                }).join('')}
-            </table>
-        </div>
-    `;
-}
-
-function deleteLogEntry(index){
-    if(!confirm('Сигурен ли си, че искаш да изтриеш този запис?')) return;
-    gameLogs.splice(index, 1);
-    saveAll();
-    refreshStats();
-}
-
 function showStats(){
-    const out = document.getElementById('statsOverviewOutput');
+    const out=document.getElementById('statsOverviewOutput');
     if(!gameLogs.length){
-        out.innerHTML = '<div class="empty">Все още няма записани игри в историята.</div>';
+        out.innerHTML='<div class="empty">Все още няма записани партии.</div>';
         return;
     }
 
-    const totalMatches = gameLogs.length;
-    const pvpMatches = gameLogs.filter(l => l.type === 'pvp').length;
-    const coopMatches = gameLogs.filter(l => l.type === 'coop').length;
-    
-    const gameCounts = {};
-    gameLogs.forEach(l => { gameCounts[l.game] = (gameCounts[l.game] || 0) + 1; });
-    const favGame = Object.entries(gameCounts).sort((a,b) => b[1] - a[1])[0] || ['-', 0];
+    const total=gameLogs.length;
+    const pvp=gameLogs.filter(x=>x.type==='pvp').length;
+    const coop=total-pvp;
+    const wins={};
+    const playersSet=new Set();
 
-    const playerWins = {};
-    gameLogs.forEach(l => {
-        if(l.type === 'pvp'){
-            (l.winners || [l.winner]).forEach(w => { if(w) playerWins[w] = (playerWins[w] || 0) + 1; });
-        } else if(l.type === 'coop' && l.coopResult === 'win'){
-            (l.participants || []).forEach(p => { playerWins[p] = (playerWins[p] || 0) + 1; });
+    gameLogs.forEach(l=>{
+        if(l.type==='pvp'){
+            Object.keys(l.scores||{}).forEach(p=>playersSet.add(p));
+            (l.winners||[l.winner]).forEach(w=>{if(w)wins[w]=(wins[w]||0)+1});
+        }else{
+            (l.participants||[]).forEach(p=>playersSet.add(p));
         }
     });
-    const topPlayer = Object.entries(playerWins).sort((a,b) => b[1] - a[1])[0] || ['-', 0];
 
-    out.innerHTML = `
-        <div class="dashboard">
-            <div class="stat-card"><div class="num">${totalMatches}</div><div class="label">Общо партии</div></div>
-            <div class="stat-card"><div class="num">${pvpMatches} / ${coopMatches}</div><div class="label">PvP / Co-op</div></div>
-            <div class="stat-card"><div class="num">${esc(favGame[0])}</div><div class="label">Най-играна (${favGame[1]})</div></div>
-            <div class="stat-card"><div class="num">${esc(topPlayer[0])}</div><div class="label">Най-много победи (${topPlayer[1]})</div></div>
-        </div>
-        
-        <h3>🏆 Класация по победители (Общо)</h3>
-        <div class="table-responsive">
-            <table>
-                <tr><th>Играч</th><th>Победи / Успехи</th></tr>
-                ${Object.entries(playerWins).sort((a,b)=>b[1]-a[1]).map(([p, w]) => `
-                    <tr><td><b>${esc(p)}</b></td><td><span class="success">🏆 ${w}</span></td></tr>
-                `).join('')}
-            </table>
-        </div>
-    `;
-}
+    let html=`<div class="dashboard">
+        <div class="stat-card"><div class="num">${total}</div><div class="label">Общо партии</div></div>
+        <div class="stat-card"><div class="num">${pvp}</div><div class="label">PvP</div></div>
+        <div class="stat-card"><div class="num">${coop}</div><div class="label">Co-op</div></div>
+        <div class="stat-card"><div class="num">${Object.keys(myGamesObj).length}</div><div class="label">Игри в колекцията</div></div>
+    </div>`;
 
-function exportData(){
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({myGamesObj, myPlayers, gameLogs}, null, 2));
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", "board_game_tracker_backup.json");
-    document.body.appendChild(dlAnchor);
-    dlAnchor.click();
-    dlAnchor.remove();
-}
+    html+=`<div class="game-stats-box">
+        <h3>🏆 Обща класация</h3>
+        <div class="table-responsive"><table>
+        <tr><th>Играч</th><th>Победи</th><th>Win rate</th><th>Победи / Загуби (П/З)</th></tr>`;
 
-function importBackup(event){
-    const file = event.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e){
-        try{
-            const data = JSON.parse(e.target.result);
-            if(data.myGamesObj) myGamesObj = data.myGamesObj;
-            if(data.myPlayers) myPlayers = data.myPlayers;
-            if(data.gameLogs) gameLogs = data.gameLogs;
-            saveAll();
-            updateUI();
-            alert('Архивът е възстановен успешно!');
-        }catch(err){
-            alert('Грешка при четрене на JSON файла!');
-        }
-    };
-    reader.readAsText(file);
-}
+    const sortedPlayers = [...playersSet].map(p=>{
+        const matches=gameLogs.filter(l=>l.type==='pvp'&&l.scores&&Object.prototype.hasOwnProperty.call(l.scores,p));
+        const w=wins[p]||0;
+        const losses = matches.length - w;
+        return {p,matches:matches.length,w,losses,rate:matches.length?w/matches.length*100:0};
+    }).sort((a,b)=>b.w-a.w||b.rate-a.rate);
 
-function exportCsvData(){
-    if(!gameLogs.length) return alert('Няма история за експортиране.');
-    let csv = 'Date,Game,Type,Details\n';
-    gameLogs.forEach(l => {
-        let details = '';
-        if(l.type === 'pvp'){
-            const sc = Object.entries(l.scores || {}).map(([p,s])=>`${p}:${s}`).join(';');
-            details = `Winners:${(l.winners||[l.winner]).join(';')}|Scores:${sc}`;
-        } else {
-            details = `Result:${l.coopResult}|Participants:${(l.participants||[]).join(';')}`;
-        }
-        csv += `"${l.date}","${l.game}","${l.type}","${details}"\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const dl = document.createElement('a');
-    dl.setAttribute('href', url);
-    dl.setAttribute('download', 'board_game_logs.csv');
-    document.body.appendChild(dl);
-    dl.click();
-    dl.remove();
-}
+    const maxWinsGlobal = sortedPlayers.length ? Math.max(...sortedPlayers.map(x => x.w)) : 0;
+    const topWinnersCount = sortedPlayers.filter(x => x.w > 0 && x.w === maxWinsGlobal).length;
 
-function importCsvData(){
-    const fileInput = document.getElementById('csvFileInput');
-    const file = fileInput.files[0];
-    if(!file) return alert('Моля, изберете CSV файл.');
-    const reader = new FileReader();
-    reader.onload = function(e){
-        const lines = e.target.result.split('\n');
-        let importedCount = 0;
-        for(let i = 1; i < lines.length; i++){
-            const line = lines[i].trim();
-            if(!line) continue;
-            const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            if(parts.length >= 4){
-                const date = parts[0].replace(/"/g,'');
-                const game = parts[1].replace(/"/g,'');
-                const type = parts[2].replace(/"/g,'');
-                gameLogs.push({ game, type, date, scores: {}, winners: [], participants: [] });
-                importedCount++;
+    sortedPlayers.forEach((x)=>{
+        const isWinner = (x.w > 0 && x.w === maxWinsGlobal);
+        let tdClass = '';
+        let winDisplay = x.w;
+        if(isWinner){
+            if(topWinnersCount > 1){
+                tdClass = 'tie-score';
+                winDisplay = `${x.w} 🏅`;
+            } else {
+                tdClass = 'winner-score';
+                winDisplay = `${x.w} 🏆`;
             }
         }
-        saveAll();
-        updateUI();
-        alert(`Успешно импортирани ${importedCount} записа!`);
+        
+        let barColor = 'var(--green)';
+        if(x.rate < 40) barColor = 'var(--red)';
+        else if(x.rate < 70) barColor = '#ffc107';
+
+        const rateVisual = `<div class="winrate-bar-container" style="justify-content:center"><div class="winrate-track" style="max-width:90px"><div class="winrate-fill" style="width:${x.rate}%; background-color:${barColor};"></div></div><div class="winrate-text">${x.rate.toFixed(1)}%</div></div>`;
+
+        html+=`<tr><td><b>${esc(x.p)}</b></td><td class="${tdClass}">${winDisplay}</td><td>${rateVisual}</td><td>${x.w} / ${x.losses}</td></tr>`;
+    });
+
+    html+='</table></div></div>';
+
+    const activePlayers = myPlayers.slice(0, 2);
+    const pvpLogsOnly = gameLogs.filter(l => l.type === 'pvp');
+    const coopLogsOnly = gameLogs.filter(l => l.type === 'coop');
+
+    if(pvpLogsOnly.length){
+        html+=`<div class="game-stats-box">
+            <h3>⚔️ Състезателни игри (PvP) с най-много партии</h3>
+            <div class="table-responsive"><table>
+            <tr><th>Игра</th><th>Партии</th>`;
+        activePlayers.forEach(p => html += `<th>${esc(p)} победи</th>`);
+        html += `</tr>`;
+
+        const pvpCounts={};
+        pvpLogsOnly.forEach(l=>pvpCounts[l.game]=(pvpCounts[l.game]||0)+1);
+        
+        Object.entries(pvpCounts).sort((a,b)=>b[1]-a[1]).forEach(([game,count])=>{
+            html+=`<tr><td><b>${esc(game)}</b></td><td>${count}</td>`;
+            
+            const gameWinsMap = {};
+            activePlayers.forEach(p => {
+                gameWinsMap[p] = pvpLogsOnly.filter(l => l.game === game && (l.winners||[l.winner]).includes(p)).length;
+            });
+            const maxGameWins = Math.max(...Object.values(gameWinsMap), 0);
+            const topGameWinnersCount = activePlayers.filter(p => gameWinsMap[p] > 0 && gameWinsMap[p] === maxGameWins).length;
+
+            activePlayers.forEach(p => {
+                const playerGameWins = gameWinsMap[p];
+                const isGameTop = (maxGameWins > 0 && playerGameWins === maxGameWins);
+                let cellClass = '';
+                let cellText = playerGameWins;
+                if(isGameTop){
+                    if(topGameWinnersCount > 1){
+                        cellClass = 'tie-score';
+                        cellText = `${playerGameWins} 🏅`;
+                    } else {
+                        cellClass = 'winner-score';
+                        cellText = `${playerGameWins} 🏆`;
+                    }
+                }
+                html+=`<td class="${cellClass}">${cellText}</td>`;
+            });
+            html+=`</tr>`;
+        });
+        html+='</table></div></div>';
+    }
+
+    if(coopLogsOnly.length){
+        html+=`<div class="game-stats-box">
+            <h3>🤝 Кооперативни игри (Co-op) с най-много партии</h3>
+            <div class="table-responsive"><table>
+            <tr><th>Игра</th><th>Партии</th><th>Победи</th><th>Загуби</th><th>Win rate</th></tr>`;
+
+        const coopCounts={};
+        coopLogsOnly.forEach(l=>coopCounts[l.game]=(coopCounts[l.game]||0)+1);
+        
+        Object.entries(coopCounts).sort((a,b)=>b[1]-a[1]).forEach(([game,count])=>{
+            const cWins = coopLogsOnly.filter(l => l.game === game && l.coopResult === 'win').length;
+            const cLosses = count - cWins;
+            const cRate = count ? (cWins / count) * 100 : 0;
+            
+            let barColor = 'var(--green)';
+            if(cRate < 40) barColor = 'var(--red)';
+            else if(cRate < 70) barColor = '#ffc107';
+
+            const rateVisual = `<div class="winrate-bar-container"><div class="winrate-track"><div class="winrate-fill" style="width:${cRate}%; background-color:${barColor};"></div></div><div class="winrate-text">${cRate.toFixed(1)}%</div></div>`;
+
+            html+=`<tr><td><b>${esc(game)}</b></td><td>${count}</td><td style="color:var(--green-dark)">🏆 ${cWins}</td><td style="color:#991b1b">❌ ${cLosses}</td><td>${rateVisual}</td></tr>`;
+        });
+        html+='</table></div></div>';
+    }
+
+    out.innerHTML=html;
+}
+
+function renderDetailedStatsForSingleGame(gameName, gameLogsList){
+    const pvpLogs = gameLogsList.filter(l => l.type === 'pvp');
+    const coopLogs = gameLogsList.filter(l => l.type === 'coop');
+
+    let html = `<div class="game-stats-box" style="margin-top:20px; border-left: 4px solid var(--blue);">
+        <h3>🔎 ${esc(gameName)}</h3>`;
+
+    if(pvpLogs.length){
+        const players = [];
+        pvpLogs.forEach(l => Object.keys(l.scores || {}).forEach(p => { if(!players.includes(p)) players.push(p); }));
+
+        const stats = players.map(p => {
+            const matches = pvpLogs.filter(l => l.scores && l.scores[p] !== undefined);
+            const wins = matches.filter(l => (l.winners || [l.winner]).includes(p)).length;
+            const scores = matches.map(l => Number(l.scores[p]));
+            return {
+                p, matches: matches.length, wins,
+                rate: matches.length ? wins / matches.length * 100 : 0,
+                avg: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0,
+                best: scores.length ? Math.max(...scores) : 0
+            };
+        }).sort((a, b) => b.wins - a.wins || b.rate - a.rate);
+
+        const maxWinsGame = stats.length ? Math.max(...stats.map(x => x.wins)) : 0;
+        const topGameStatsWinners = stats.filter(x => x.wins > 0 && x.wins === maxWinsGame).length;
+
+        html += `<h3 style="margin-top:10px">⚔️ PvP статистика</h3>
+        <div class="table-responsive"><table>
+        <tr><th>Играч</th><th>Партии</th><th>Победи</th><th>Win rate</th><th>Средни точки</th><th>Най-висок резултат</th></tr>`;
+
+        stats.forEach(x => {
+            const isGameWinner = (x.wins > 0 && x.wins === maxWinsGame);
+            let tdClass = '';
+            let winDisplay = x.wins;
+            if(isGameWinner){
+                if(topGameStatsWinners > 1){
+                    tdClass = 'tie-score';
+                    winDisplay = `${x.wins} 🏅`;
+                } else {
+                    tdClass = 'winner-score';
+                    winDisplay = `${x.wins} 🏆`;
+                }
+            }
+
+            let barColor = 'var(--green)';
+            if(x.rate < 40) barColor = 'var(--red)';
+            else if(x.rate < 70) barColor = '#ffc107';
+
+            const rateVisual = `<div class="winrate-bar-container"><div class="winrate-track"><div class="winrate-fill" style="width:${x.rate}%; background-color:${barColor};"></div></div><div class="winrate-text">${x.rate.toFixed(1)}%</div></div>`;
+
+            html += `<tr><td><b>${esc(x.p)}</b></td><td>${x.matches}</td><td class="${tdClass}">${winDisplay}</td><td>${rateVisual}</td><td>${x.avg.toFixed(1)}</td><td>${x.best}</td></tr>`;
+        });
+        html += '</table></div>';
+
+        const gamePlayers = players.slice(0, 2);
+        const p1 = gamePlayers[0] || 'Играч 1';
+        const p2 = gamePlayers[1] || 'Играч 2';
+
+        html += `<h3 style="margin-top:18px">📜 История на партиите</h3>
+        <div class="table-responsive"><table>
+        <tr><th>Дата</th><th>${esc(p1)}</th><th>${esc(p2)}</th></tr>`;
+
+        pvpLogs.slice().reverse().forEach(l => {
+            const scores = l.scores || {};
+            const val1 = scores[p1] !== undefined ? scores[p1] : '-';
+            const val2 = scores[p2] !== undefined ? scores[p2] : '-';
+            const winnersArr = l.winners || [l.winner];
+
+            const isP1Winner = winnersArr.includes(p1);
+            const isP2Winner = winnersArr.includes(p2);
+            const isTieMatch = winnersArr.length > 1 && isP1Winner && isP2Winner;
+
+            let tdClass1 = '';
+            let tdClass2 = '';
+            let text1 = val1 !== '-' ? String(val1) : '-';
+            let text2 = val2 !== '-' ? String(val2) : '-';
+
+            if (isTieMatch) {
+                if (val1 !== '-') tdClass1 = 'tie-score';
+                if (val2 !== '-') tdClass2 = 'tie-score';
+                if (text1 !== '-') text1 += ' 🏅';
+                if (text2 !== '-') text2 += ' 🏅';
+            } else {
+                if (isP1Winner && val1 !== '-') { tdClass1 = 'winner-score'; text1 += ' 🏆'; }
+                if (isP2Winner && val2 !== '-') { tdClass2 = 'winner-score'; text2 += ' 🏆'; }
+            }
+
+            html += `<tr><td>${formatDate(l.date)}</td><td class="${tdClass1}">${esc(text1)}</td><td class="${tdClass2}">${esc(text2)}</td></tr>`;
+        });
+        html += '</table></div>';
+    }
+
+    if(coopLogs.length){
+        const cWins = coopLogs.filter(l => l.coopResult === 'win').length;
+        const cLosses = coopLogs.length - cWins;
+        const cRate = (cWins / coopLogs.length) * 100;
+
+        let barColor = 'var(--green)';
+        if(cRate < 40) barColor = 'var(--red)';
+        else if(cRate < 70) barColor = '#ffc107';
+
+        const rateVisual = `<div class="winrate-bar-container"><div class="winrate-track"><div class="winrate-fill" style="width:${cRate}%; background-color:${barColor};"></div></div><div class="winrate-text">${cRate.toFixed(1)}%</div></div>`;
+
+        html += `<h3 style="margin-top:18px">🤝 Co-op статистика</h3>
+        <div class="table-responsive"><table>
+        <tr><th>Общо партии</th><th>Победи</th><th>Загуби</th><th>Win rate</th></tr>
+        <tr><td>${coopLogs.length}</td><td class="coop-win">🏆 ${cWins}</td><td class="coop-lose">❌ ${cLosses}</td><td>${rateVisual}</td></tr>
+        </table></div>
+
+        <h3 style="margin-top:18px">📜 История на партиите</h3>
+        <div class="table-responsive"><table>
+        <tr><th>Дата</th><th>Участници</th><th>Резултат</th></tr>`;
+
+        coopLogs.slice().reverse().forEach(l => {
+            const isWin = l.coopResult === 'win';
+            html += `<tr><td>${formatDate(l.date)}</td><td>${esc((l.participants || []).join(', '))}</td><td class="${isWin ? 'coop-win' : 'coop-lose'}">${isWin ? '🏆 Победа' : '❌ Загуба'}</td></tr>`;
+        });
+        html += '</table></div>';
+    }
+
+    html += `</div>`;
+    return html;
+}
+
+function renderDetailedStats(){
+    const out=document.getElementById('statsDetailOutput');
+    if(!gameLogs.length){out.innerHTML='<div class="empty">Все още няма записани партии.</div>';return}
+
+    if(detailScope==='all'){
+        const games=[...new Set(gameLogs.map(l=>l.game))].sort((a,b)=>a.localeCompare(b,'bg'));
+        let html='';
+        games.forEach(g=>{
+            html+=renderDetailedStatsForSingleGame(g, gameLogs.filter(l=>l.game===g));
+        });
+        out.innerHTML=html;
+    }else{
+        const select=document.getElementById('detailGameSelect');
+        const game=select.value;
+        if(!game){out.innerHTML='<div class="empty">Избери игра от списъка.</div>';return}
+        out.innerHTML=renderDetailedStatsForSingleGame(game, gameLogs.filter(l=>l.game===game));
+    }
+}
+function exportData(){
+    const data={myGamesObj,myPlayers,gameLogs};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`board-game-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
+    URL.revokeObjectURL(url);
+}
+function importBackup(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(evt){
+        try{
+            const data=JSON.parse(evt.target.result);
+            if(data.myGamesObj)myGamesObj=data.myGamesObj;
+            if(data.myPlayers)myPlayers=data.myPlayers;
+            if(data.gameLogs)gameLogs=data.gameLogs;
+            saveAll();updateUI();alert('Архивът е възстановен успешно!');
+        }catch(err){alert('Грешка при четене на JSON файла.')}
+    };
+    reader.readAsText(file);
+    e.target.value='';
+}
+function exportCsvData(){
+    if(!gameLogs.length)return alert('Няма история за изэкспортиране.');
+    let csv='Game,Type,Date,Result/Winner,Participants/Scores\n';
+    gameLogs.forEach(l=>{
+        const date=l.date||'';
+        const game=`"${(l.game||'').replace(/"/g,'""')}"`;
+        const type=l.type||'pvp';
+        if(type==='coop'){
+            const res=l.coopResult==='win'?'Win':'Lose';
+            const parts=`"${(l.participants||[]).join('; ').replace(/"/g,'""')}"`;
+            csv+=`${game},coop,${date},${res},${parts}\n`;
+        }else{
+            const winner=`"${(l.winner||(l.winners||[]).join('; ')).replace(/"/g,'""')}"`;
+            const scoresObj=l.scores||{};
+            const scoresStr=`"${Object.entries(scoresObj).map(([p,s])=>`${p}:${s}`).join('; ').replace(/"/g,'""')}"`;
+            csv+=`${game},pvp,${date},${winner},${scoresStr}\n`;
+        }
+    });
+    const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`board-game-tracker-history-${new Date().toISOString().slice(0,10)}.csv`;a.click();
+    URL.revokeObjectURL(url);
+}
+function importCsvData(){
+    const input=document.getElementById('csvFileInput');
+    const file=input.files[0];if(!file)return alert('Моля, избери CSV файл.');
+    const reader=new FileReader();
+    reader.onload=function(e){
+        try{
+            const text=e.target.result;
+            const lines=text.split(/\r\n|\n/).filter(l=>l.trim());
+            if(lines.length<2)return alert('CSV файлът е празен или с грешен формат.');
+            let importedCount=0;
+            for(let i=1;i<lines.length;i++){
+                const row=parseCsvLine(lines[i]);
+                if(row.length>=5){
+                    const [game,type,date,resOrWin,partsOrScores]=row;
+                    if(game&&type){
+                        if(!myGamesObj[game])myGamesObj[game]=type==='coop'?'coop':'pvp';
+                        if(type==='coop'){
+                            const coopResult=resOrWin.toLowerCase().includes('win')?'win':'lose';
+                            const participants=partsOrScores.split(';').map(s=>s.trim()).filter(Boolean);
+                            participants.forEach(p=>{if(!myPlayers.includes(p))myPlayers.push(p)});
+                            gameLogs.push({game,type:'coop',participants,coopResult,date:date||new Date().toISOString()});
+                            importedCount++;
+                        }else{
+                            const scores={};
+                            partsOrScores.split(';').forEach(item=>{
+                                const parts=item.split(':');
+                                if(parts.length===2){
+                                    const p=parts[0].trim(),s=Number(parts[1].trim());
+                                    if(p&&!isNaN(s)){scores[p]=s;if(!myPlayers.includes(p))myPlayers.push(p);}
+                                }
+                            });
+                            if(Object.keys(scores).length>0){
+                                const max=Math.max(...Object.values(scores));
+                                const winners=Object.keys(scores).filter(p=>scores[p]===max);
+                                gameLogs.push({game,type:'pvp',scores,winners,winner:winners[0],date:date||new Date().toISOString()});
+                                importedCount++;
+                            }
+                        }
+                    }
+                }
+            }
+            saveAll();updateUI();
+            alert(`Успешно импортирани ${importedCount} записа!`);
+            input.value='';
+        }catch(err){alert('Грешка при парсиране на CSV файла.')}
     };
     reader.readAsText(file);
 }
+function parseCsvLine(text){
+    let ret=[];let cur='';let inQuote=false;
+    for(let i=0;i<text.length;i++){
+        let c=text[i];
+        if(c==='"'){
+            if(inQuote&&text[i+1]==='"'){cur+='"';i++;}
+            else{inQuote=!inQuote;}
+        }else if(c===','&&!inQuote){ret.push(cur);cur='';}
+        else{cur+=c;}
+    }
+    ret.push(cur);
+    return ret.map(s=>s.trim());
+}
 
-// Стартиране на приложението с извличане от Gist при зареждане
-loadDataFromGist();
+// Автоматично зареждане от Gist при старт
+loadFromGist();
+updateUI();
 </script>
 </body>
 </html>
