@@ -82,10 +82,135 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
-  import { initializeApp } from
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Извикваме зареждането веднага щом се стартира модулът
-  loadDataFromFirebase();
+const firebaseConfig = {
+  apiKey: "AIzaSyD_DjQ3XXZG3PM-yohUpPUXcQdrcDg5biE",
+  authDomain: "boardgame-tracker-dafab.firebaseapp.com",
+  projectId: "boardgame-tracker-dafab",
+  storageBucket: "boardgame-tracker-dafab.appspot.com",
+  messagingSenderId: "376292702901",
+  appId: "1:376292702901:web:f9c7ccc119654b7a23dcfc"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const docRef = doc(db, "boardgame_data", "main_tracker");
+
+let isSaving = false;
+let lastKnownUpdated = null;
+
+// Създава стабилен id за стари записи (които нямат id)
+function ensureLogId(log) {
+  if (log.id) return log.id;
+
+  const key = (log.date || '') + '|' + (log.game || '') + '|' + 
+    (log.type === 'coop'
+      ? ((log.participants || []).join(',') + '|' + (log.coopResult || ''))
+      : JSON.stringify(log.scores || {}));
+
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = ((hash << 5) - hash) + key.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'old_' + Math.abs(hash).toString(36);
+}
+
+// Слива два масива от логове
+function mergeGameLogs(localLogs, cloudLogs) {
+  const map = new Map();
+
+  (cloudLogs || []).forEach(log => {
+    const id = ensureLogId(log);
+    map.set(id, { ...log, id });
+  });
+
+  (localLogs || []).forEach(log => {
+    const id = ensureLogId(log);
+    map.set(id, { ...log, id });
+  });
+
+  return Array.from(map.values()).sort((a, b) => {
+    return (a.date || '').localeCompare(b.date || '');
+  });
+}
+
+// Real-time слушане
+onSnapshot(docRef, (docSnap) => {
+  if (!docSnap.exists() || isSaving) return;
+
+  const cloud = docSnap.data();
+  const cloudUpdated = cloud.lastUpdated || '';
+
+  if (cloudUpdated === lastKnownUpdated) return;
+
+  console.log('Получени данни от Firebase...');
+
+  const mergedLogs = mergeGameLogs(
+    window.gameLogs || [],
+    cloud.gameLogs || []
+  );
+
+  if (cloud.myGamesObj) {
+    window.myGamesObj = cloud.myGamesObj;
+    localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj));
+  }
+  if (cloud.myPlayers) {
+    window.myPlayers = cloud.myPlayers;
+    localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers));
+  }
+
+  window.gameLogs = mergedLogs;
+  localStorage.setItem('gameLogs', JSON.stringify(mergedLogs));
+
+  // Синхронизираме let променливите
+  if (typeof myGamesObj !== 'undefined') myGamesObj = window.myGamesObj;
+  if (typeof myPlayers !== 'undefined') myPlayers = window.myPlayers;
+  if (typeof gameLogs !== 'undefined') gameLogs = window.gameLogs;
+
+  lastKnownUpdated = cloudUpdated;
+
+  if (typeof updateUI === 'function') updateUI();
+  if (typeof showStats === 'function') showStats();
+  if (typeof renderDetailedStats === 'function') renderDetailedStats();
+  if (typeof renderPlayerStats === 'function') renderPlayerStats();
+
+  console.log('Синхронизирано. Общо партии:', mergedLogs.length);
+});
+
+// Запис към Firebase
+window.saveDataToFirebase = async function () {
+  try {
+    isSaving = true;
+
+    const logsWithId = (window.gameLogs || []).map(log => {
+      const id = ensureLogId(log);
+      return { ...log, id };
+    });
+
+    const payload = {
+      myGamesObj: window.myGamesObj,
+      myPlayers: window.myPlayers,
+      gameLogs: logsWithId,
+      lastUpdated: new Date().toISOString()
+    };
+
+    await setDoc(docRef, payload, { merge: true });
+    lastKnownUpdated = payload.lastUpdated;
+
+    window.gameLogs = logsWithId;
+    if (typeof gameLogs !== 'undefined') gameLogs = logsWithId;
+    localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
+
+    console.log('Успешно качено. Партии:', logsWithId.length);
+  } catch (error) {
+    console.error('Грешка при качване:', error);
+  } finally {
+    setTimeout(() => { isSaving = false; }, 1000);
+  }
+};
 </script>
 </head>
 <body>
@@ -342,12 +467,27 @@ function logGame(){
         if(!checked.length)return alert('Моля, избери поне един играч за отбора!');
         if(!selectedCoopResult)return alert('Моля, избери победа или загуба!');
         const participants=checked.map(cb=>cb.closest('.player-card').querySelector('.player-name').textContent);
-        gameLogs.push({game,type:'coop',participants,coopResult:selectedCoopResult,date:new Date().toISOString()});
+        gameLogs.push({
+    id: crypto.randomUUID(),
+    game,
+    type: 'coop',
+    participants,
+    coopResult: selectedCoopResult,
+    date: new Date().toISOString()
+});
     }else{
         if(checked.length<2)return alert('Моля, избери поне 2 играчи!');
         const result=calculateWinner();if(!result)return alert('Моля, попълни точките на всички участници.');
         const scores={};checked.forEach(cb=>{const p=cb.closest('.player-card').querySelector('.player-name').textContent;scores[p]=Number(document.getElementById('score_'+idSafe(p)).value)});
-        gameLogs.push({game,type:'pvp',scores,winners:result.winners,winner:result.winners[0],date:new Date().toISOString()});
+        gameLogs.push({
+    id: crypto.randomUUID(),
+    game,
+    type: 'pvp',
+    scores,
+    winners: result.winners,
+    winner: result.winners[0],
+    date: new Date().toISOString()
+});
     }
     saveAll();
     const status=document.getElementById('logStatus');status.className='success';
@@ -952,7 +1092,14 @@ function importCsvData(){
                             const coopResult=resOrWin.toLowerCase().includes('win')?'win':'lose';
                             const participants=partsOrScores.split(';').map(s=>s.trim()).filter(Boolean);
                             participants.forEach(p=>{if(!myPlayers.includes(p))myPlayers.push(p)});
-                            gameLogs.push({game,type:'coop',participants,coopResult,date:date||new Date().toISOString()});
+                            gameLogs.push({
+    id: crypto.randomUUID(),
+    game,
+    type: 'coop',
+    participants,
+    coopResult,
+    date: date || new Date().toISOString()
+});
                             importedCount++;
                         }else{
                             const scores={};
@@ -966,7 +1113,15 @@ function importCsvData(){
                             if(Object.keys(scores).length>0){
                                 const max=Math.max(...Object.values(scores));
                                 const winners=Object.keys(scores).filter(p=>scores[p]===max);
-                                gameLogs.push({game,type:'pvp',scores,winners,winner:winners[0],date:date||new Date().toISOString()});
+                                gameLogs.push({
+    id: crypto.randomUUID(),
+    game,
+    type: 'pvp',
+    scores,
+    winners,
+    winner: winners[0],
+    date: date || new Date().toISOString()
+});
                                 importedCount++;
                             }
                         }
