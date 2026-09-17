@@ -65,6 +65,7 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 .player-filter-btn{background:#f1f3f5;color:#495057;border:2px solid #dee2e6;padding:10px 18px;border-radius:20px;font-weight:bold;white-space:nowrap;margin:0;width:auto;cursor:pointer}
 .player-filter-btn.active{background:#f0fdf4;border-color:var(--green);color:var(--green-dark)}
 
+/* Стилове за визуализация на Win rate */
 .winrate-bar-container{display:flex;align-items:center;gap:8px;min-width:130px}
 .winrate-track{flex:1;background:#e9ecef;height:10px;border-radius:5px;overflow:hidden;position:relative}
 .winrate-fill{height:100%;border-radius:5px;transition:width .4s ease}
@@ -79,6 +80,79 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 .small{font-size:12px;color:var(--muted)}.success{color:var(--green-dark)}.error{color:#991b1b}
 @media(max-width:650px){body{padding:8px}.container{padding:15px}.dashboard{grid-template-columns:repeat(2,1fr)}.tabs{overflow-x:auto}.tab{min-width:110px}.player-card{padding:10px}.score-wrapper span{display:none}}
 </style>
+<!-- Firebase App (Core) и Firestore (База данни) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // 1. Твоите настройки от Firebase Конзолата
+  const firebaseConfig = {
+    apiKey: "AIzaSyD_DjQ3XXZG3PM-yohUpPUXcQdrcDg5biE",
+    authDomain: "boardgame-tracker-dafab.firebaseapp.com",
+    projectId: "boardgame-tracker-dafab",
+    storageBucket: "boardgame-tracker-dafab.appspot.com",
+    messagingSenderId: "...",
+    appId: "..."
+  };
+
+  // 2. Стартираме Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 3. Функция за зареждане на данните от Firebase при отваряне
+  async function loadDataFromFirebase() {
+    try {
+      const docRef = doc(db, "boardgame_data", "main_tracker");
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const cloudData = docSnap.data();
+        
+        // Ако има данни в облака, ги зареждаме в глобалните променливи
+        if (cloudData.myGamesObj) {
+          window.myGamesObj = cloudData.myGamesObj;
+          localStorage.setItem('myGamesObj', JSON.stringify(cloudData.myGamesObj));
+        }
+        if (cloudData.myPlayers) {
+          window.myPlayers = cloudData.myPlayers;
+          localStorage.setItem('myPlayers', JSON.stringify(cloudData.myPlayers));
+        }
+        if (cloudData.gameLogs) {
+          window.gameLogs = cloudData.gameLogs;
+          localStorage.setItem('gameLogs', JSON.stringify(cloudData.gameLogs));
+        }
+        
+        // Обновяваме екрана с новите данни
+        if (typeof updateUI === 'function') updateUI();
+        console.log("Данните са заредени успешно от Firebase!");
+      }
+    } catch (error) {
+      console.error("Грешка при зареждане от Firebase:", error);
+    }
+  }
+
+  // 4. Функция за запис на данните в Firebase (експортираме я глобално)
+  window.saveDataToFirebase = async function() {
+    try {
+      // Подготвяме обект за записа само с налични (дефинирани) данни
+      const payload = {
+        lastUpdated: new Date().toISOString()
+      };
+      
+      if (typeof window.myGamesObj !== 'undefined') payload.myGamesObj = window.myGamesObj;
+      if (typeof window.myPlayers !== 'undefined') payload.myPlayers = window.myPlayers;
+      if (typeof window.gameLogs !== 'undefined') payload.gameLogs = window.gameLogs;
+
+      await setDoc(doc(db, "boardgame_data", "main_tracker"), payload, { merge: true });
+      console.log("Данните са синхронизирани с Firebase!");
+    } catch (error) {
+      console.error("Грешка при запис във Firebase:", error);
+    }
+  };
+
+  // Извикваме зареждането веднага щом се стартира модулът
+  loadDataFromFirebase();
+</script>
 </head>
 <body>
 <div class="container">
@@ -140,12 +214,6 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 
     <div id="manage" class="tab-content">
         <h2>Управление на колекцията</h2>
-        
-        <label style="color:#28a745">☁️ GitHub Gist Синхронизация</label>
-        <button class="btn-info" style="background:#28a745" onclick="syncWithGist()">🔄 Синхронизирай с GitHub Gist</button>
-        <div class="small">Зарежда и записва данните директно от вашия отдалечен Gist.</div>
-        <hr>
-
         <label>Добави нова игра</label>
         <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
         <label>Тип на играта</label>
@@ -174,11 +242,6 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 </div>
 
 <script>
-// --- КОНФИГУРАЦИЯ ЗА GITHUB GIST ---
-const GIST_ID = "acb9feaca418167d9e52a0284ac1f61f"; 
-const GITHUB_TOKEN = "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";
-// -----------------------------------
-
 const initialGames = {
     "Everdell": "pvp",
     "Heat": "pvp",
@@ -207,57 +270,6 @@ let currentLogFilter = 'pvp';
 let selectedCoopResult = null;
 let selectedStatPlayer = null;
 
-// Функции за GitHub Gist синхронизация
-async function syncWithGist() {
-    if (GIST_ID.includes("ПОСТАВИ") || !GIST_ID) return alert("Моля, попълнете коректно GIST_ID и GITHUB_TOKEN в кода.");
-    
-    const data = { myGamesObj, myPlayers, gameLogs };
-    try {
-        const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                files: {
-                    "board-game-data.json": {
-                        content: JSON.stringify(data, null, 2)
-                    }
-                }
-            })
-        });
-
-        if (response.ok) {
-            alert("Успешно синхронизирано с GitHub Gist!");
-        } else {
-            const err = await response.json();
-            alert("Грешка при синхронизация: " + (err.message || 'Възникна проблем'));
-        }
-    } catch (e) {
-        alert("Мрежова грешка при връзка с GitHub.");
-    }
-}
-
-async function loadFromGist() {
-    if (GIST_ID.includes("ПОСТАВИ") || !GIST_ID) return;
-    try {
-        const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-        if (!response.ok) return;
-        const data = await response.json();
-        if (data.files && data.files["board-game-data.json"]) {
-            const parsed = JSON.parse(data.files["board-game-data.json"].content);
-            if (parsed.myGamesObj) myGamesObj = parsed.myGamesObj;
-            if (parsed.myPlayers) myPlayers = parsed.myPlayers;
-            if (parsed.gameLogs) gameLogs = parsed.gameLogs;
-            saveAll();
-            updateUI();
-            console.log("Данните са успешно заредени от Gist!");
-        }
-    } catch (e) {
-        console.log("Неуспешно зареждане от Gist, ползвам локални данни.");
-    }
-}
 
 function loadJSON(key, fallback){
     try{const v=JSON.parse(localStorage.getItem(key));return v ?? fallback}catch(e){return fallback}
@@ -266,6 +278,11 @@ function saveAll(){
     localStorage.setItem('myGamesObj',JSON.stringify(myGamesObj));
     localStorage.setItem('myPlayers',JSON.stringify(myPlayers));
     localStorage.setItem('gameLogs',JSON.stringify(gameLogs));
+    
+    // Автоматично пращаме към Firebase при всяка промяна
+    if(typeof window.saveDataToFirebase === 'function') {
+        window.saveDataToFirebase();
+    }
 }
 function esc(v){
     return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -546,6 +563,18 @@ function renderPlayerStats(){
         if(data.losses > maxLosses){ maxLosses = data.losses; topLossGame = `${g} (${data.losses} загуби)`; }
     });
 
+    let bestRateGame = '-';
+    let maxRate = -1;
+    Object.entries(gameStatsMap).forEach(([g, data]) => {
+        if(data.played >= 2){
+            const rate = (data.wins / data.played) * 100;
+            if(rate > maxRate){
+                maxRate = rate;
+                bestRateGame = `${g} (${rate.toFixed(1)}% / ${data.played} партии)`;
+            }
+        }
+    });
+
     let html = `<div class="game-stats-box" style="border-left: 4px solid var(--green);">
         <h3>👤 Личен профил: ${esc(p)}</h3>
         <div class="dashboard" style="margin-top:15px">
@@ -555,7 +584,7 @@ function renderPlayerStats(){
             <div class="stat-card"><div class="num">${Object.keys(gameStatsMap).length}</div><div class="label">Играни игри</div></div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0">
+       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0">
             <div class="stat-card" style="text-align:left;padding:14px">
                 <div class="small" style="color:var(--muted)">❤️ Най-играна игра (Любима)</div>
                 <div style="font-weight:bold;font-size:15px;margin-top:4px">${esc(favGame)}</div>
@@ -563,6 +592,10 @@ function renderPlayerStats(){
             <div class="stat-card" style="text-align:left;padding:14px">
                 <div class="small" style="color:var(--muted)">🏆 Игра с най-много победи</div>
                 <div style="font-weight:bold;font-size:15px;margin-top:4px;color:var(--green-dark)">${esc(topWinGame)}</div>
+            </div>
+            <div class="stat-card" style="text-align:left;padding:14px">
+                <div class="small" style="color:var(--muted)">🎯 Най-висок Win rate</div>
+                <div style="font-weight:bold;font-size:15px;margin-top:4px;color:var(--blue)">${esc(bestRateGame)}</div>
             </div>
             <div class="stat-card" style="text-align:left;padding:14px">
                 <div class="small" style="color:var(--muted)">❌ Игра с най-много загуби</div>
@@ -632,7 +665,6 @@ function renderPlayerStats(){
     html += `</table></div></div>`;
     out.innerHTML = html;
 }
-
 function showStats(){
     const out=document.getElementById('statsOverviewOutput');
     if(!gameLogs.length){
@@ -1025,8 +1057,6 @@ function parseCsvLine(text){
     return ret.map(s=>s.trim());
 }
 
-// Автоматично зареждане от Gist при старт
-loadFromGist();
 updateUI();
 </script>
 </body>
