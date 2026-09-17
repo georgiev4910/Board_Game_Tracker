@@ -378,8 +378,19 @@ function updateUI(){
 }
 function renderManagePlayers(){
     const el=document.getElementById('managePlayersList');
-   el.innerHTML = myPlayers.length ? myPlayers.map(p => `<div class="manage-list-item"><span>${esc(p)}</span><button class="btn-danger" onclick="removePlayer('${p.replace(/'/g, "\\'")}')">Изтрий</button></div>`).join('') : '<span class="small">Няма добавени играчи.</span>';
+  el.innerHTML = myPlayers.length ? myPlayers.map(p => `
+    <div class="manage-list-item">
+        <span>${esc(p)}</span>
+        <button class="btn-danger delete-player-btn" data-player="${esc(p)}">Изтрий</button>
+    </div>
+`).join('') : '<span class="small">Няма добавени играчи.</span>';
 }
+document.getElementById('managePlayersList').addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-player-btn')) {
+        const playerName = e.target.getAttribute('data-player');
+        removePlayer(playerName);
+    }
+});
 function getSelection(){
     const checked={}; const scores={};
     myPlayers.forEach(p=>{
