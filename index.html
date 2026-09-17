@@ -811,7 +811,12 @@ function showStats(){
 
     html+='</table></div></div>';
 
-    const activePlayers = myPlayers.slice(0, 2);
+    const activePlayers = [...new Set([
+    ...myPlayers,
+    ...gameLogs
+        .filter(l => l.type === 'pvp' && l.scores)
+        .flatMap(l => Object.keys(l.scores || {}))
+])].sort((a, b) => a.localeCompare(b, 'bg'));
     const pvpLogsOnly = gameLogs.filter(l => l.type === 'pvp');
     const coopLogsOnly = gameLogs.filter(l => l.type === 'coop');
 
@@ -939,43 +944,46 @@ function renderDetailedStatsForSingleGame(gameName, gameLogsList){
         });
         html += '</table></div>';
 
-        const gamePlayers = players.slice(0, 2);
-        const p1 = gamePlayers[0] || 'Играч 1';
-        const p2 = gamePlayers[1] || 'Играч 2';
-
         html += `<h3 style="margin-top:18px">📜 История на партиите</h3>
-        <div class="table-responsive"><table>
-        <tr><th>Дата</th><th>${esc(p1)}</th><th>${esc(p2)}</th></tr>`;
+<div class="table-responsive"><table>
+<tr><th>Дата</th>`;
 
-        pvpLogs.slice().reverse().forEach(l => {
-            const scores = l.scores || {};
-            const val1 = scores[p1] !== undefined ? scores[p1] : '-';
-            const val2 = scores[p2] !== undefined ? scores[p2] : '-';
-            const winnersArr = l.winners || [l.winner];
+// Динамични заглавия за всички играчи
+players.forEach(p => {
+    html += `<th>${esc(p)}</th>`;
+});
+html += `</tr>`;
 
-            const isP1Winner = winnersArr.includes(p1);
-            const isP2Winner = winnersArr.includes(p2);
-            const isTieMatch = winnersArr.length > 1 && isP1Winner && isP2Winner;
+pvpLogs.slice().reverse().forEach(l => {
+    const scores = l.scores || {};
+    const winnersArr = l.winners || [l.winner];
+    const isTieMatch = winnersArr.length > 1;
 
-            let tdClass1 = '';
-            let tdClass2 = '';
-            let text1 = val1 !== '-' ? String(val1) : '-';
-            let text2 = val2 !== '-' ? String(val2) : '-';
+    html += `<tr><td>${formatDate(l.date)}</td>`;
 
-            if (isTieMatch) {
-                if (val1 !== '-') tdClass1 = 'tie-score';
-                if (val2 !== '-') tdClass2 = 'tie-score';
-                if (text1 !== '-') text1 += ' 🏅';
-                if (text2 !== '-') text2 += ' 🏅';
-            } else {
-                if (isP1Winner && val1 !== '-') { tdClass1 = 'winner-score'; text1 += ' 🏆'; }
-                if (isP2Winner && val2 !== '-') { tdClass2 = 'winner-score'; text2 += ' 🏆'; }
+    players.forEach(p => {
+        const val = scores[p] !== undefined ? scores[p] : '-';
+        const isWinner = winnersArr.includes(p);
+        let tdClass = '';
+        let text = val !== '-' ? String(val) : '-';
+
+        if (val !== '-') {
+            if (isTieMatch && isWinner) {
+                tdClass = 'tie-score';
+                text += ' 🏅';
+            } else if (isWinner) {
+                tdClass = 'winner-score';
+                text += ' 🏆';
             }
+        }
 
-            html += `<tr><td>${formatDate(l.date)}</td><td class="${tdClass1}">${esc(text1)}</td><td class="${tdClass2}">${esc(text2)}</td></tr>`;
-        });
-        html += '</table></div>';
-    }
+        html += `<td class="${tdClass}">${esc(text)}</td>`;
+    });
+
+    html += `</tr>`;
+});
+
+html += '</table></div>';
 
     if(coopLogs.length){
         const cWins = coopLogs.filter(l => l.coopResult === 'win').length;
