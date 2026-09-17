@@ -944,47 +944,47 @@ function renderDetailedStatsForSingleGame(gameName, gameLogsList){
         });
         html += '</table></div>';
 
+        // История на партиите (динамична за всички играчи)
         html += `<h3 style="margin-top:18px">📜 История на партиите</h3>
-<div class="table-responsive"><table>
-<tr><th>Дата</th>`;
+        <div class="table-responsive"><table>
+        <tr><th>Дата</th>`;
 
-// Динамични заглавия за всички играчи
-players.forEach(p => {
-    html += `<th>${esc(p)}</th>`;
-});
-html += `</tr>`;
+        players.forEach(p => {
+            html += `<th>${esc(p)}</th>`;
+        });
+        html += `</tr>`;
 
-pvpLogs.slice().reverse().forEach(l => {
-    const scores = l.scores || {};
-    const winnersArr = l.winners || [l.winner];
-    const isTieMatch = winnersArr.length > 1;
+        pvpLogs.slice().reverse().forEach(l => {
+            const scores = l.scores || {};
+            const winnersArr = l.winners || [l.winner];
+            const isTieMatch = winnersArr.length > 1;
 
-    html += `<tr><td>${formatDate(l.date)}</td>`;
+            html += `<tr><td>${formatDate(l.date)}</td>`;
 
-    players.forEach(p => {
-        const val = scores[p] !== undefined ? scores[p] : '-';
-        const isWinner = winnersArr.includes(p);
-        let tdClass = '';
-        let text = val !== '-' ? String(val) : '-';
+            players.forEach(p => {
+                const val = scores[p] !== undefined ? scores[p] : '-';
+                const isWinner = winnersArr.includes(p);
+                let tdClass = '';
+                let text = val !== '-' ? String(val) : '-';
 
-        if (val !== '-') {
-            if (isTieMatch && isWinner) {
-                tdClass = 'tie-score';
-                text += ' 🏅';
-            } else if (isWinner) {
-                tdClass = 'winner-score';
-                text += ' 🏆';
-            }
-        }
+                if (val !== '-') {
+                    if (isTieMatch && isWinner) {
+                        tdClass = 'tie-score';
+                        text += ' 🏅';
+                    } else if (isWinner) {
+                        tdClass = 'winner-score';
+                        text += ' 🏆';
+                    }
+                }
 
-        html += `<td class="${tdClass}">${esc(text)}</td>`;
-    });
+                html += `<td class="${tdClass}">${esc(text)}</td>`;
+            });
 
-    html += `</tr>`;
-});
+            html += `</tr>`;
+        });
 
-html += '</table></div>';
-}
+        html += '</table></div>';
+    }
 
     if(coopLogs.length){
         const cWins = coopLogs.filter(l => l.coopResult === 'win').length;
@@ -1017,7 +1017,6 @@ html += '</table></div>';
     html += `</div>`;
     return html;
 }
-
 function renderDetailedStats(){
     const out=document.getElementById('statsDetailOutput');
     if(!gameLogs.length){out.innerHTML='<div class="empty">Все още няма записани партии.</div>';return}
