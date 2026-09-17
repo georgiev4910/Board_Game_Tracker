@@ -125,21 +125,13 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
           dataUpdated = true;
         }
         
-        // Ако успешно заредихме данни от облака, опресняваме целия интерфейс на екрана
+        // Ако в облака има данни, които се различават или липсват локално, презареждаме страницата тихо
         if (dataUpdated) {
-          // Синхронизираме глобалните променливи на основния скрипт, ако е нужно
-          if (typeof myGamesObj !== 'undefined') myGamesObj = window.myGamesObj;
-          if (typeof myPlayers !== 'undefined') myPlayers = window.myPlayers;
-          if (typeof gameLogs !== 'undefined') gameLogs = window.gameLogs;
-          
-          // Извикваме функцията за обновяване на екрана (ако съществува в твоя скрипт)
-          if (typeof updateUI === 'function') {
-            updateUI();
-          } else if (typeof renderStats === 'function') {
-            renderStats();
+          // Проверяваме дали текущата локална дължина на логовете е по-малка от облачната
+          const localLogs = JSON.parse(localStorage.getItem('gameLogs') || '[]');
+          if (localLogs.length !== (cloudData.gameLogs ? cloudData.gameLogs.length : 0)) {
+            location.reload();
           }
-          // Презареждаме страницата тихо, за да се нарисуват новите данни във всички табове
-          location.reload();
         }
         
         console.log("Данните са заредени успешно от Firebase!");
