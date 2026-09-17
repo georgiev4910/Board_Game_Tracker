@@ -82,94 +82,7 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyD_DjQ3XXZG3PM-yohUpPUXcQdrcDg5biE",
-    authDomain: "boardgame-tracker-dafab.firebaseapp.com",
-    projectId: "boardgame-tracker-dafab",
-    storageBucket: "boardgame-tracker-dafab.appspot.com",
-    messagingSenderId: "...",
-    appId: "..."
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // Функция за четене от облака при стартиране
-  async function loadDataFromFirebase() {
-    try {
-      const docRef = doc(db, "boardgame_data", "main_tracker");
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        const cloudData = docSnap.data();
-        let shouldReload = false;
-        
-        if (cloudData.myGamesObj) {
-          localStorage.setItem('myGamesObj', JSON.stringify(cloudData.myGamesObj));
-        }
-        if (cloudData.myPlayers) {
-          localStorage.setItem('myPlayers', JSON.stringify(cloudData.myPlayers));
-        }
-        if (cloudData.gameLogs) {
-          const localLogs = JSON.parse(localStorage.getItem('gameLogs') || '[]');
-          // Ако в облака има повече игри отколкото локално, обновяваме локалното
-          if (cloudData.gameLogs.length > localLogs.length) {
-            localStorage.setItem('gameLogs', JSON.stringify(cloudData.gameLogs));
-            shouldReload = true;
-          }
-        }
-        
-        console.log("Успешно заредено от Firebase!");
-        if (shouldReload) {
-          location.reload(); // Опреснява страницата, за да покаже новите данни от облака
-        }
-      }
-    } catch (error) {
-      console.error("Грешка при четене от Firebase:", error);
-    }
-  }
-
-  // Функция за запис към облака (достъпна глобално)
-  window.saveDataToFirebase = async function() {
-    try {
-      const payload = {
-        myGamesObj: window.myGamesObj || JSON.parse(localStorage.getItem('myGamesObj') || '{}'),
-        myPlayers: window.myPlayers || JSON.parse(localStorage.getItem('myPlayers') || '[]'),
-        gameLogs: window.gameLogs || JSON.parse(localStorage.getItem('gameLogs') || '[]'),
-        lastUpdated: new Date().toISOString()
-      };
-
-      await setDoc(doc(db, "boardgame_data", "main_tracker"), payload, { merge: true });
-      console.log("✅ Данните са качени успешно в Firebase!");
-    } catch (error) {
-      console.error("❌ Грешка при качване във Firebase:", error);
-    }
-  };
-
-  // Извикваме зареждането веднага при старт
-  loadDataFromFirebase();
-
-  // 4. Функция за запис на данните в Firebase (експортираме я глобално)
-  window.saveDataToFirebase = async function() {
-    try {
-      // Подготвяме обект за записа само с налични (дефинирани) данни
-      const payload = {
-        lastUpdated: new Date().toISOString()
-      };
-      
-      if (typeof window.myGamesObj !== 'undefined') payload.myGamesObj = window.myGamesObj;
-      if (typeof window.myPlayers !== 'undefined') payload.myPlayers = window.myPlayers;
-      if (typeof window.gameLogs !== 'undefined') payload.gameLogs = window.gameLogs;
-
-      await setDoc(doc(db, "boardgame_data", "main_tracker"), payload, { merge: true });
-      console.log("Данните са синхронизирани с Firebase!");
-    } catch (error) {
-      console.error("Грешка при запис във Firebase:", error);
-    }
-  };
+  import { initializeApp } from
 
   // Извикваме зареждането веднага щом се стартира модулът
   loadDataFromFirebase();
@@ -284,9 +197,13 @@ const initialGames = {
     "Имхотеп - двубоят": "pvp"
 };
 
-let myGamesObj = loadJSON('myGamesObj', initialGames);
-let myPlayers = loadJSON('myPlayers', ['Нина','Митко']);
-let gameLogs = loadJSON('gameLogs', []);
+window.myGamesObj = loadJSON('myGamesObj', initialGames);
+window.myPlayers = loadJSON('myPlayers', ['Нина','Митко']);
+window.gameLogs = loadJSON('gameLogs', []);
+
+let myGamesObj = window.myGamesObj;
+let myPlayers = window.myPlayers;
+let gameLogs = window.gameLogs;
 let currentLogFilter = 'pvp';
 let selectedCoopResult = null;
 let selectedStatPlayer = null;
@@ -295,15 +212,14 @@ let selectedStatPlayer = null;
 function loadJSON(key, fallback){
     try{const v=JSON.parse(localStorage.getItem(key));return v ?? fallback}catch(e){return fallback}
 }
-function saveAll(){
-    localStorage.setItem('myGamesObj',JSON.stringify(myGamesObj));
-    localStorage.setItem('myPlayers',JSON.stringify(myPlayers));
-    localStorage.setItem('gameLogs',JSON.stringify(gameLogs));
-    
-    // Автоматично пращаме към Firebase при всяка промяна
-    if(typeof window.saveDataToFirebase === 'function') {
-        window.saveDataToFirebase();
-    }
+function saveAll() {
+  localStorage.setItem('myGamesObj', JSON.stringify(myGamesObj));
+  localStorage.setItem('myPlayers', JSON.stringify(myPlayers));
+  localStorage.setItem('gameLogs', JSON.stringify(gameLogs));
+
+  if (typeof window.saveDataToFirebase === 'function') {
+    window.saveDataToFirebase();
+  }
 }
 function esc(v){
     return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
