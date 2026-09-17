@@ -107,27 +107,45 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
       
       if (docSnap.exists()) {
         const cloudData = docSnap.data();
+        let dataUpdated = false;
         
-        // Ако има данни в облака, ги зареждаме в глобалните променливи
-        if (cloudData.myGamesObj) {
+        if (cloudData.myGamesObj && Object.keys(cloudData.myGamesObj).length > 0) {
           window.myGamesObj = cloudData.myGamesObj;
           localStorage.setItem('myGamesObj', JSON.stringify(cloudData.myGamesObj));
+          dataUpdated = true;
         }
-        if (cloudData.myPlayers) {
+        if (cloudData.myPlayers && cloudData.myPlayers.length > 0) {
           window.myPlayers = cloudData.myPlayers;
           localStorage.setItem('myPlayers', JSON.stringify(cloudData.myPlayers));
+          dataUpdated = true;
         }
-        if (cloudData.gameLogs) {
+        if (cloudData.gameLogs && cloudData.gameLogs.length > 0) {
           window.gameLogs = cloudData.gameLogs;
           localStorage.setItem('gameLogs', JSON.stringify(cloudData.gameLogs));
+          dataUpdated = true;
         }
         
-        // Обновяваме екрана с новите данни
-        if (typeof updateUI === 'function') updateUI();
+        // Ако успешно заредихме данни от облака, опресняваме целия интерфейс на екрана
+        if (dataUpdated) {
+          // Синхронизираме глобалните променливи на основния скрипт, ако е нужно
+          if (typeof myGamesObj !== 'undefined') myGamesObj = window.myGamesObj;
+          if (typeof myPlayers !== 'undefined') myPlayers = window.myPlayers;
+          if (typeof gameLogs !== 'undefined') gameLogs = window.gameLogs;
+          
+          // Извикваме функцията за обновяване на екрана (ако съществува в твоя скрипт)
+          if (typeof updateUI === 'function') {
+            updateUI();
+          } else if (typeof renderStats === 'function') {
+            renderStats();
+          }
+          // Презареждаме страницата тихо, за да се нарисуват новите данни във всички табове
+          location.reload();
+        }
+        
         console.log("Данните са заредени успешно от Firebase!");
       }
     } catch (error) {
-      console.error("Грешка при зареждане от Firebase:", error);
+      console.warn("Firebase зареждането е пропуснато или няма връзка:", error);
     }
   }
 
