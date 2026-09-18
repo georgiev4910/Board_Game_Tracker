@@ -138,6 +138,66 @@ function mergeGameLogs(localLogs, cloudLogs) {
 }
 
 // Real-time слушане
+// Зареждане на данни от Firebase
+async function loadDataFromFirebase() {
+  try {
+    console.log('Изтегляне на данни от Firebase...');
+
+    const snap = await getDoc(docRef);
+
+    if (!snap.exists()) {
+      console.log('В Firebase все още няма записани данни.');
+      return false;
+    }
+
+    const cloud = snap.data();
+
+    if (cloud.myGamesObj) {
+      window.myGamesObj = cloud.myGamesObj;
+      myGamesObj = cloud.myGamesObj;
+      localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj));
+    }
+
+    if (cloud.myPlayers) {
+      window.myPlayers = cloud.myPlayers;
+      myPlayers = cloud.myPlayers;
+      localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers));
+    }
+
+    if (cloud.gameLogs) {
+      const logsWithId = cloud.gameLogs.map(log => {
+        const id = ensureLogId(log);
+        return { ...log, id };
+      });
+
+      window.gameLogs = logsWithId;
+      gameLogs = logsWithId;
+      localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
+    }
+
+    lastKnownUpdated = cloud.lastUpdated || '';
+
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof showStats === 'function') showStats();
+    if (typeof renderDetailedStats === 'function') renderDetailedStats();
+    if (typeof renderPlayerStats === 'function') renderPlayerStats();
+
+    console.log(
+      'Firebase данните са заредени. Партии:',
+      gameLogs.length
+    );
+
+    return true;
+
+  } catch (error) {
+    console.error('Грешка при изтегляне от Firebase:', error);
+    alert('Грешка при изтегляне на данните от Firebase.');
+    return false;
+  }
+}
+
+
+// Real-time слушане
 onSnapshot(docRef, (docSnap) => {
   if (!docSnap.exists() || isSaving) return;
 
@@ -146,29 +206,40 @@ onSnapshot(docRef, (docSnap) => {
 
   if (cloudUpdated === lastKnownUpdated) return;
 
-  console.log('Получени данни от Firebase...');
-
-  const mergedLogs = mergeGameLogs(
-    window.gameLogs || [],
-    cloud.gameLogs || []
-  );
+  console.log('Получени са нови данни от Firebase...');
 
   if (cloud.myGamesObj) {
     window.myGamesObj = cloud.myGamesObj;
-    localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj));
+    myGamesObj = cloud.myGamesObj;
+    localStorage.setItem(
+      'myGamesObj',
+      JSON.stringify(cloud.myGamesObj)
+    );
   }
+
   if (cloud.myPlayers) {
     window.myPlayers = cloud.myPlayers;
-    localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers));
+    myPlayers = cloud.myPlayers;
+    localStorage.setItem(
+      'myPlayers',
+      JSON.stringify(cloud.myPlayers)
+    );
   }
 
-  window.gameLogs = mergedLogs;
-  localStorage.setItem('gameLogs', JSON.stringify(mergedLogs));
+  if (cloud.gameLogs) {
+    const logsWithId = cloud.gameLogs.map(log => {
+      const id = ensureLogId(log);
+      return { ...log, id };
+    });
 
-  // Синхронизираме let променливите
-  if (typeof myGamesObj !== 'undefined') myGamesObj = window.myGamesObj;
-  if (typeof myPlayers !== 'undefined') myPlayers = window.myPlayers;
-  if (typeof gameLogs !== 'undefined') gameLogs = window.gameLogs;
+    window.gameLogs = logsWithId;
+    gameLogs = logsWithId;
+
+    localStorage.setItem(
+      'gameLogs',
+      JSON.stringify(logsWithId)
+    );
+  }
 
   lastKnownUpdated = cloudUpdated;
 
@@ -177,41 +248,72 @@ onSnapshot(docRef, (docSnap) => {
   if (typeof renderDetailedStats === 'function') renderDetailedStats();
   if (typeof renderPlayerStats === 'function') renderPlayerStats();
 
-  console.log('Синхронизирано. Общо партии:', mergedLogs.length);
+  console.log(
+    'Синхронизирано от Firebase. Общо партии:',
+    gameLogs.length
+  );
 });
-
 // Запис към Firebase
+// Запис на текущите данни във Firebase
 window.saveDataToFirebase = async function () {
   try {
     isSaving = true;
 
-    const logsWithId = (window.gameLogs || []).map(log => {
+    const logsWithId = gameLogs.map(log => {
       const id = ensureLogId(log);
       return { ...log, id };
     });
 
     const payload = {
-      myGamesObj: window.myGamesObj,
-      myPlayers: window.myPlayers,
+      myGamesObj: myGamesObj,
+      myPlayers: myPlayers,
       gameLogs: logsWithId,
       lastUpdated: new Date().toISOString()
     };
 
     await setDoc(docRef, payload, { merge: true });
+
     lastKnownUpdated = payload.lastUpdated;
 
-    window.gameLogs = logsWithId;
-    if (typeof gameLogs !== 'undefined') gameLogs = logsWithId;
-    localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
+    gameLogs = logsWithId;
 
-    console.log('Успешно качено. Партии:', logsWithId.length);
+    window.myGamesObj = myGamesObj;
+    window.myPlayers = myPlayers;
+    window.gameLogs = logsWithId;
+
+    localStorage.setItem(
+      'myGamesObj',
+      JSON.stringify(myGamesObj)
+    );
+
+    localStorage.setItem(
+      'myPlayers',
+      JSON.stringify(myPlayers)
+    );
+
+    localStorage.setItem(
+      'gameLogs',
+      JSON.stringify(logsWithId)
+    );
+
+    console.log(
+      'Успешно качено във Firebase. Партии:',
+      logsWithId.length
+    );
+
+    return true;
+
   } catch (error) {
-    console.error('Грешка при качване:', error);
+    console.error('Грешка при качване във Firebase:', error);
+    alert('Грешка при запис на данните във Firebase.');
+    return false;
+
   } finally {
-    setTimeout(() => { isSaving = false; }, 1000);
+    setTimeout(() => {
+      isSaving = false;
+    }, 1000);
   }
-};
-</script>
+};</script>
 </head>
 <body>
 <div class="container">
