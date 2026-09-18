@@ -401,11 +401,11 @@ function pickRandomGame(){
     const gameType = myGamesObj[randomGame];
     const typeLabel = gameType === 'coop' ? '🤝 Кооперативна игра (Co-op)' : '⚔️ Състезателна игра (PvP)';
     
-    let extraBtnHtml = '';
+   let extraBtnHtml = '';
     if(randomGame.trim().toLowerCase() === 'heat'){
         extraBtnHtml = `<div style="margin-top:15px;"><a href="./Heat.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏎️ Heat: Companion app</a></div>`;
     } else if(randomGame.trim().toLowerCase() === 'каркасон'){
-        extraBtnHtml = `<div style="margin-top:15px;"><a href="./Carcassonne.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏰 Carcassonne: Companion app</a></div>`;
+        extraBtnHtml = `<div style="margin-top:15px;"><a href="./carcassonne.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏰 Carcassonne: Companion app</a></div>`;
     }
 
     out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">🎲 Избраната игра за днес е:<br><br><span style="color:var(--blue);font-size:24px;">${esc(randomGame)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}</div>`;
