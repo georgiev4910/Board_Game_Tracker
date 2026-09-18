@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="bg" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carcassonne Companion</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            darkbg: '#121212',
+            surface: '#1e1e1e',
+            surfaceContainer: '#2c2c2c',
+            carcGreen: '#166534'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #121212; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body class="bg-darkbg text-gray-100 min-h-screen flex flex-col selection:bg-green-600 selection:text-white">
+
+  <!-- Header -->
+  <header class="bg-surface border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-1.5 mr-2 border-r border-gray-700 pr-3">
+        <button onclick="navigateTo('ModeSelectScreen')" title="Начало" class="bg-surfaceContainer hover:bg-gray-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center transition border border-gray-700">
+          <i class="fa-solid fa-house text-green-500"></i>
+        </button>
+        <button onclick="goBackStep()" title="Назад" class="bg-surfaceContainer hover:bg-gray-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center transition border border-gray-700">
+          <i class="fa-solid fa-arrow-left text-blue-400"></i>
+        </button>
+        <button onclick="goToTracker()" title="Към тракера" class="bg-surfaceContainer hover:bg-gray-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center transition border border-gray-700">
+          <i class="fa-solid fa-flag-checkered text-green-400"></i>
+        </button>
+      </div>
+
+      <div class="bg-green-700 p-2 rounded-lg text-white font-bold text-lg flex items-center justify-center w-10 h-10 shadow-lg shadow-green-900/30">
+        <i class="fa-solid fa-chess-pawn"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg sm:text-xl tracking-tight text-white">CARCASSONNE</h1>
+        <p class="text-xs text-gray-400">Companion Assistant</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main id="app-container" class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 pb-24"></main>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <script>
+    // --- ДАННИ ЗА КОЛЕКЦИЯТА ---
+    const CARC_DATA = {
+      baseGames: [
+        { id: 'base_v3', name: 'Каркасон (Трето издание) / Carcassonne (3rd Edition)', description: 'Стандартна базова игра с модерен дизайн.', includesMinis: ['Реката', 'Абатът'], isOwned: true }
+      ],
+      bigExpansions: [
+        { id: 'exp_1', name: 'Разширение 1: Кръчми и катедрали / Inns & Cathedrals', description: 'Добавя големи мепъли, катедрали, кръчми и цвят за 6-ти играч.' },
+        { id: 'exp_2', name: 'Разширение 2: Търговци и строители / Traders & Builders', description: 'Въвежда строители, прасета, жетони за стоки и търговия.' },
+        { id: 'exp_3', name: 'Разширение 3: Принцеса и дракон / The Princess and the Dragon', description: 'Добавя фея, дракон, принцеса и магически тунели.' },
+        { id: 'exp_4', name: 'Разширение 4: Кулата / The Tower', description: 'Позволява изграждане на кули и пленяване на чужди мепъли.' },
+        { id: 'exp_5', name: 'Разширение 5: Кмет и абат / Mayor & Monastery', description: 'Добавя кметове, хамбари, вагони и нови манастири.' },
+        { id: 'exp_6', name: 'Разширение 6: Граф, крал и река / Count, King and Robber', description: 'Включва Река II, града Каркасон и бонус плочки за крал и разбойник.' },
+        { id: 'exp_7', name: 'Разширение 7: Катапултът / The Catapult', description: 'Физически игриви елементи със стрелба по плочки и мепъли.' },
+        { id: 'exp_8', name: 'Разширение 8: Мостове, замъци и базари / Bridges, Castles and Bazaars', description: 'Строеж на мостове, замъци и наддаване на базарите.' },
+        { id: 'exp_9', name: 'Разширение 9: Хълмове и овчари / Hills & Sheep', description: 'Добавя хълмове, лозя и стада овчарчета с овце.' },
+        { id: 'exp_10', name: 'Разширение 10: Ученици и ръководители / Under the Big Top', description: 'Циркове, акробати и нови животни около арената.' }
+      ],
+      miniExpansions: [
+        { id: 'mini_river', name: 'Реката / The River', description: 'Включена в 3-то издание. Заменя стартовата плочка със змиевидна река.', isOwned: true, isDefaultIncluded: true },
+        { id: 'mini_abbot', name: 'Абатът / The Abbot', description: 'Включена в 3-то издание. Нови правила за манастири и градини.', isOwned: true, isDefaultIncluded: true },
+        { id: 'mini_gifts', name: 'Подаръците / The Gifts (Die Geschenke)', description: 'Малки подаръчни плочки, даващи специални бонуси при поставяне.', isOwned: false, isDefaultIncluded: false },
+        { id: 'mini_fliers', name: 'Авътите / The Fliers (Flight Machines)', description: 'Плочки с летателни апарати за местене на мепълите напред-назад.', isOwned: false, isDefaultIncluded: false },
+        { id: 'mini_ferries', name: 'Фериботите / The Ferries', description: 'Свързване и пренасочване на прекъснати пътища с дървени лодки.', isOwned: false, isDefaultIncluded: false },
+        { id: 'mini_gold', name: 'Златните мини / The Gold Mines', description: 'Добавя златни кюлчета в плочките за допълнителни точки.', isOwned: false, isDefaultIncluded: false },
+        { id: 'mini_mage', name: 'Магьосникът и вещицата / Mage & Witch', description: 'Добър магьосник и злата вещица, влияещи на градовете и пътищата.', isOwned: false, isDefaultIncluded: false },
+        { id: 'mini_crop', name: 'Кръговете в Каркасон / The Crop Circles', description: 'Позволява специални манипулации с мепълите на полето.', isOwned: false, isDefaultIncluded: false }
+      ]
+    };
+
+    let store = {
+      currentScreen: 'ModeSelectScreen',
+      ownedBaseId: 'base_v3',
+      ownedBigExpansions: [],
+      ownedMiniExpansions: ['mini_river', 'mini_abbot'],
+      settings: {
+        maxBigExpansions: 1,
+        maxMiniExpansions: 2,
+        forceRiver: false,
+        forceAbbot: false,
+        allowTilesOnly: true, 
+        dragonEnabled: true,     
+        fairyEnabled: true,      
+        catapultTilesOnly: true, 
+        towerCapturing: true,    
+        countModule: true,       
+        pigEnabled: true         
+      },
+      currentGeneration: null
+    };
+
+    let navigationHistory = ['ModeSelectScreen'];
+
+    function navigateTo(screenName) {
+      if (store.currentScreen !== screenName) {
+        navigationHistory.push(screenName);
+      }
+      store.currentScreen = screenName;
+      renderApp();
+      window.scrollTo(0, 0);
+    }
+
+    function goBackStep() {
+      if (navigationHistory.length > 1) {
+        navigationHistory.pop();
+        store.currentScreen = navigationHistory[navigationHistory.length - 1];
+        renderApp();
+        window.scrollTo(0, 0);
+      } else {
+        navigateTo('ModeSelectScreen');
+      }
+    }
+
+    function goToTracker() {
+      window.location.href = 'https://georgiev4910.github.io/Board_Game_Tracker/';
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'bg-surfaceContainer text-white px-4 py-3 rounded-xl shadow-xl border border-gray-700 pointer-events-auto flex items-center space-x-3 transition transform translate-y-2 opacity-0 duration-300';
+      toast.innerHTML = `<i class="fa-solid fa-chess-pawn text-green-500"></i><span class="text-sm font-medium">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // --- ЛОГИКА ЗА РАНДОМИЗИРАНЕ ---
+    function generateGameSetup() {
+      const availableBig = store.ownedBigExpansions;
+      const availableMini = store.ownedMiniExpansions;
+      const s = store.settings;
+
+      const hasRiverAvailable = availableMini.includes('mini_river');
+      let includeRiver = s.forceRiver ? hasRiverAvailable : (hasRiverAvailable ? Math.random() < 0.5 : false);
+
+      const hasAbbotAvailable = availableMini.includes('mini_abbot');
+      let includeAbbot = s.forceAbbot ? hasAbbotAvailable : (hasAbbotAvailable ? Math.random() < 0.6 : false);
+
+      let selectedBigs = [];
+      const bigLimit = s.maxBigExpansions === 'Infinity' ? availableBig.length : s.maxBigExpansions;
+      
+      if (availableBig.length > 0 && bigLimit > 0) {
+        let shuffledBigs = [...availableBig].sort(() => 0.5 - Math.random());
+        let maxPossibleToTake = Math.min(shuffledBigs.length, bigLimit);
+        let countBigToTake = Math.floor(Math.random() * (maxPossibleToTake + 1));
+        
+        for (let i = 0; i < countBigToTake; i++) {
+          const bigId = shuffledBigs[i];
+          const bigObj = CARC_DATA.bigExpansions.find(e => e.id === bigId);
+          if (bigObj) {
+            let specificConfig = {};
+            
+            if (bigId === 'exp_3') {
+              specificConfig.dragonActive = s.dragonEnabled;
+              specificConfig.fairyActive = s.fairyEnabled;
+            } else if (bigId === 'exp_7') {
+              specificConfig.tilesOnly = s.catapultTilesOnly;
+            } else if (bigId === 'exp_4') {
+              specificConfig.capturingActive = s.towerCapturing;
+            } else if (bigId === 'exp_6') {
+              specificConfig.countActive = s.countModule;
+            } else if (bigId === 'exp_2') {
+              specificConfig.tilesOnly = s.allowTilesOnly ? (Math.random() < 0.4) : false;
+              specificConfig.pigEnabled = s.pigEnabled;
+            } else {
+              specificConfig.tilesOnly = s.allowTilesOnly ? (Math.random() < 0.4) : false;
+            }
+
+            selectedBigs.push({
+              ...bigObj,
+              ...specificConfig
+            });
+          }
+        }
+      }
+
+      const otherMinis = availableMini.filter(id => id !== 'mini_river' && id !== 'mini_abbot');
+      let selectedMinis = [];
+      const miniLimit = s.maxMiniExpansions === 'Infinity' ? otherMinis.length : s.maxMiniExpansions;
+
+      if (miniLimit > 0 && otherMinis.length > 0) {
+        let shuffledMinis = [...otherMinis].sort(() => 0.5 - Math.random());
+        let maxPossibleMinis = Math.min(shuffledMinis.length, miniLimit);
+        let countMinisToTake = Math.floor(Math.random() * (maxPossibleMinis + 1));
+        
+        for (let i = 0; i < countMinisToTake; i++) {
+          const miniObj = CARC_DATA.miniExpansions.find(m => m.id === shuffledMinis[i]);
+          if (miniObj) selectedMinis.push(miniObj);
+        }
+      }
+
+      store.currentGeneration = {
+        includeRiver,
+        includeAbbot,
+        selectedBigs,
+        selectedMinis
+      };
+
+      showToast('Генерирана е нова конфигурация за игра!');
+      navigateTo('GameResultScreen');
+    }
+
+    // --- РЕНДЕРИРАНЕ НА ЕКРАНИТЕ ---
+    function renderApp() {
+      const container = document.getElementById('app-container');
+      container.innerHTML = '';
+
+      switch (store.currentScreen) {
+        case 'ModeSelectScreen':
+          container.innerHTML = renderModeSelectScreen();
+          break;
+        case 'CollectionSetupScreen':
+          container.innerHTML = renderCollectionSetupScreen();
+          break;
+        case 'GeneratorSettingsScreen':
+          container.innerHTML = renderGeneratorSettingsScreen();
+          break;
+        case 'GameResultScreen':
+          container.innerHTML = renderGameResultScreen();
+          break;
+        default:
+          container.innerHTML = renderModeSelectScreen();
+      }
+    }
+
+    function renderModeSelectScreen() {
+      return `
+        <div class="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
+          <div class="text-center mb-8">
+            <span class="bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider inline-flex items-center gap-1.5"><i class="fa-solid fa-chess-rook"></i> Carcassonne Assistant</span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">Добре дошли в Каркасон!</h2>
+            <p class="text-gray-400 text-sm mt-2 max-w-md mx-auto">Управлявайте колекцията си от разширения и генерирайте перфектната комбинация за следващата си игра на масата.</p>
+          </div>
+
+          <div class="w-full max-w-md space-y-4">
+            <button onclick="navigateTo('CollectionSetupScreen')" class="w-full bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500 text-white font-semibold py-4 px-6 rounded-2xl shadow-xl shadow-green-900/20 flex items-center justify-center space-x-3 transition transform active:scale-98">
+              <i class="fa-solid fa-chess-board text-xl"></i>
+              <span class="text-lg">Конфигурация на колекцията</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCollectionSetupScreen() {
+      return `
+        <div class="space-y-6 animate-fade-in pb-28">
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-boxes-stacked text-green-500"></i> Управление на колекцията</h2>
+            <p class="text-sm text-gray-400">Маркирайте базовата игра и разширенията, които притежавате в момента.</p>
+          </div>
+
+          <!-- Секция: Базова игра -->
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider px-1 flex items-center gap-1.5"><i class="fa-solid fa-chess-pawn text-green-400"></i> 1. Избор на базова игра</h3>
+            ${CARC_DATA.baseGames.map(bg => `
+              <div class="bg-surface border border-green-500/50 bg-green-500/5 rounded-2xl p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-6 h-6 rounded-lg bg-green-600 text-white flex items-center justify-center text-xs">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-white">${bg.name}</h4>
+                    <p class="text-xs text-gray-400">${bg.description}</p>
+                    <span class="text-[10px] text-green-400 font-semibold mt-1 block flex items-center gap-1"><i class="fa-solid fa-water"></i> Включва мини експанжъни: Реката / The River, Абатът / The Abbot</span>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Секция: Големи разширения -->
+          <div class="space-y-3 pt-3">
+            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider px-1 flex items-center gap-1.5"><i class="fa-solid fa-puzzle-piece text-green-400"></i> 2. Големи разширения</h3>
+            ${CARC_DATA.bigExpansions.map(exp => {
+              const isChecked = store.ownedBigExpansions.includes(exp.id);
+              return `
+                <div onclick="toggleBigExpansion('${exp.id}')" class="bg-surface hover:bg-surfaceContainer border ${isChecked ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-6 h-6 rounded-lg ${isChecked ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                      ${isChecked ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-white text-sm">${exp.name}</h4>
+                      <p class="text-xs text-gray-400">${exp.description}</p>
+                    </div>
+                  </div>
+                  <span class="text-xs font-medium px-2.5 py-1 rounded-full ${isChecked ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'}">${isChecked ? 'Налично' : 'Нямам го'}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Секция: Мини разширения -->
+          <div class="space-y-3 pt-3">
+            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider px-1 flex items-center gap-1.5"><i class="fa-solid fa-chess-knight text-green-400"></i> 3. Мини разширения</h3>
+            ${CARC_DATA.miniExpansions.map(mini => {
+              const isChecked = store.ownedMiniExpansions.includes(mini.id);
+              return `
+                <div onclick="toggleMiniExpansion('${mini.id}')" class="bg-surface hover:bg-surfaceContainer border ${isChecked ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-6 h-6 rounded-lg ${isChecked ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                      ${isChecked ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-white text-sm">${mini.name}</h4>
+                      <p class="text-xs text-gray-400">${mini.description}</p>
+                    </div>
+                  </div>
+                  <span class="text-xs font-medium px-2.5 py-1 rounded-full ${isChecked ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'}">${isChecked ? 'Налично' : 'Нямам го'}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Фиксиран долен панел -->
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center justify-between z-40 space-x-3">
+            <button onclick="navigateTo('GeneratorSettingsScreen')" class="bg-surfaceContainer hover:bg-gray-700 text-gray-200 font-semibold py-3 px-5 rounded-xl border border-gray-700 transition flex items-center space-x-2 text-sm">
+              <i class="fa-solid fa-sliders text-green-500"></i>
+              <span>Настройки</span>
+            </button>
+            <button onclick="generateGameSetup()" class="flex-1 bg-green-700 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-dice text-lg"></i>
+              <span>Генерирай конфигурация</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGeneratorSettingsScreen() {
+      const s = store.settings;
+      const bigDisplay = s.maxBigExpansions === 'Infinity' ? '∞' : s.maxBigExpansions;
+      const miniDisplay = s.maxMiniExpansions === 'Infinity' ? '∞' : s.maxMiniExpansions;
+
+      const ownsExp2 = store.ownedBigExpansions.includes('exp_2');
+      const ownsExp3 = store.ownedBigExpansions.includes('exp_3');
+      const ownsExp4 = store.ownedBigExpansions.includes('exp_4');
+      const ownsExp6 = store.ownedBigExpansions.includes('exp_6');
+      const ownsExp7 = store.ownedBigExpansions.includes('exp_7');
+
+      return `
+        <div class="space-y-6 animate-fade-in pb-20">
+          <div>
+            <span class="bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider inline-flex items-center gap-1.5"><i class="fa-solid fa-gear"></i> Персонализиране</span>
+            <h2 class="text-2xl font-bold text-white mt-2">Настройки на генератора</h2>
+            <p class="text-sm text-gray-400">Прецизни правила за спорни модули и под-механики в експанжъните (показват се само за наличните у вас разширения).</p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Основни лимити -->
+            <div class="bg-surface border border-gray-800 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-puzzle-piece text-green-400"></i> Максимум големи разширения</h4>
+                <p class="text-xs text-gray-400">Колко най-много големи експанжъна да се избират.</p>
+              </div>
+              <div class="flex items-center space-x-3">
+                <button onclick="adjustLimit('maxBigExpansions', -1)" class="bg-surfaceContainer hover:bg-gray-700 w-8 h-8 rounded-lg text-white font-bold border border-gray-700 flex items-center justify-center">-</button>
+                <span class="text-white font-bold w-6 text-center">${bigDisplay}</span>
+                <button onclick="adjustLimit('maxBigExpansions', 1)" class="bg-surfaceContainer hover:bg-gray-700 w-8 h-8 rounded-lg text-white font-bold border border-gray-700 flex items-center justify-center">+</button>
+              </div>
+            </div>
+
+            <div class="bg-surface border border-gray-800 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-chess-pawn text-green-400"></i> Максимум мини разширения</h4>
+                <p class="text-xs text-gray-400">Колко най-много мини експанжъна да се добавят.</p>
+              </div>
+              <div class="flex items-center space-x-3">
+                <button onclick="adjustLimit('maxMiniExpansions', -1)" class="bg-surfaceContainer hover:bg-gray-700 w-8 h-8 rounded-lg text-white font-bold border border-gray-700 flex items-center justify-center">-</button>
+                <span class="text-white font-bold w-6 text-center">${miniDisplay}</span>
+                <button onclick="adjustLimit('maxMiniExpansions', 1)" class="bg-surfaceContainer hover:bg-gray-700 w-8 h-8 rounded-lg text-white font-bold border border-gray-700 flex items-center justify-center">+</button>
+              </div>
+            </div>
+
+            <!-- Глобален избор за плочки или плочки+мейпъли -->
+            <div onclick="toggleSetting('allowTilesOnly')" class="bg-surface hover:bg-surfaceContainer border ${s.allowTilesOnly ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+              <div>
+                <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-chess-board text-green-400"></i> Режим „Само плочки“ или плочки и мейпъли</h4>
+                <p class="text-xs text-gray-400">Позволява на генератора понякога да избира разширение само заради плочките му, без специалните фигурки (мейпъли).</p>
+              </div>
+              <div class="w-6 h-6 rounded-lg ${s.allowTilesOnly ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                ${s.allowTilesOnly ? '<i class="fa-solid fa-check"></i>' : ''}
+              </div>
+            </div>
+
+            <!-- Разширение 2: Търговци и строители -->
+            ${ownsExp2 ? `
+              <div class="border-t border-gray-800 pt-4">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5"><i class="fa-solid fa-store text-amber-500"></i> Разширение 2: Търговци и строители</h3>
+                
+                <div onclick="toggleSetting('pigEnabled')" class="bg-surface hover:bg-surfaceContainer border ${s.pigEnabled ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                  <div>
+                    <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-piggy-bank text-pink-400"></i> Използвай прасе (Pig) за фермите</h4>
+                    <p class="text-xs text-gray-400">Ако е изключено, ще се играе със строителите и стоките, но без прасетата за бонус точки във фермите.</p>
+                  </div>
+                  <div class="w-6 h-6 rounded-lg ${s.pigEnabled ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                    ${s.pigEnabled ? '<i class="fa-solid fa-check"></i>' : ''}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Разширение 3: Дракон и Фея -->
+            ${ownsExp3 ? `
+              <div class="border-t border-gray-800 pt-4">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5"><i class="fa-solid fa-dragon text-red-400"></i> Разширение 3: Принцеса и Дракон</h3>
+                
+                <div onclick="toggleSetting('dragonEnabled')" class="bg-surface hover:bg-surfaceContainer border ${s.dragonEnabled ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none mb-3">
+                  <div>
+                    <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-fire text-red-500"></i> Включвай Дракона (Хаос и ядене на мейпъли)</h4>
+                    <p class="text-xs text-gray-400">Ако е изключено, ще играеш с принцесата, тунелите и феята, но без унищожителния дракон.</p>
+                  </div>
+                  <div class="w-6 h-6 rounded-lg ${s.dragonEnabled ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                    ${s.dragonEnabled ? '<i class="fa-solid fa-check"></i>' : ''}
+                  </div>
+                </div>
+
+                <div onclick="toggleSetting('fairyEnabled')" class="bg-surface hover:bg-surfaceContainer border ${s.fairyEnabled ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                  <div>
+                    <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Включвай Феята (Защита и бонус точки)</h4>
+                    <p class="text-xs text-gray-400">Феята пази мейпълите от дракона и дава точки в началото на хода.</p>
+                  </div>
+                  <div class="w-6 h-6 rounded-lg ${s.fairyEnabled ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                    ${s.fairyEnabled ? '<i class="fa-solid fa-check"></i>' : ''}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Разширение 7: Катапулт -->
+            ${ownsExp7 ? `
+              <div class="border-t border-gray-800 pt-4">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5"><i class="fa-solid fa-bullseye text-amber-500"></i> Разширение 7: Катапулт</h3>
+                
+                <div onclick="toggleSetting('catapultTilesOnly')" class="bg-surface hover:bg-surfaceContainer border ${s.catapultTilesOnly ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                  <div>
+                    <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-chess-board text-amber-400"></i> Режим „Само плочки“ за Катапулта</h4>
+                    <p class="text-xs text-gray-400">Включва само плочките с пазарни символи от разширението, без физическата игра с ластици.</p>
+                  </div>
+                  <div class="w-6 h-6 rounded-lg ${s.catapultTilesOnly ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                    ${s.catapultTilesOnly ? '<i class="fa-solid fa-check"></i>' : ''}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Други спорни модули -->
+            ${(ownsExp4 || ownsExp6) ? `
+              <div class="border-t border-gray-800 pt-4">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5"><i class="fa-solid fa-chess-rook text-blue-400"></i> Други специални правила</h3>
+
+                ${ownsExp4 ? `
+                  <div onclick="toggleSetting('towerCapturing')" class="bg-surface hover:bg-surfaceContainer border ${s.towerCapturing ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none mb-3">
+                    <div>
+                      <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-chess-rook text-red-400"></i> Разш. 4 (Кулата): Позволявай пленяване</h4>
+                      <p class="text-xs text-gray-400">Ако е изключено, кулите се ползват само за поставяне на височина, без кражба на чужди мепъли.</p>
+                    </div>
+                    <div class="w-6 h-6 rounded-lg ${s.towerCapturing ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                      ${s.towerCapturing ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${ownsExp6 ? `
+                  <div onclick="toggleSetting('countModule')" class="bg-surface hover:bg-surfaceContainer border ${s.countModule ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                    <div>
+                      <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-crown text-purple-400"></i> Разш. 6: Включвай Графа на Каркасон</h4>
+                      <p class="text-xs text-gray-400">Ако е изключено, от разширението се играят само Река II и бонус плочките за крал/разбойник.</p>
+                    </div>
+                    <div class="w-6 h-6 rounded-lg ${s.countModule ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                      ${s.countModule ? '<i class="fa-solid fa-check"></i>' : ''}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Общи настройки -->
+            <div class="border-t border-gray-800 pt-4 space-y-3">
+              <div onclick="toggleSetting('forceRiver')" class="bg-surface hover:bg-surfaceContainer border ${s.forceRiver ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                <div>
+                  <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-water text-blue-400"></i> Задължителна река</h4>
+                  <p class="text-xs text-gray-400">Реката винаги да се включва (ако е налична).</p>
+                </div>
+                <div class="w-6 h-6 rounded-lg ${s.forceRiver ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                  ${s.forceRiver ? '<i class="fa-solid fa-check"></i>' : ''}
+                </div>
+              </div>
+
+              <div onclick="toggleSetting('forceAbbot')" class="bg-surface hover:bg-surfaceContainer border ${s.forceAbbot ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                <div>
+                  <h4 class="font-semibold text-white text-sm flex items-center gap-1.5"><i class="fa-solid fa-place-of-worship text-amber-400"></i> Задължителен абат</h4>
+                  <p class="text-xs text-gray-400">Абатът винаги да се включва (ако е наличен).</p>
+                </div>
+                <div class="w-6 h-6 rounded-lg ${s.forceAbbot ? 'bg-green-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                  ${s.forceAbbot ? '<i class="fa-solid fa-check"></i>' : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <button onclick="goBackStep()" class="w-full bg-green-700 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition text-center flex items-center justify-center gap-2">
+              <i class="fa-solid fa-check"></i> Готово / Обратно към колекцията
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGameResultScreen() {
+      const gen = store.currentGeneration;
+      if (!gen) return '<p class="text-center text-gray-400">Няма активна конфигурация. Моля, генерирайте нова.</p>';
+
+      return `
+        <div class="space-y-6 animate-fade-in pb-20">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider inline-flex items-center gap-1.5"><i class="fa-solid fa-dice"></i> Генерирана партия</span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Вашият Каркасон за днес</h2>
+            </div>
+            <button onclick="generateGameSetup()" class="bg-surfaceContainer hover:bg-gray-700 text-green-400 border border-green-500/30 p-3 rounded-xl font-medium text-sm flex items-center space-x-2 transition">
+              <i class="fa-solid fa-rotate-right"></i>
+              <span>Завърти наново</span>
+            </button>
+          </div>
+
+          <!-- Базова игра и мини елементи -->
+          <div class="space-y-3">
+            <div class="bg-surface border border-gray-800 rounded-2xl p-4 flex items-center space-x-4">
+              <div class="bg-green-600/20 text-green-400 p-3 rounded-xl text-xl flex items-center justify-center w-12 h-12">
+                <i class="fa-solid fa-chess-board text-2xl"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-white">Базова игра: Каркасон (Трето издание)</h4>
+                <p class="text-xs text-gray-400">Стандартни 72 терена и стандартни мейпъли.</p>
+              </div>
+            </div>
+
+            <div class="bg-surface border ${gen.includeRiver ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800 opacity-60'} rounded-2xl p-4 flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <div class="${gen.includeRiver ? 'bg-blue-600/20 text-blue-400' : 'bg-gray-800 text-gray-500'} p-3 rounded-xl text-xl flex items-center justify-center w-12 h-12">
+                  <i class="fa-solid fa-water text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white">Реката / The River</h4>
+                  <p class="text-xs text-gray-400">${gen.includeRiver ? 'Включена в тази партия.' : 'Изключена за тази партия.'}</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold px-3 py-1 rounded-full ${gen.includeRiver ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-500'}">
+                ${gen.includeRiver ? 'Активна' : 'Пропуснато'}
+              </span>
+            </div>
+
+            <div class="bg-surface border ${gen.includeAbbot ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800 opacity-60'} rounded-2xl p-4 flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <div class="${gen.includeAbbot ? 'bg-amber-600/20 text-amber-400' : 'bg-gray-800 text-gray-500'} p-3 rounded-xl text-xl flex items-center justify-center w-12 h-12">
+                  <i class="fa-solid fa-place-of-worship text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-white">Абатът / The Abbot</h4>
+                  <p class="text-xs text-gray-400">${gen.includeAbbot ? 'Включен в тази партия.' : 'Изключен за тази партия.'}</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold px-3 py-1 rounded-full ${gen.includeAbbot ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-800 text-gray-500'}">
+                ${gen.includeAbbot ? 'Активен' : 'Пропуснато'}
+              </span>
+            </div>
+          </div>
+
+          <!-- Големи разширения с детайли за под-правилата -->
+          <div class="space-y-3 pt-2">
+            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider px-1 flex items-center gap-1.5"><i class="fa-solid fa-puzzle-piece text-green-400"></i> Големи разширения</h3>
+            ${gen.selectedBigs.length > 0 ? gen.selectedBigs.map(big => `
+              <div class="bg-surface border border-green-500/50 bg-green-500/5 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-4">
+                    <div class="bg-green-600/20 text-green-400 p-3 rounded-xl text-xl flex items-center justify-center w-12 h-12">
+                      <i class="fa-solid fa-chess-rook text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-white">${big.name}</h4>
+                      <p class="text-xs text-gray-400">${big.description}</p>
+                    </div>
+                  </div>
+                  <span class="text-xs font-semibold px-3 py-1 rounded-full bg-green-500/20 text-green-400">Изтеглено</span>
+                </div>
+
+                <!-- Динамично инфо според специфичното разширение -->
+                ${big.id === 'exp_2' ? `
+                  <div class="bg-darkbg/50 border border-gray-800 rounded-xl p-3 space-y-1 text-xs">
+                    <div class="flex justify-between items-center"><span class="text-gray-300">Статус:</span><span class="font-bold ${big.tilesOnly ? 'text-amber-400' : 'text-green-400'}">${big.tilesOnly ? '⚠️ Само плочки и стоки' : '✅ Пълно (плочки + строители)'}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-gray-300">Прасе (Pig):</span><span class="font-bold ${big.pigEnabled ? 'text-pink-400' : 'text-gray-400'}">${big.pigEnabled ? '🐷 Включено' : '⚪ Изключено'}</span></div>
+                  </div>
+                ` : ''}
+
+                ${big.id === 'exp_3' ? `
+                  <div class="bg-darkbg/50 border border-gray-800 rounded-xl p-3 space-y-1 text-xs">
+                    <div class="flex justify-between items-center"><span class="text-gray-300">Дракон:</span><span class="font-bold ${big.dragonActive ? 'text-red-400' : 'text-gray-400'}">${big.dragonActive ? '🔴 Активен (яде мейпъли)' : '⚪ Изключен'}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-gray-300">Фея:</span><span class="font-bold ${big.fairyActive ? 'text-purple-400' : 'text-gray-400'}">${big.fairyActive ? '🟣 Активна (пази мейпълите)' : '⚪ Изключена'}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-gray-300">Принцеса и тунели:</span><span class="font-bold text-green-400">✅ Активни</span></div>
+                  </div>
+                ` : ''}
+
+                ${big.id === 'exp_7' ? `
+                  <div class="bg-darkbg/50 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <span class="text-gray-300">Режим на катапулта:</span>
+                    <span class="font-bold ${big.tilesOnly ? 'text-amber-400' : 'text-green-400'}">
+                      ${big.tilesOnly ? '⚠️ Само плочки и пазари (без стрелба)' : '🎯 Пълно с физически катапулт'}
+                    </span>
+                  </div>
+                ` : ''}
+
+                ${big.id === 'exp_4' ? `
+                  <div class="bg-darkbg/50 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <span class="text-gray-300">Пленяване с кули:</span>
+                    <span class="font-bold ${big.capturingActive ? 'text-red-400' : 'text-green-400'}">
+                      ${big.capturingActive ? '⚔️ Разрешено (кражба на мейпъли)' : '🛡️ Изключено (само височинни кули)'}
+                    </span>
+                  </div>
+                ` : ''}
+
+                ${big.id === 'exp_6' ? `
+                  <div class="bg-darkbg/50 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <span class="text-gray-300">Граф на Каркасон:</span>
+                    <span class="font-bold ${big.countActive ? 'text-purple-400' : 'text-amber-400'}">
+                      ${big.countActive ? '🏰 Включен (град Каркасон)' : '⚠️ Само Река II и Крал/Разбойник'}
+                    </span>
+                  </div>
+                ` : ''}
+
+                ${big.tilesOnly !== undefined && big.id !== 'exp_7' && big.id !== 'exp_2' ? `
+                  <div class="bg-darkbg/50 border border-gray-800 rounded-xl p-3 flex items-center justify-between text-xs">
+                    <span class="text-gray-300">Режим на мейпълите:</span>
+                    <span class="font-bold ${big.tilesOnly ? 'text-amber-400' : 'text-green-400'}">
+                      ${big.tilesOnly ? '⚠️ Само плочки (без специфични мейпъли)' : '✅ Пълно (плочки + специфични мейпъли)'}
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('') : `
+              <div class="bg-surface border border-gray-800 rounded-2xl p-4 text-center text-gray-500 text-sm">
+                Няма включени големи разширения в тази партия.
+              </div>
+            `}
+          </div>
+
+          <!-- Мини разширения -->
+          <div class="space-y-3 pt-2">
+            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider px-1 flex items-center gap-1.5"><i class="fa-solid fa-chess-knight text-purple-400"></i> Допълнителни мини експанжъни</h3>
+            ${gen.selectedMinis.length > 0 ? gen.selectedMinis.map(m => `
+              <div class="bg-surface border border-purple-500/30 bg-purple-500/5 rounded-2xl p-4 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                  <div class="bg-purple-600/20 text-purple-400 p-3 rounded-xl text-xl flex items-center justify-center w-12 h-12">
+                    <i class="fa-solid fa-chess-pawn text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-white text-sm">${m.name}</h4>
+                    <p class="text-xs text-gray-400">${m.description}</p>
+                  </div>
+                </div>
+                <span class="text-xs font-semibold px-3 py-1 rounded-full bg-purple-500/20 text-purple-400">Активно</span>
+              </div>
+            `).join('') : `
+              <div class="bg-surface border border-gray-800 rounded-2xl p-4 text-center text-gray-500 text-sm">
+                Няма допълнителни мини разширения за тази сесия.
+              </div>
+            `}
+          </div>
+
+          <div class="pt-4 flex space-x-3">
+            <button onclick="navigateTo('CollectionSetupScreen')" class="flex-1 bg-surfaceContainer hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-xl transition border border-gray-700 text-center">
+              Към колекцията
+            </button>
+            <button onclick="generateGameSetup()" class="flex-1 bg-green-700 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition text-center flex items-center justify-center gap-2">
+              <i class="fa-solid fa-dice"></i> Ново теглене
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleBigExpansion(id) {
+      if (store.ownedBigExpansions.includes(id)) {
+        store.ownedBigExpansions = store.ownedBigExpansions.filter(item => item !== id);
+      } else {
+        store.ownedBigExpansions.push(id);
+      }
+      renderApp();
+    }
+
+    function toggleMiniExpansion(id) {
+      if (store.ownedMiniExpansions.includes(id)) {
+        store.ownedMiniExpansions = store.ownedMiniExpansions.filter(item => item !== id);
+      } else {
+        store.ownedMiniExpansions.push(id);
+      }
+      renderApp();
+    }
+
+    function adjustLimit(key, delta) {
+      let current = store.settings[key];
+      if (current === 'Infinity') {
+        store.settings[key] = delta < 0 ? 3 : 'Infinity';
+      } else {
+        let newVal = current + delta;
+        if (newVal < 0) newVal = 0;
+        if (newVal > 4) {
+          store.settings[key] = 'Infinity';
+        } else {
+          store.settings[key] = newVal;
+        }
+      }
+      renderApp();
+    }
+
+    function toggleSetting(key) {
+      store.settings[key] = !store.settings[key];
+      renderApp();
+    }
+
+    window.onload = function() {
+      renderApp();
+    };
+  </script>
+</body>
+</html>
