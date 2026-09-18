@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heat: Pedal to the Metal Companion</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            darkbg: '#121212',
+            surface: '#1e1e1e',
+            surfaceContainer: '#2c2c2c',
+            racingRed: '#ff5252'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #121212; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body class="bg-darkbg text-gray-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
+
+  <header id="app-header" class="bg-surface border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+    <div class="flex items-center space-x-3">
+      <!-- Статични бутони в горната лента -->
+      <div class="flex items-center space-x-1.5 mr-2 border-r border-gray-700 pr-3">
+        <!-- Бутон Начало -->
+        <button onclick="navigateTo('GameModeScreen')" title="Начало" class="bg-surfaceContainer hover:bg-gray-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center transition border border-gray-700">
+          <i class="fa-solid fa-house text-red-500"></i>
+        </button>
+        <!-- Бутон Назад -->
+        <button onclick="goBackStep()" title="Назад" class="bg-surfaceContainer hover:bg-gray-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center transition border border-gray-700">
+          <i class="fa-solid fa-arrow-left text-blue-400"></i>
+        </button>
+        <!-- Бутон Към тракера -->
+        <button onclick="goToTracker()" title="Към тракера" class="bg-surfaceContainer hover:bg-gray-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center transition border border-gray-700">
+          <i class="fa-solid fa-flag-checkered text-green-400"></i>
+        </button>
+      </div>
+
+      <div class="bg-red-600 p-2 rounded-lg text-white font-bold text-lg flex items-center justify-center w-10 h-10 shadow-lg shadow-red-600/30">
+        <i class="fa-solid fa-gauge-high"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg sm:text-xl tracking-tight text-white" id="header-title">HEAT: Pedal to the Metal</h1>
+        <p class="text-xs text-gray-400">Companion Assistant</p>
+      </div>
+    </div>
+    <div id="header-actions" class="flex items-center space-x-2"></div>
+  </header>
+
+  <main id="app-container" class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 pb-20"></main>
+
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <script>
+    // --- MODELS & DATA ---
+    const APP_DATA = {
+      expansions: [
+        {
+          name: "Base Game",
+          isOwned: true,
+          tracks: [
+            { name: "USA", cornerTokens: 4, laps: 2, chicaneCorners: [], specialRule: "NEW SPEED RECORD!: Each time you reach a Speed of 15 or more, immediately gain a Sponsorship card." },
+            { name: "Great Britain", cornerTokens: 5, laps: 2, chicaneCorners: [], specialRule: "NEW GRANDSTAND INAUGURATION: First three drivers to cross the Finish Line on the 1st lap immediately gain a Sponsorship card." },
+            { name: "France", cornerTokens: 5, laps: 2, chicaneCorners: [], specialRule: "NEW SAFETY REGULATIONS: All drivers start the race with 2 less Heat cards and 1 less Stress card than usual. Hand size is reduced to 6 cards." },
+            { name: "Italy", cornerTokens: 3, laps: 3, chicaneCorners: [], specialRule: "DRIVERS' STRIKE: This race is one lap shorter than usual. The winner of this race is awarded 2 extra Championship points." }
+          ],
+          cars: ["Blue", "Yellow", "Green", "Gray", "Black", "Red"]
+        },
+        {
+          name: "Heavy Rain",
+          isOwned: false,
+          tracks: [
+            { name: "Japan", cornerTokens: 4, laps: 2, chicaneCorners: [1], specialRule: "GOING GLOBAL: In Press Corners, you gain 2 Sponsorship cards instead of one." },
+            { name: "Mexico", cornerTokens: 4, laps: 3, chicaneCorners: [1, 4], specialRule: "CHICANES FOR INCREASED SAFETY: For this race, you may discard Heat cards during step 8." }
+          ],
+          cars: ["Orange"]
+        },
+        {
+          name: "Tunnel Vision",
+          isOwned: false,
+          tracks: [
+            { name: "Spain", cornerTokens: 9, laps: 1, chicaneCorners: [3, 8], specialRule: "TUNNEL VISION: For this race, you may discard Stress cards during step 8." },
+            { name: "Netherlands", cornerTokens: 4, laps: 3, chicaneCorners: [1], specialRule: "THE PRESSURE COOKER: This race is one lap longer than usual. Each time you complete a lap, remove a Heat card from the game (Step 8, remove from: Engine -> Hand -> Discard -> Draw deck)." }
+          ],
+          cars: ["Purple"]
+        },
+        {
+          name: "Rocky Roads",
+          isOwned: false,
+          tracks: [
+            { name: "South Africa", cornerTokens: 7, laps: 2, chicaneCorners: [], specialRule: "CONSULTING THE MECHANICS: Before the race, in starting grid order, all drivers choose either +1 Heat card & -1 Stress card, OR -1 Heat card & +1 Stress card." },
+            { name: "Germany", cornerTokens: 5, laps: 2, chicaneCorners: [2], specialRule: "SMOOTH START: Before the race, place all of your Stress cards into your discard pile." }
+          ],
+          cars: ["White"]
+        },
+        {
+          name: "Heat: Legends",
+          isOwned: false,
+          tracks: [],
+          cars: ["Pink", "Cyan"]
+        }
+      ],
+      presets: [
+        {
+          name: "Official Season 1961",
+          description: "Base Game Championship - 1961 Setup.",
+          rounds: [
+            { trackName: "Great Britain", weather: "Cloudy", specialRule: "NEW GRANDSTAND INAUGURATION: First three drivers to cross the Finish Line on the 1st lap immediately gain a Sponsorship card." },
+            { trackName: "USA", weather: "Sunny", specialRule: "NEW SPEED RECORD!: Each time you reach a Speed of 15 or more, immediately gain a Sponsorship card." },
+            { trackName: "Italy", weather: "Stormy", specialRule: "DRIVERS' STRIKE: This race is one lap shorter than usual. The winner of this race is awarded 2 extra Championship points." }
+          ]
+        },
+        {
+          name: "Official Season 1962",
+          description: "Base Game Championship - 1962 Setup.",
+          rounds: [
+            { trackName: "Italy", weather: "Sunny", specialRule: "ENGINE RESTRICTIONS LIFTED: All drivers start the race with an extra Heat card from the reserve in their Engine spot." },
+            { trackName: "Great Britain", weather: "Rainy", specialRule: "RECORD CROWDS: This race is one lap longer than usual and hand size is increased to 8 cards." },
+            { trackName: "France", weather: "Cloudy", specialRule: "CORRUPTION IN RULES COMMITTEE: The top 3 finishers of this race are awarded an extra Championship point." }
+          ]
+        },
+        {
+          name: "Official Season 1963",
+          description: "Base Game Championship - 1963 Setup.",
+          rounds: [
+            { trackName: "USA", weather: "Sunny", specialRule: "NEW TITLE SPONSOR: No Special Rules." },
+            { trackName: "Great Britain", weather: "Cloudy", specialRule: "FIRST LIVE TELEVISED RACE: If you pass 3 cars in a single round, immediately gain a Sponsorship card." },
+            { trackName: "France", weather: "Rainy", specialRule: "NEW SAFETY REGULATIONS: All drivers start the race with 2 less Heat cards and 1 less Stress card than usual. Hand size is reduced to 6 cards." },
+            { trackName: "Italy", weather: "Stormy", specialRule: "TITLE SPONSOR WITHDRAWS FUTURE UNKNOWN: All drivers start the race with an extra Stress card from the reserve in their Deck. If you spin out, you are eliminated from the race and score 0 Championship points." }
+          ]
+        },
+        {
+          name: "Official Season 1964",
+          description: "Heavy Rain Expansion Championship.",
+          rounds: [
+            { trackName: "Japan", weather: "Rainy", specialRule: "GOING GLOBAL: In Press Corners, you gain 2 Sponsorship cards instead of one." },
+            { trackName: "France", weather: "Stormy", specialRule: "TURBULENT WINDS: You may only Slipstream if you are in 3rd or 4th gear." },
+            { trackName: "Mexico", weather: "Rainy", specialRule: "CHICANES FOR INCREASED SAFETY: For this race, you may discard Heat cards during step 8." },
+            { trackName: "Japan", weather: "Stormy", specialRule: "SUDDEN HEAVY RAIN DELAYS RACE: Nobody benefits from Adrenaline this race." }
+          ]
+        },
+        {
+          name: "Official Season 1965",
+          description: "Tunnel Vision Expansion Championship.",
+          rounds: [
+            { trackName: "Great Britain", weather: "Foggy", specialRule: "HOLD ON TIGHT: A maximum of 1 card may be discarded per turn." },
+            { trackName: "USA", weather: "Cloudy", specialRule: "SMILE AND WAVE: In Press Corners, you only gain a Sponsorship card if driving slower than the speed limit." },
+            { trackName: "Spain", weather: "Sunny", specialRule: "TUNNEL VISION: For this race, you may discard Stress cards during step 8." },
+            { trackName: "Netherlands", weather: "Rainy", specialRule: "THE PRESSURE COOKER: This race is one lap longer than usual. Each time you complete a lap, remove a Heat card from the game (Step 8, remove from: Engine -> Hand -> Discard -> Draw deck)." }
+          ]
+        },
+        {
+          name: "Official Season 1966",
+          description: "Rocky Roads Expansion Championship.",
+          rounds: [
+            { trackName: "France", weather: "Stormy", specialRule: "TIGHT MANEUVERS: Your total Slipstream Value is reduced by 1." },
+            { trackName: "Germany", weather: "Snowy", specialRule: "SMOOTH START: Before the race, place all of your Stress cards into your discard pile." },
+            { trackName: "Italy", weather: "Cloudy", specialRule: "THE CROWD GOES WILD: The first 2 drivers to cross the 8 Corner Line every lap immediately gain a Sponsorship card. Legends count even though they get no benefit from it." },
+            { trackName: "South Africa", weather: "Sunny", specialRule: "CONSULTING THE MECHANICS: Before the race, in starting grid order, all drivers choose either +1 Heat card & -1 Stress card, OR -1 Heat card & +1 Stress card." }
+          ]
+        }
+      ],
+      weatherConditions: ["Sunny", "Cloudy", "Rainy", "Stormy", "Snowy", "Foggy"],
+      cornerTypes: ["+1 Speed", "-1 Speed", "+1 Heat", "Weather Impact", "+1 Slipstream", "Free Boost"],
+      genericSpecialRules: [
+        "ADRENALINE RUSH: Last place players can draw up to 8 cards during step 3.",
+        "TIRE WEAR: Shifting down 2 gears at once costs 2 Heat instead of 1.",
+        "STRICT STEWARDS: Cutting corners or spinning out results in -3 points penalty.",
+        "SPONSOR BONUS: The first player to finish Lap 1 gets a free Sponsorship card.",
+        "OVERHEATED ASPHALT: Cooling down in corners is reduced by 1.",
+        "MECHANICAL GLITCH: Shifting up or down by 2 gears (e.g., 1->3 or 4->2) costs the normal 1 Heat AND forces you to take 1 extra Stress card into your discard pile.",
+        "SLIPSTREAM DRAFT: If you perform a Slipstream, you can move up to 3 spaces instead of the usual 2.",
+        "RISKY MANEUVER: When using a Boost, you must flip 2 cards for Stress instead of 1, taking the total value of both.",
+        "BLISTERING COLD: Your React steps (Cool Down symbols from your current gear) are increased by 1.",
+        "EXPERIMENTAL FUEL: When flipping cards for Boost or Stress, each Heat card revealed adds +1 to your total Speed for this turn."
+      ]
+    };
+
+    // --- APPLICATION STATE ---
+    let store = {
+      isCustom: false,
+      isChampionship: false,
+      usePressCorners: true,
+      useOfficialTrackRules: true,
+      useGenericCustomRules: true,
+      enableAI: true,
+      currentRound: 0,
+      totalChampionshipRounds: 4,
+      participants: [
+        { name: "Player 1", car: "Blue" },
+        { name: "Player 2", car: "Yellow" }
+      ],
+      singleRace: {
+        track: null,
+        weather: "Sunny",
+        activeSpecialRule: "",
+        corners: [],
+        pressCorners: [],
+        grid: [],
+        finishPositions: {}
+      },
+      championship: [],
+      history: [],
+      currentScreen: 'GameModeScreen' 
+    };
+
+    function loadStorage() {
+      try {
+        const savedHistory = localStorage.getItem('heat_companion_history');
+        if (savedHistory) store.history = JSON.parse(savedHistory);
+        const savedExp = localStorage.getItem('heat_companion_expansions');
+        if (savedExp) {
+          const ownedMap = JSON.parse(savedExp);
+          APP_DATA.expansions.forEach((exp) => {
+            if (ownedMap[exp.name] !== undefined) exp.isOwned = ownedMap[exp.name];
+          });
+        }
+      } catch (e) {
+        console.error("Storage load error", e);
+      }
+    }
+
+    function saveStorage() {
+      try {
+        localStorage.setItem('heat_companion_history', JSON.stringify(store.history));
+        const ownedMap = {};
+        APP_DATA.expansions.forEach(e => ownedMap[e.name] = e.isOwned);
+        localStorage.setItem('heat_companion_expansions', JSON.stringify(ownedMap));
+      } catch (e) {
+        console.error("Storage save error", e);
+      }
+    }
+
+    // --- HELPERS & FIXED FUNCTIONS ---
+    function getAllPossibleCars() {
+      let cars = [];
+      APP_DATA.expansions.forEach(e => {
+        if (!e.isOwned || !e.cars) return;
+        cars = cars.concat(e.cars);
+      });
+      return cars;
+    }
+
+    function getAvailableTracks() {
+      let tracks = [];
+      APP_DATA.expansions.forEach(e => {
+        if (e.isOwned && e.tracks) tracks = tracks.concat(e.tracks);
+      });
+      return tracks;
+    }
+
+    function getValidPresets() {
+      const trackNames = new Set(getAvailableTracks().map(t => t.name));
+      return APP_DATA.presets.filter(p => p.rounds.every(r => trackNames.has(r.trackName)));
+    }
+
+    function getCarColorHex(name) {
+      switch ((name || '').toLowerCase()) {
+        case 'blue': return '#3b82f6';
+        case 'yellow': return '#eab308';
+        case 'green': return '#22c55e';
+        case 'gray': return '#6b7280';
+        case 'black': return '#111827';
+        case 'red': return '#ef4444';
+        case 'orange': return '#f97316';
+        case 'purple': return '#a855f7';
+        case 'white': return '#f3f4f6';
+        case 'pink': return '#ec4899';
+        case 'cyan': return '#06b6d4';
+        default: return '#ffffff';
+      }
+    }
+
+    function getWeatherIconClass(weather) {
+      switch (weather) {
+        case "Sunny": return "fa-sun text-amber-400";
+        case "Cloudy": return "fa-cloud text-gray-400";
+        case "Rainy": return "fa-cloud-rain text-blue-400";
+        case "Stormy": return "fa-cloud-bolt text-purple-400";
+        case "Snowy": return "fa-snowflake text-cyan-200";
+        case "Foggy": return "fa-smog text-teal-400";
+        default: return "fa-cloud text-gray-400";
+      }
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'bg-surfaceContainer text-white px-4 py-3 rounded-xl shadow-xl border border-gray-700 pointer-events-auto flex items-center space-x-3 transition transform translate-y-2 opacity-0 duration-300';
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-green-500"></i><span class="text-sm font-medium">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function buildActiveGridItems() {
+      const allCars = getAllPossibleCars();
+      let gridItems = store.participants.map(p => ({ name: p.name, car: p.car, isLegend: false }));
+      
+      if (store.enableAI) {
+        const usedCars = new Set(store.participants.map(p => p.car));
+        const availableForAI = allCars.filter(c => !usedCars.has(c));
+
+        availableForAI.forEach((aiCar, index) => {
+          gridItems.push({
+            name: `AI Legend ${index + 1}`,
+            car: aiCar,
+            isLegend: true
+          });
+        });
+      }
+      return gridItems;
+    }
+
+    function createNewRaceSetup() {
+      const gridItems = buildActiveGridItems();
+      gridItems.sort(() => Math.random() - 0.5);
+      const finishPositions = {};
+      gridItems.forEach(item => finishPositions[item.name] = null);
+      return {
+        track: null,
+        weather: "Sunny",
+        activeSpecialRule: "",
+        corners: [],
+        pressCorners: [],
+        grid: gridItems,
+        finishPositions: finishPositions
+      };
+    }
+
+    function resetData() {
+      store.currentRound = 0;
+      store.totalChampionshipRounds = 4;
+      store.singleRace = createNewRaceSetup();
+      store.championship = [];
+      for (let i = 0; i < store.totalChampionshipRounds; i++) {
+        store.championship.push(createNewRaceSetup());
+      }
+    }
+
+    function applyRulesLogic(setup) {
+      if (!setup.track) return;
+      if (!store.useOfficialTrackRules && !store.useGenericCustomRules) {
+        setup.activeSpecialRule = "None (Disabled)";
+        return;
+      }
+      if (store.isCustom) return;
+
+      const rand = Math.random();
+      if (store.useOfficialTrackRules && store.useGenericCustomRules) {
+        setup.activeSpecialRule = rand < 0.5 
+          ? setup.track.specialRule 
+          : APP_DATA.genericSpecialRules[Math.floor(Math.random() * APP_DATA.genericSpecialRules.length)];
+      } else if (store.useOfficialTrackRules) {
+        setup.activeSpecialRule = setup.track.specialRule;
+      } else if (store.useGenericCustomRules) {
+        setup.activeSpecialRule = APP_DATA.genericSpecialRules[Math.floor(Math.random() * APP_DATA.genericSpecialRules.length)];
+      }
+    }
+
+    function randomizeRace(setup) {
+      const tracks = getAvailableTracks();
+      if (tracks.length === 0) return;
+      const track = tracks[Math.floor(Math.random() * tracks.length)];
+      const gridItems = buildActiveGridItems().sort(() => Math.random() - 0.5);
+      const weather = APP_DATA.weatherConditions[Math.floor(Math.random() * APP_DATA.weatherConditions.length)];
+
+      const generatedCorners = [];
+      const counts = {};
+      for (let i = 0; i < track.cornerTokens; i++) {
+        const pool = APP_DATA.cornerTypes.filter(t => (counts[t] || 0) < 2);
+        const token = pool[Math.floor(Math.random() * pool.length)];
+        generatedCorners.push(token);
+        counts[token] = (counts[token] || 0) + 1;
+      }
+
+      const press = [];
+      if (store.usePressCorners && track.cornerTokens > 0) {
+        const eligible = [];
+        for (let i = 0; i < track.cornerTokens; i++) {
+          if (!track.chicaneCorners.includes(i + 1)) eligible.push(i);
+        }
+        if (eligible.length > 0) {
+          eligible.sort(() => Math.random() - 0.5);
+          const amount = Math.floor(Math.random() * (eligible.length > 2 ? 2 : eligible.length)) + 1;
+          for (let i = 0; i < amount; i++) press.push(eligible[i]);
+        }
+      }
+
+      setup.track = track;
+      setup.weather = weather;
+      setup.corners = generatedCorners;
+      setup.pressCorners = press;
+      setup.grid = gridItems;
+      setup.finishPositions = {};
+      gridItems.forEach(item => setup.finishPositions[item.name] = null);
+
+      applyRulesLogic(setup);
+    }
+
+    function randomizeChampionshipRace(setup, roundIndex) {
+      const tracks = getAvailableTracks();
+      if (tracks.length === 0) return;
+
+      const usedTracks = new Set();
+      for (let i = 0; i < roundIndex; i++) {
+        if (store.championship[i] && store.championship[i].track) {
+          usedTracks.add(store.championship[i].track.name);
+        }
+      }
+
+      let possible = tracks.filter(t => !usedTracks.has(t.name));
+      if (possible.length === 0) possible = tracks;
+
+      const track = possible[Math.floor(Math.random() * possible.length)];
+      const gridItems = buildActiveGridItems().sort(() => Math.random() - 0.5);
+      const weather = APP_DATA.weatherConditions[Math.floor(Math.random() * APP_DATA.weatherConditions.length)];
+
+      const generatedCorners = [];
+      const counts = {};
+      for (let i = 0; i < track.cornerTokens; i++) {
+        const pool = APP_DATA.cornerTypes.filter(t => (counts[t] || 0) < 2);
+        const token = pool[Math.floor(Math.random() * pool.length)];
+        generatedCorners.push(token);
+        counts[token] = (counts[token] || 0) + 1;
+      }
+
+      const press = [];
+      if (store.usePressCorners && track.cornerTokens > 0) {
+        const eligible = [];
+        for (let i = 0; i < track.cornerTokens; i++) {
+          if (!track.chicaneCorners.includes(i + 1)) eligible.push(i);
+        }
+        if (eligible.length > 0) {
+          eligible.sort(() => Math.random() - 0.5);
+          const amount = Math.floor(Math.random() * (eligible.length > 2 ? 2 : eligible.length)) + 1;
+          for (let i = 0; i < amount; i++) press.push(eligible[i]);
+        }
+      }
+
+      setup.track = track;
+      setup.weather = weather;
+      setup.corners = generatedCorners;
+      setup.pressCorners = press;
+      setup.grid = gridItems;
+      setup.finishPositions = {};
+      gridItems.forEach(item => setup.finishPositions[item.name] = null);
+
+      applyRulesLogic(setup);
+    }
+
+    function prepareRaceSetup(roundIndex) {
+      if (store.isChampionship && !store.championship[roundIndex]) {
+        store.championship[roundIndex] = createNewRaceSetup();
+      }
+      const setup = store.isChampionship ? store.championship[roundIndex] : store.singleRace;
+      
+      setup.grid = buildActiveGridItems();
+      Object.keys(setup.finishPositions).forEach(name => {
+        if (!setup.grid.some(g => g.name === name)) delete setup.finishPositions[name];
+      });
+      setup.grid.forEach(g => {
+        if (setup.finishPositions[g.name] === undefined) setup.finishPositions[g.name] = null;
+      });
+
+      if (setup.track) return;
+
+      if (store.isCustom) {
+        const tracks = getAvailableTracks();
+        if (tracks.length > 0) {
+          initializeCustomRace(setup, tracks[0]);
+        }
+      } else {
+        if (store.isChampionship) {
+          randomizeChampionshipRace(setup, roundIndex);
+        } else {
+          randomizeRace(setup);
+        }
+      }
+    }
+
+    function initializeCustomRace(setup, track) {
+      setup.track = track;
+      setup.weather = "Sunny";
+      setup.corners = Array(track.cornerTokens).fill(APP_DATA.cornerTypes[0]);
+      setup.pressCorners = [];
+      setup.grid = buildActiveGridItems();
+      setup.finishPositions = {};
+      setup.grid.forEach(item => setup.finishPositions[item.name] = null);
+
+      if (store.useOfficialTrackRules) {
+        setup.activeSpecialRule = track.specialRule;
+      } else if (store.useGenericCustomRules) {
+        setup.activeSpecialRule = APP_DATA.genericSpecialRules[0];
+      } else {
+        setup.activeSpecialRule = "None (Disabled)";
+      }
+    }
+
+    function getPointsForPos(pos) {
+      return (pos >= 1 && pos <= 6) ? [9, 6, 4, 3, 2, 1][pos - 1] : 0;
+    }
+
+    function getCumulativePoints(participantName, upToRoundInclusive) {
+      if (!store.isChampionship) return 0;
+      let total = 0;
+      const maxRounds = Math.min(upToRoundInclusive, store.championship.length);
+      for (let i = 0; i < maxRounds; i++) {
+        if (store.championship[i] && store.championship[i].finishPositions) {
+          const pos = store.championship[i].finishPositions[participantName];
+          if (pos != null) total += getPointsForPos(pos);
+        }
+      }
+      return total;
+    }
+
+    // --- НАВИГАЦИЯ С ИСТОРИЯ ЗА БУТОНА НАЗАД ---
+    let navigationHistory = ['GameModeScreen'];
+
+    function navigateTo(screenName, params = {}) {
+      if (store.currentScreen !== screenName) {
+        navigationHistory.push(screenName);
+      }
+      store.currentScreen = screenName;
+      if (params.round !== undefined) store.currentRound = params.round;
+      renderApp();
+      window.scrollTo(0, 0);
+    }
+
+    function goBackStep() {
+      if (navigationHistory.length > 1) {
+        navigationHistory.pop(); // премахваме текущия екран
+        const previousScreen = navigationHistory[navigationHistory.length - 1];
+        store.currentScreen = previousScreen;
+        renderApp();
+        window.scrollTo(0, 0);
+      } else {
+        navigateTo('GameModeScreen');
+      }
+    }
+
+    function goToTracker() {
+  // Замени този линк с реалния URL адрес на твоя тракер в GitHub Pages
+  window.location.href = 'https://georgiev4910.github.io/Board_Game_Tracker/';
+}
+
+    function renderApp() {
+      const container = document.getElementById('app-container');
+      const headerActions = document.getElementById('header-actions');
+      const headerTitle = document.getElementById('header-title');
+
+      if (store.currentScreen === 'GameModeScreen') {
+        headerActions.innerHTML = '';
+        headerTitle.textContent = "HEAT: Pedal to the Metal";
+      } else {
+        headerActions.innerHTML = ``;
+      }
+
+      container.innerHTML = '';
+
+      switch (store.currentScreen) {
+        case 'GameModeScreen':
+          container.innerHTML = renderGameModeScreen();
+          break;
+        case 'HistoryScreen':
+          container.innerHTML = renderHistoryScreen();
+          break;
+        case 'ExpansionScreen':
+          container.innerHTML = renderExpansionScreen();
+          break;
+        case 'ParticipantSetupScreen':
+          container.innerHTML = renderParticipantSetupScreen();
+          break;
+        case 'RaceTypeScreen':
+          container.innerHTML = renderRaceTypeScreen();
+          break;
+        case 'CustomChampionshipSelectionScreen':
+          container.innerHTML = renderCustomChampionshipSelectionScreen();
+          break;
+        case 'SetupScreen':
+          container.innerHTML = renderSetupScreen(store.currentRound);
+          break;
+        case 'ChampionshipDashboardScreen':
+          container.innerHTML = renderChampionshipDashboardScreen();
+          break;
+        case 'LiveRaceScreen':
+          container.innerHTML = renderLiveRaceScreen(store.currentRound);
+          break;
+        default:
+          container.innerHTML = renderGameModeScreen();
+      }
+    }
+
+    function renderGameModeScreen() {
+      return `
+        <div class="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
+          <div class="text-center mb-8">
+            <span class="bg-red-500/10 text-red-500 border border-red-500/20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">Board Game Companion</span>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-3">Ready to Race?</h2>
+            <p class="text-gray-400 text-sm mt-2 max-w-md mx-auto">Select your game mode configuration to generate tracks, weather, corner tokens, special rules, and manage your live racing championship.</p>
+          </div>
+
+          <div class="w-full max-w-md space-y-4">
+            <button onclick="store.isCustom = false; resetData(); navigateTo('ExpansionScreen');" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold py-4 px-6 rounded-2xl shadow-xl shadow-red-900/20 flex items-center justify-center space-x-3 transition transform active:scale-98">
+              <i class="fa-solid fa-shuffle text-xl"></i>
+              <span class="text-lg">Random Game Mode</span>
+            </button>
+
+            <button onclick="store.isCustom = true; resetData(); navigateTo('ExpansionScreen');" class="w-full bg-surface hover:bg-surfaceContainer text-white font-semibold py-4 px-6 rounded-2xl border border-gray-700 shadow-lg flex items-center justify-center space-x-3 transition transform active:scale-98">
+              <i class="fa-solid fa-sliders text-xl text-red-500"></i>
+              <span class="text-lg">Custom Game Mode</span>
+            </button>
+
+            ${store.history.length > 0 ? `
+              <div class="pt-6 border-t border-gray-800">
+                <button onclick="navigateTo('HistoryScreen')" class="w-full bg-surface hover:bg-surfaceContainer text-gray-300 font-medium py-3 px-6 rounded-2xl border border-gray-800 flex items-center justify-center space-x-2 transition">
+                  <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                  <span>View History (${store.history.length})</span>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHistoryScreen() {
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Game History Log</h2>
+              <p class="text-sm text-gray-400">Past race records and championship standings.</p>
+            </div>
+            <button onclick="store.history = []; saveStorage(); renderApp(); showToast('History cleared.');" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-xl text-xs font-semibold border border-red-500/20 transition">Clear History</button>
+          </div>
+
+          ${store.history.length === 0 ? `
+            <div class="text-center py-16 bg-surface rounded-2xl border border-gray-800">
+              <i class="fa-solid fa-folder-open text-4xl text-gray-600 mb-3"></i>
+              <p class="text-gray-400">No saved games yet.</p>
+            </div>
+          ` : `
+            <div class="space-y-4">
+              ${store.history.map((record) => `
+                <div class="bg-surface rounded-2xl border border-gray-800 p-5 shadow-md">
+                  <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+                        <i class="fa-solid ${record.modeType === 'Championship' ? 'fa-trophy' : 'fa-flag-checkered'}"></i>
+                      </div>
+                      <div>
+                        <h3 class="font-bold text-white">${record.modeType}</h3>
+                        <p class="text-xs text-gray-400">${record.date}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-4 space-y-1.5 font-mono text-xs sm:text-sm text-gray-300">
+                    ${record.details.map(line => `<div class="${line.startsWith('•') ? 'pl-4 text-gray-200 font-semibold' : ''}">${line}</div>`).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function renderExpansionScreen() {
+      const ownedTracksCount = getAvailableTracks().length;
+      return `
+        <div class="space-y-6 animate-fade-in pb-20">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Owned Expansions</h2>
+            <p class="text-sm text-gray-400">Select which expansions and tracks you own for this session.</p>
+          </div>
+
+          <div class="space-y-3">
+            ${APP_DATA.expansions.map((exp, idx) => `
+              <div onclick="toggleExpansion(${idx})" class="bg-surface hover:bg-surfaceContainer border ${exp.isOwned ? 'border-red-500/50 bg-red-500/5' : 'border-gray-800'} rounded-2xl p-4 flex items-center justify-between cursor-pointer transition select-none">
+                <div class="flex items-center space-x-3">
+                  <div class="w-6 h-6 rounded-lg ${exp.isOwned ? 'bg-red-600 text-white' : 'border border-gray-600'} flex items-center justify-center text-xs">
+                    ${exp.isOwned ? '<i class="fa-solid fa-check"></i>' : ''}
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-white">${exp.name}</h3>
+                    <p class="text-xs text-gray-400">${exp.tracks && exp.tracks.length > 0 ? exp.tracks.length + ' tracks' : 'Legend drivers'}</p>
+                  </div>
+                </div>
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full ${exp.isOwned ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-400'}">${exp.isOwned ? 'Owned' : 'Not Owned'}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center justify-between z-40">
+            <div class="text-xs text-gray-400">
+              Available Tracks: <span class="text-white font-bold">${ownedTracksCount}</span>
+            </div>
+            <button onclick="navigateTo('ParticipantSetupScreen');" ${ownedTracksCount === 0 ? 'disabled' : ''} class="bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition">
+              Continue <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleExpansion(index) {
+      APP_DATA.expansions[index].isOwned = !APP_DATA.expansions[index].isOwned;
+      saveStorage();
+      renderApp();
+    }
+
+    function renderParticipantSetupScreen() {
+      const allCars = getAllPossibleCars();
+      const currentCount = store.participants.length;
+
+      return `
+        <div class="space-y-6 animate-fade-in pb-24">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Participants Setup</h2>
+              <p class="text-sm text-gray-400">Configure real human players and AI legend settings.</p>
+            </div>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-4 flex items-center justify-between">
+            <div>
+              <span class="font-semibold text-white text-sm block">Number of Real Players</span>
+              <span class="text-xs text-gray-400">Select how many human drivers participate</span>
+            </div>
+            <select onchange="updateParticipantCount(parseInt(this.value))" class="bg-surfaceContainer border border-gray-700 rounded-xl px-4 py-2 text-white font-bold text-sm">
+              ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => `<option value="${n}" ${currentCount === n ? 'selected' : ''}>${n}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-purple-500/30 p-4 flex items-center justify-between bg-purple-500/5">
+            <div>
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-robot text-purple-400"></i>
+                <span class="font-semibold text-white text-sm">AI Legends (Bots)</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-0.5">Include automated legends in the starting grid</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" ${store.enableAI ? 'checked' : ''} onchange="store.enableAI = this.checked; renderApp();" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider px-1">Real Human Drivers</h3>
+            ${store.participants.map((p, idx) => `
+              <div class="bg-surface rounded-2xl border border-gray-800 p-4 space-y-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 font-bold flex items-center justify-center text-xs">
+                    ${idx + 1}
+                  </div>
+                  <div class="flex-1">
+                    <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Player Name</label>
+                    <input type="text" value="${p.name}" oninput="store.participants[${idx}].name = this.value" class="w-full bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-2 text-white text-sm font-semibold">
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-gray-800/60">
+                  <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Car Color</label>
+                  <select onchange="store.participants[${idx}].car = this.value; renderApp();" class="w-full bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">
+                    ${allCars.map(c => `<option value="${c}" ${p.car === c ? 'selected' : ''}>${c}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center space-x-3 z-40">
+            <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
+              Back
+            </button>
+            <button onclick="navigateTo('RaceTypeScreen')" ${store.participants.length === 0 ? 'disabled' : ''} class="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition">
+              Continue <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateParticipantCount(count) {
+      const allCars = getAllPossibleCars();
+      const current = store.participants;
+      if (current.length < count) {
+        for (let i = current.length; i < count; i++) {
+          current.push({
+            name: `Player ${i + 1}`,
+            car: allCars[i % allCars.length] || "Blue"
+          });
+        }
+      } else if (current.length > count) {
+        store.participants = current.slice(0, count);
+      }
+      renderApp();
+    }
+
+    function renderRaceTypeScreen() {
+      return `
+        <div class="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-white">Select Race Type</h2>
+            <p class="text-gray-400 text-sm mt-2">Choose between a standalone single race or full championship series.</p>
+          </div>
+
+          <div class="w-full max-w-md space-y-4">
+            <button onclick="store.isChampionship = false; prepareRaceSetup(0); navigateTo('SetupScreen', {round: 0});" class="w-full bg-surface hover:bg-surfaceContainer border border-gray-700 hover:border-red-500/50 p-6 rounded-2xl flex items-center space-x-4 transition group">
+              <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center text-xl group-hover:bg-red-600 group-hover:text-white transition">
+                <i class="fa-solid fa-flag-checkered"></i>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-white text-lg">Single Race</h3>
+                <p class="text-xs text-gray-400">One-off grand prix with custom or random setup.</p>
+              </div>
+            </button>
+
+            <button onclick="
+              if(!store.isCustom) {
+                store.isChampionship = true;
+                store.totalChampionshipRounds = 4;
+                store.championship = [];
+                for(let i=0; i<4; i++) store.championship.push(createNewRaceSetup());
+                prepareRaceSetup(0);
+                navigateTo('SetupScreen', {round: 0});
+              } else {
+                navigateTo('CustomChampionshipSelectionScreen');
+              }
+            " class="w-full bg-surface hover:bg-surfaceContainer border border-gray-700 hover:border-amber-500/50 p-6 rounded-2xl flex items-center space-x-4 transition group">
+              <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl group-hover:bg-amber-500 group-hover:text-white transition">
+                <i class="fa-solid fa-trophy"></i>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-white text-lg">Championship Mode</h3>
+                <p class="text-xs text-gray-400">Multi-round seasonal series with cumulative standings.</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCustomChampionshipSelectionScreen() {
+      const presets = getValidPresets();
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Custom Championship Style</h2>
+            <p class="text-sm text-gray-400">Choose manual custom configuration or official pre-set seasons.</p>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-4 hover:border-gray-700 cursor-pointer transition" onclick="
+            store.isChampionship = true;
+            store.totalChampionshipRounds = 4;
+            store.championship = [];
+            for(let i=0; i<4; i++) store.championship.push(createNewRaceSetup());
+            prepareRaceSetup(0);
+            navigateTo('SetupScreen', {round: 0});
+          ">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                  <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-white">Manual Custom Championship</h3>
+                  <p class="text-xs text-gray-400">Manually choose tracks, weather and layout for all 4 rounds.</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-gray-500 text-sm"></i>
+            </div>
+          </div>
+
+          <div class="pt-4">
+            <h3 class="text-base font-bold text-white mb-3">Official & Pre-set Seasons</h3>
+            ${presets.length === 0 ? `
+              <div class="p-6 bg-surface rounded-2xl border border-gray-800 text-center text-gray-500 text-sm">
+                No presets available for your owned expansions. Enable more expansions to view presets.
+              </div>
+            ` : `
+              <div class="space-y-3">
+                ${presets.map(preset => `
+                  <div class="bg-surface rounded-2xl border border-gray-800 p-5 hover:border-amber-500/50 cursor-pointer transition" onclick="loadPresetChampionship('${preset.name}')">
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-start space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center mt-0.5">
+                          <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                          <h4 class="font-bold text-white">${preset.name}</h4>
+                          <p class="text-xs text-gray-400 mt-1">${preset.description}</p>
+                          <div class="flex flex-wrap gap-1 mt-2">
+                            ${preset.rounds.map(r => `<span class="bg-surfaceContainer text-gray-300 px-2 py-0.5 rounded text-xs">${r.trackName} (${r.weather})</span>`).join('')}
+                          </div>
+                        </div>
+                      </div>
+                      <i class="fa-solid fa-play text-green-500 mt-2"></i>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    function loadPresetChampionship(presetName) {
+      const preset = APP_DATA.presets.find(p => p.name === presetName);
+      if (!preset) return;
+
+      store.isChampionship = true;
+      store.isCustom = false;
+      store.currentRound = 0;
+      store.totalChampionshipRounds = preset.rounds.length;
+      store.championship = [];
+
+      const availableTracks = getAvailableTracks();
+
+      preset.rounds.forEach(roundData => {
+        const track = availableTracks.find(t => t.name === roundData.trackName) || availableTracks[0];
+        const setup = createNewRaceSetup();
+
+        const generatedCorners = [];
+        const counts = {};
+        for (let c = 0; c < track.cornerTokens; c++) {
+          const pool = APP_DATA.cornerTypes.filter(t => (counts[t] || 0) < 2);
+          const token = pool[Math.floor(Math.random() * pool.length)];
+          generatedCorners.push(token);
+          counts[token] = (counts[token] || 0) + 1;
+        }
+
+        const press = [];
+        if (store.usePressCorners && track.cornerTokens > 0) {
+          const eligible = [];
+          for (let i = 0; i < track.cornerTokens; i++) {
+            if (!track.chicaneCorners.includes(i + 1)) eligible.push(i);
+          }
+          if (eligible.length > 0) {
+            eligible.sort(() => Math.random() - 0.5);
+            const amount = Math.floor(Math.random() * (eligible.length > 2 ? 2 : eligible.length)) + 1;
+            for (let i = 0; i < amount; i++) press.push(eligible[i]);
+          }
+        }
+
+        setup.track = track;
+        setup.weather = roundData.weather;
+        setup.activeSpecialRule = store.useOfficialTrackRules ? roundData.specialRule : "None (Disabled)";
+        setup.corners = generatedCorners;
+        setup.pressCorners = press;
+        store.championship.push(setup);
+      });
+
+      navigateTo('ChampionshipDashboardScreen');
+    }
+
+    function renderSetupScreen(round) {
+      if (store.isChampionship) {
+        if (store.championship[round] == null) {
+          store.championship[round] = createNewRaceSetup();
+        }
+      }
+      const setup = store.isChampionship ? store.championship[round] : store.singleRace;
+      const availableTracks = getAvailableTracks();
+
+      return `
+        <div class="space-y-6 animate-fade-in pb-24">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-white">${store.isChampionship ? `Setup: Round ${round + 1}` : 'Race Configuration'}</h2>
+              <p class="text-sm text-gray-400">Configure rules, track tokens, and starting grid order.</p>
+            </div>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="font-semibold text-white text-sm">Allow Press Corners</h4>
+                <p class="text-xs text-gray-400">Press corners cannot appear on Chicanes</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" ${store.usePressCorners ? 'checked' : ''} onchange="store.usePressCorners = this.checked; renderApp();" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+
+           <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+              <div>
+                <h4 class="font-semibold text-white text-sm">Official Track Rules</h4>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" ${store.useOfficialTrackRules ? 'checked' : ''} onchange="
+                  const s = store.isChampionship ? store.championship[${round}] : store.singleRace;
+                  store.useOfficialTrackRules = this.checked;
+                  if(s && s.track) { applyRulesLogic(s); }
+                  renderApp();
+                " class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+              <div>
+                <h4 class="font-semibold text-white text-sm">Generic Event Rules</h4>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" ${store.useGenericCustomRules ? 'checked' : ''} onchange="
+                  const s = store.isChampionship ? store.championship[${round}] : store.singleRace;
+                  store.useGenericCustomRules = this.checked;
+                  if(s && s.track) { applyRulesLogic(s); }
+                  renderApp();
+                " class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+              </label>
+            </div>
+
+          ${!store.isCustom ? `
+            <button onclick="
+              const s = store.isChampionship ? store.championship[${round}] : store.singleRace;
+              if(store.isChampionship) { 
+                randomizeChampionshipRace(s, ${round}); 
+              } else { 
+                randomizeRace(s); 
+              } 
+              renderApp(); 
+              showToast('Race setup rerolled!');
+            " class="w-full bg-surface hover:bg-surfaceContainer text-white font-semibold py-3 px-4 rounded-xl border border-gray-700 flex items-center justify-center space-x-2 transition">
+              <i class="fa-solid fa-dice text-red-500"></i>
+              <span>Reroll Setup</span>
+            </button>
+          ` : `
+            <div class="bg-surface rounded-2xl border border-gray-800 p-4 space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Track</label>
+                <select onchange="
+                  const tr = availableTracks.find(t => t.name === this.value);
+                  if(tr) { initializeCustomRace(setup, tr); renderApp(); }
+                " class="w-full bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">
+                  ${availableTracks.map(t => `<option value="${t.name}" ${setup.track && setup.track.name === t.name ? 'selected' : ''}>${t.name}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Weather</label>
+                <select onchange="setup.weather = this.value; renderApp();" class="w-full bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">
+                  ${APP_DATA.weatherConditions.map(w => `<option value="${w}" ${setup.weather === w ? 'selected' : ''}>${w}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Special Rule</label>
+                <textarea rows="3" oninput="setup.activeSpecialRule = this.value;" class="w-full bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">${setup.activeSpecialRule}</textarea>
+              </div>
+            </div>
+          `}
+
+          ${!store.isCustom && setup.track ? `
+            <div class="bg-surface rounded-2xl border border-gray-800 p-4 flex items-center space-x-4">
+              <div class="text-3xl"><i class="fa-solid ${getWeatherIconClass(setup.weather)}"></i></div>
+              <div>
+                <h3 class="font-bold text-white text-lg">${setup.track.name}</h3>
+                <p class="text-xs text-gray-400">Weather: ${setup.weather} \vert{} Laps:${setup.track.laps}</p>
+              </div>
+            </div>
+          ` : ''}
+
+          ${setup.activeSpecialRule && setup.activeSpecialRule !== "None (Disabled)" ? `
+            <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start space-x-3">
+              <i class="fa-solid fa-gavel text-amber-400 mt-0.5"></i>
+              <p class="text-xs sm:text-sm text-amber-300 font-medium">${setup.activeSpecialRule}</p>
+            </div>
+          ` : ''}
+
+          <div>
+            <h3 class="text-lg font-bold text-white mb-3">Corner Tokens</h3>
+            <div class="space-y-3">
+              ${Array.from({length: setup.track ? setup.track.cornerTokens : 0}).map((_, i) => {
+                const isChicane = setup.track.chicaneCorners.includes(i + 1);
+                const isPress = setup.pressCorners.includes(i);
+                return `
+                  <div class="bg-surface rounded-2xl border ${isPress ? 'border-orange-500/50 bg-orange-500/5' : 'border-gray-800'} p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center space-x-2">
+                        <i class="fa-solid ${isChicane ? 'fa-arrows-split-up-and-left text-red-500' : 'fa-turn-right text-gray-400'}"></i>
+                        <span class="font-bold text-white text-sm">Corner ${i + 1}</span>
+                      </div>
+                      ${isChicane ? '<span class="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded font-bold">CHICANE</span>' : ''}
+                    </div>
+
+                    <div>
+                      <select ${!store.isCustom ? 'disabled' : ''} onchange="setup.corners[${i}] = this.value; renderApp();" class="w-full bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-2 text-white text-sm">
+                        ${APP_DATA.cornerTypes.map(token => `<option value="${token}" ${setup.corners[i] === token ? 'selected' : ''}>${token}</option>`).join('')}
+                      </select>
+                    </div>
+
+                    ${!isChicane && store.usePressCorners ? `
+                      <label class="flex items-center space-x-3 pt-2 border-t border-gray-800/60 cursor-pointer select-none">
+                        <input type="checkbox" ${isPress ? 'checked' : ''} onchange="
+                          if(this.checked) {
+                            if(!setup.pressCorners.includes(${i})) setup.pressCorners.push(${i});
+                          } else {
+                            setup.pressCorners = setup.pressCorners.filter(x => x !== ${i});
+                          }
+                          renderApp();
+                        " class="rounded bg-gray-700 border-gray-600 text-orange-500 focus:ring-0 w-4 h-4">
+                        <div class="flex items-center space-x-2 text-xs font-semibold ${isPress ? 'text-orange-400 font-bold' : 'text-gray-400'}">
+                          <i class="fa-solid fa-camera"></i>
+                          <span>${isPress ? 'PRESS CORNER ACTIVE' : 'Enable Press Corner'}</span>
+                        </div>
+                      </label>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-lg font-bold text-white">Starting Grid</h3>
+            </div>
+            <div class="space-y-2">
+              ${setup.grid.map((item, idx) => `
+                <div class="bg-surface rounded-xl border border-gray-800 p-3 flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="flex flex-col space-y-1">
+                      <button onclick="moveGridCar(${round}, ${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="text-gray-500 hover:text-white disabled:opacity-30 text-xs"><i class="fa-solid fa-chevron-up"></i></button>
+                      <button onclick="moveGridCar(${round}, ${idx}, 1)" ${idx === setup.grid.length - 1 ? 'disabled' : ''} class="text-gray-500 hover:text-white disabled:opacity-30 text-xs"><i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                    <i class="fa-solid fa-car text-lg" style="color: ${getCarColorHex(item.car)}"></i>
+                    <div>
+                      <span class="font-bold text-white text-sm">${item.name}</span>
+                      <span class="text-xs text-gray-400 ml-1">(${item.car})</span>
+                    </div>
+                  </div>
+
+                  <span class="text-xs font-medium px-2.5 py-1 rounded-lg ${item.isLegend ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}">
+                    ${item.isLegend ? 'AI Legend' : 'Human'}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center space-x-3 z-40">
+            <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
+              Back
+            </button>
+            <button onclick="
+              if(store.isChampionship) {
+                navigateTo('ChampionshipDashboardScreen');
+              } else {
+                navigateTo('LiveRaceScreen', {round: 0});
+              }
+            " class="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition">
+              ${store.isChampionship ? 'Championship' : 'Start Race'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function moveGridCar(round, idx, direction) {
+      const setup = store.isChampionship ? store.championship[round] : store.singleRace;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= setup.grid.length) return;
+      const item = setup.grid.splice(idx, 1)[0];
+      setup.grid.splice(targetIdx, 0, item);
+      renderApp();
+    }
+
+    function renderChampionshipDashboardScreen() {
+      const allParticipants = (store.championship[0] && store.championship[0].grid) ? store.championship[0].grid : buildActiveGridItems();
+      return `
+        <div class="space-y-6 animate-fade-in pb-20">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Championship Standings</h2>
+            <p class="text-sm text-gray-400">Cumulative points across all championship rounds.</p>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-5 shadow-md">
+            <h3 class="font-bold text-white text-base mb-3 text-center">Current Standings (Points)</h3>
+            <div class="space-y-2">
+              ${allParticipants.slice().sort((a,b) => getCumulativePoints(b.name, store.totalChampionshipRounds) - getCumulativePoints(a.name, store.totalChampionshipRounds)).map(p => {
+                const pts = getCumulativePoints(p.name, store.totalChampionshipRounds);
+                return `
+                  <div class="flex items-center justify-between py-2 border-b border-gray-800/60 last:border-0">
+                    <div class="flex items-center space-x-3">
+                      <i class="fa-solid fa-car" style="color: ${getCarColorHex(p.car)}"></i>
+                      <span class="font-bold text-white text-sm">${p.name} <span class="text-xs text-gray-400 font-normal">(${p.car})</span></span>
+                    </div>
+                    <span class="font-bold text-red-500 text-base">${pts} pts</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-bold text-white mb-3">Calendar & Setup</h3>
+            <div class="space-y-3">
+              ${Array.from({length: store.totalChampionshipRounds}).map((_, i) => {
+                const setup = store.championship[i];
+                const isConfigured = setup && setup.track != null;
+                return `
+                  <div onclick="prepareRaceSetup(${i}); navigateTo('SetupScreen', {round:${i}});" class="bg-surface hover:bg-surfaceContainer border border-gray-800 rounded-2xl p-4 flex items-center justify-between cursor-pointer transition">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-400 font-bold flex items-center justify-center text-sm">
+                        ${i + 1}
+                      </div>
+                      <div>
+                        <h4 class="font-bold text-white text-sm">${isConfigured ? `Round ${i + 1}: ${setup.track.name}` : `Round ${i + 1}: Unconfigured`}</h4>
+                        <p class="text-xs text-gray-400">Weather: ${setup.weather} \vert{} Laps:${setup.track.laps}</p>
+                      </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-500 text-sm"></i>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <button onclick="prepareRaceSetup(store.currentRound); navigateTo('LiveRaceScreen', {round: store.currentRound});" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold py-4 rounded-2xl shadow-xl flex items-center justify-center space-x-2 transition">
+            <i class="fa-solid fa-play text-lg"></i>
+            <span class="text-base">Go to Live Race Control</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderLiveRaceScreen(roundIndex) {
+      if (store.isChampionship && !store.championship[roundIndex]) {
+        store.championship[roundIndex] = createNewRaceSetup();
+      }
+      const setup = store.isChampionship ? store.championship[roundIndex] : store.singleRace;
+
+      return `
+        <div class="space-y-6 animate-fade-in pb-24">
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-white">${store.isChampionship ? `Live: Round ${roundIndex + 1}` : 'Live Race Sheet'}</h2>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-6 shadow-xl space-y-4">
+            <div>
+              <h3 class="text-2xl font-extrabold text-white">${setup.track ? setup.track.name : 'No Track'}</h3>
+              <p class="text-xs text-gray-400">Laps: ${setup.track ? setup.track.laps : '-'}</p>
+            </div>
+            <div class="border-t border-gray-800 pt-3 flex items-center space-x-2">
+              <i class="fa-solid ${getWeatherIconClass(setup.weather)} text-lg"></i>
+              <span class="text-sm font-medium text-gray-200">Weather Condition: ${setup.weather}</span>
+            </div>
+            ${setup.activeSpecialRule && setup.activeSpecialRule !== "None (Disabled)" ? `
+              <div class="border-t border-gray-800 pt-3 flex items-start space-x-2">
+                <i class="fa-solid fa-gavel text-amber-400 mt-0.5"></i>
+                <p class="text-xs sm:text-sm text-amber-300 font-medium">Special Rule: ${setup.activeSpecialRule}</p>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-5 space-y-3">
+            <h3 class="font-bold text-white text-base">Race Track Token Log</h3>
+            <div class="space-y-2 border-t border-gray-800 pt-3">
+              ${setup.corners.map((token, i) => {
+                const isPress = setup.pressCorners.includes(i);
+                return `
+                  <div class="flex items-center justify-between py-1.5 border-b border-gray-800/50 last:border-0">
+                    <div class="flex items-center space-x-2">
+                      <i class="fa-solid ${isPress ? 'fa-camera text-orange-500' : 'fa-turn-right text-gray-400'} text-sm"></i>
+                      <span class="text-sm font-medium text-gray-200">Corner ${i + 1}: <strong class="text-white">${token}</strong></span>
+                    </div>
+                    ${isPress ? '<span class="text-[10px] font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">PRESS CORNER</span>' : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="bg-surface rounded-2xl border border-gray-800 p-5 space-y-4">
+            <h3 class="font-bold text-white text-base">Input Finish Positions</h3>
+            <div class="space-y-3 border-t border-gray-800 pt-3">
+              ${setup.grid.map(item => {
+                const totalPts = getCumulativePoints(item.name, roundIndex + 1);
+                const currentPos = setup.finishPositions[item.name];
+                
+                const occupied = [];
+                Object.entries(setup.finishPositions).forEach(([name, p]) => {
+                  if (name !== item.name && p != null) occupied.push(p);
+                });
+
+                const availableOptions = [null];
+                for (let p = 1; p <= setup.grid.length; p++) {
+                  if (!occupied.includes(p)) availableOptions.push(p);
+                }
+
+                return `
+                  <div class="flex items-center justify-between py-2 border-b border-gray-800/60 last:border-0">
+                    <div class="flex items-center space-x-3">
+                      <i class="fa-solid fa-car" style="color: ${getCarColorHex(item.car)}"></i>
+                      <div>
+                        <span class="font-bold text-white text-sm">${item.name}</span>
+                        <span class="text-xs text-gray-400 ml-1">(${item.car})</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <select onchange="
+                        const val = this.value === '' ? null : parseInt(this.value);
+                        setup.finishPositions['${item.name}'] = val;
+                        renderApp();
+                      " class="bg-surfaceContainer border border-gray-700 rounded-xl px-3 py-1.5 text-white text-sm font-semibold">
+                        ${availableOptions.map(p => `<option value="${p !== null ? p : ''}" ${currentPos === p ? 'selected' : ''}>${p !== null ? 'Pos ' + p : '-'}</option>`).join('')}
+                      </select>
+                      ${store.isChampionship ? `<span class="text-xs font-bold text-gray-300 w-16 text-right">Sum: ${totalPts} pts</span>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-4">
+            ${store.isChampionship ? `
+              <div class="flex space-x-3">
+                <button ${roundIndex === 0 ? 'disabled' : ''} onclick="navigateTo('LiveRaceScreen', {round: ${roundIndex - 1}});" class="flex-1 bg-surface hover:bg-surfaceContainer disabled:opacity-40 text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
+                  Prev Round
+                </button>
+                <button onclick="
+                  if(${roundIndex} < store.totalChampionshipRounds - 1) {
+                    store.currentRound = ${roundIndex + 1};
+                    prepareRaceSetup(store.currentRound);
+                    navigateTo('LiveRaceScreen', {round: store.currentRound});
+                  } else {
+                    saveRaceToHistory();
+                    showToast('Championship saved to History!');
+                    navigateTo('GameModeScreen');
+                  }
+                " class="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition">
+                  ${roundIndex === store.totalChampionshipRounds - 1 ? 'Save & Finish' : 'Next Round'}
+                </button>
+              </div>
+            ` : `
+              <button onclick="
+                saveRaceToHistory();
+                showToast('Race saved to History!');
+                navigateTo('GameModeScreen');
+              " class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-4 rounded-xl shadow-xl flex items-center justify-center space-x-2 transition">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Save Race to History</span>
+              </button>
+            `}
+
+            <button onclick="navigateTo('GameModeScreen')" class="w-full bg-surface hover:bg-surfaceContainer text-gray-400 font-medium py-3 rounded-xl border border-gray-800 transition">
+              Exit without saving
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function saveRaceToHistory() {
+      const now = new Date();
+      const dateStr = `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const summary = [];
+
+      if (store.isChampionship) {
+        summary.push("🏆 Championship Results (Final Standings):");
+        const allParticipants = (store.championship[0] && store.championship[0].grid) ? store.championship[0].grid : buildActiveGridItems();
+        const sorted = allParticipants.slice().sort((a, b) => getCumulativePoints(b.name, store.totalChampionshipRounds) - getCumulativePoints(a.name, store.totalChampionshipRounds));
+        sorted.forEach(p => {
+          summary.push(`• ${p.name} (${p.car}): ${getCumulativePoints(p.name, store.totalChampionshipRounds)} pts`);
+        });
+      } else {
+        summary.push(`🏁 Single Race on ${store.singleRace.track?.name} (${store.singleRace.weather})`);
+        const sortedGrid = [...store.singleRace.grid].sort((a, b) => {
+          const posA = store.singleRace.finishPositions[a.name] ?? 99;
+          const posB = store.singleRace.finishPositions[b.name] ?? 99;
+          return posA - posB;
+        });
+        sortedGrid.forEach(item => {
+          const pos = store.singleRace.finishPositions[item.name];
+          summary.push(`• Pos ${pos ?? '-'}: ${item.name} (${item.car}) - ${getPointsForPos(pos ?? 0)} pts`);
+        });
+      }
+
+      store.history.unshift({
+        date: dateStr,
+        modeType: store.isChampionship ? "Championship" : "Single Race",
+        details: summary
+      });
+      saveStorage();
+    }
+
+    window.onload = function() {
+      loadStorage();
+      renderApp();
+    };
+  </script>
+</body>
+</html>
