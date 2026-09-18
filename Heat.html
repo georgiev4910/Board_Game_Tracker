@@ -193,7 +193,30 @@
       ]
     };
 
-    // --- APPLICATION STATE ---
+   // --- APPLICATION STATE ---
+    function loadParticipantsFromTracker() {
+      try {
+        const savedPlayers = localStorage.getItem('myPlayers');
+        if (savedPlayers) {
+          const names = JSON.parse(savedPlayers);
+          if (Array.isArray(names) && names.length > 0) {
+            const defaultCars = ["Blue", "Yellow", "Green", "Gray", "Black", "Red", "Orange", "Purple", "White", "Pink", "Cyan"];
+            return names.map((name, index) => ({
+              name: name,
+              car: defaultCars[index % defaultCars.length]
+            }));
+          }
+        }
+      } catch (e) {
+        console.error("Грешка при зареждане на играчите от тракера:", e);
+      }
+      // Резервни стойности, ако localStorage е празен
+      return [
+        { name: "Player 1", car: "Blue" },
+        { name: "Player 2", car: "Yellow" }
+      ];
+    }
+
     let store = {
       isCustom: false,
       isChampionship: false,
@@ -203,10 +226,7 @@
       enableAI: true,
       currentRound: 0,
       totalChampionshipRounds: 4,
-      participants: [
-        { name: "Player 1", car: "Blue" },
-        { name: "Player 2", car: "Yellow" }
-      ],
+      participants: loadParticipantsFromTracker(),
       singleRace: {
         track: null,
         weather: "Sunny",
