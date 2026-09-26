@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky Team - Рандомайзер</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* Постоянен хедър с 3 бутона (като в Carcassonne) – синя тема */
+        .top-header {
+            width: 100%;
+            max-width: 440px;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+        .top-header .nav-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            border-right: 1px solid #334155;
+            padding-right: 12px;
+            margin-right: 4px;
+        }
+        .top-header .nav-btn {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            font-size: 15px;
+            text-decoration: none;
+            padding: 0;
+        }
+        .top-header .nav-btn:hover {
+            background: #1e3a5f;
+            border-color: #0284c7;
+            color: #e2e8f0;
+        }
+        .top-header .nav-btn.home-btn { color: #38bdf8; }
+        .top-header .nav-btn.home-btn:hover { color: #7dd3fc; border-color: #38bdf8; }
+        .top-header .nav-btn.back-btn { color: #60a5fa; }
+        .top-header .nav-btn.back-btn:hover { color: #93c5fd; border-color: #3b82f6; }
+        .top-header .nav-btn.tracker-btn { color: #22d3ee; }
+        .top-header .nav-btn.tracker-btn:hover { color: #67e8f9; border-color: #06b6d4; }
+        .top-header .title-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+        .top-header .logo-icon {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+        }
+        .top-header .title-mini {
+            font-size: 13px;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 0.4px;
+            line-height: 1.2;
+        }
+        .top-header .title-sub {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .container {
+            background-color: #1e293b;
+            padding: 28px 32px 32px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-sizing: border-box;
+            border: 1px solid #334155;
+            border-top: none;
+            margin-bottom: 40px;
+        }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #38bdf8;
+            font-size: 26px;
+            letter-spacing: 0.5px;
+        }
+        p {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .btn {
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background-color: #0369a1;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-secondary {
+            background-color: #475569;
+        }
+        .btn-secondary:hover {
+            background-color: #334155;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        .section-box {
+            text-align: left;
+            margin-bottom: 20px;
+            background: #0f172a;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .section-box h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .radio-item, .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+        }
+        .radio-item input, .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            accent-color: #0284c7;
+            cursor: pointer;
+        }
+        .radio-item label, .checkbox-item label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot-green { background-color: #22c55e; }
+        .dot-yellow { background-color: #eab308; }
+        .dot-red { background-color: #ef4444; }
+        .dot-black { background-color: #000000; border: 1px solid #64748b; }
+
+        .image-container {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .result-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .result-card h2 {
+            margin-top: 0;
+            color: #38bdf8;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .result-card p {
+            margin: 8px 0;
+            color: #cbd5e1;
+        }
+        .scenario-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            display: block;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .module-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            font-size: 17px;
+            margin-right: 4px;
+        }
+        .ability-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Постоянен хедър с 3 бутона (като в Carcassonne) – синя тема -->
+<div class="top-header">
+    <div class="nav-btns">
+        <button type="button" class="nav-btn home-btn" onclick="goHome()" title="Начало">
+            <i class="fa-solid fa-house"></i>
+        </button>
+        <button type="button" class="nav-btn back-btn" onclick="goBackStep()" title="Назад">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <a href="./raboten.html" class="nav-btn tracker-btn" title="Към Board Game Tracker">
+            <i class="fa-solid fa-flag-checkered"></i>
+        </a>
+    </div>
+    <div class="title-area">
+        <div class="logo-icon"><i class="fa-solid fa-plane"></i></div>
+        <div>
+            <div class="title-mini">SKY TEAM</div>
+            <div class="title-sub">Рандомайзер</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Начална страница -->
+    <div id="screen-home" class="screen active">
+        <h1>Sky Team</h1>
+        <p>Кооперативна игра за двама пилоти</p>
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" alt="Самолет в небето">
+        </div>
+        <button class="btn" onclick="goToScreen('screen-expansions')">Започни</button>
+    </div>
+
+    <!-- Страница с експанжъна -->
+    <div id="screen-expansions" class="screen">
+        <h1>Компоненти</h1>
+        <p>Изберете с какво разполагате:</p>
+        
+        <div class="section-box">
+            <div class="checkbox-item">
+                <input type="checkbox" id="base" checked disabled>
+                <label for="base"><strong>Sky Team</strong> <span style="color: #94a3b8; font-size: 13px;">(Базова игра)</span></label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="turbulence" checked>
+                <label for="turbulence"><strong>Turbulence</strong> <span style="color: #94a3b8; font-size: 13px;">(Разширение)</span></label>
+            </div>
+        </div>
+
+        <button class="btn" onclick="goToScreen('screen-settings')">Напред</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-home')">Назад</button>
+    </div>
+
+    <!-- Страница с настройки -->
+    <div id="screen-settings" class="screen">
+        <h1>Настройки на пистите</h1>
+        <p>Изберете режим и трудност:</p>
+        
+        <div class="section-box">
+            <h3>Режим на пистите</h3>
+            <div class="radio-item">
+                <input type="radio" id="mode-official" name="track-mode" value="official" checked>
+                <label for="mode-official">Официални писти</label>
+            </div>
+            <div class="radio-item">
+                <input type="radio" id="mode-random" name="track-mode" value="random">
+                <label for="mode-random">Случайни писти (Random + Модули)</label>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h3>Приоритизация на трудност</h3>
+            <div class="radio-item">
+                <input type="radio" id="diff-balanced" name="difficulty" value="balanced" checked>
+                <label for="diff-balanced">⚖️ Балансирано (Всички категории)</label>
+            </div>
+            <div class="radio-item">
+                <input type="radio" id="diff-easy" name="difficulty" value="easy">
+                <label for="diff-easy">
+                    Лесни: 
+                    <span class="dot dot-green" title="Зелено (Routine)"></span>
+                    <span class="dot dot-yellow" title="Жълто (Exceptional)"></span>
+                </label>
+            </div>
+            <div class="radio-item">
+                <input type="radio" id="diff-hard" name="difficulty" value="hard">
+                <label for="diff-hard">
+                    Трудни: 
+                    <span class="dot dot-red" title="Червено (Elite)"></span>
+                    <span class="dot dot-black" title="Черно (Heroic)"></span>
+                </label>
+            </div>
+        </div>
+
+        <button class="btn" onclick="generateRandomizer()">Генерирай</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-expansions')">Назад</button>
+    </div>
+
+    <!-- Резултат -->
+    <div id="screen-randomizer" class="screen">
+        <h1>Рандомайзер</h1>
+        <div id="result-content"></div>
+        <button class="btn" onclick="generateRandomizer()">Тегли отново</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-settings')">Промени настройките</button>
+    </div>
+</div>
+
+<script>
+    // Пълен официален списък с летища (Базова игра + Turbulence)
+    // Официалните 21 сценария от Sky Team.
+    // Източник: Dized Rules / официалните правила.
+    // Traffic и Turns са Approach Track Effects, а не Special Modules.
+    const airports = [
+        // 🟢 Green — Routine Landing
+        { id: 1, name: "YUL Montréal-Trudeau", color: "green", exp: "base", modules: [], effects: [], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/cc6de749-2bbf-4766-9414-bec2c0fa4a1c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 2, name: "LHR Heathrow", color: "green", exp: "base", modules: [], effects: ["Traffic"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 3, name: "HND Haneda", color: "green", exp: "base", modules: [], effects: ["Turns"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 4, name: "OSL Gardermoen", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 5, name: "ATL Hartsfield-Jackson", color: "green", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 6, name: "PRG Václav Havel", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        // 🟡 Yellow — Exceptional Conditions
+        { id: 7, name: "LHR Heathrow", color: "yellow", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 8, name: "TGU Toncontín", color: "yellow", exp: "base", modules: ["Kerosene"], effects: ["Turns"], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 9, name: "GIG Galeão", color: "yellow", exp: "base", modules: ["Wind"], effects: ["Turns"], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 10, name: "KEF Keflavík", color: "yellow", exp: "base", modules: ["Ice Brakes"], effects: [], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 11, name: "PRG Václav Havel", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 12, name: "KUL Kuala Lumpur", color: "yellow", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 13, name: "ATL Hartsfield-Jackson", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: ["Traffic"], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        // 🔴 Red — Elite Pilots Only
+        { id: 14, name: "PBH Paro", color: "red", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 15, name: "HND Haneda", color: "red", exp: "base", modules: ["Kerosene", "Intern"], effects: ["Traffic"], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 16, name: "GIG Galeão", color: "red", exp: "base", modules: ["Wind", "Kerosene Leak"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 17, name: "OSL Gardermoen", color: "red", exp: "base", modules: ["Kerosene Leak", "Ice Brakes"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 18, name: "TGU Toncontín", color: "red", exp: "base", modules: ["Kerosene", "Wind"], effects: ["Turns"], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        // ⚫ Black — Heroic Landing
+        { id: 19, name: "KEF Keflavík", color: "black", exp: "base", modules: ["Wind", "Ice Brakes"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 20, name: "KUL Kuala Lumpur", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 21, name: "PBH Paro", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" }
+    ];
+
+    const allPossibleModules = [
+        "Kerosene",
+        "Intern",
+        "Wind",
+        "Real-Time",
+        "Kerosene Leak",
+        "Ice Brakes"
+    ];
+
+    // Навигация с история (като в Carcassonne)
+    let navigationHistory = ['screen-home'];
+
+    function goToScreen(screenId) {
+        if (navigationHistory[navigationHistory.length - 1] !== screenId) {
+            navigationHistory.push(screenId);
+        }
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function goHome() {
+        navigationHistory = ['screen-home'];
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById('screen-home').classList.add('active');
+    }
+
+    function goBackStep() {
+        if (navigationHistory.length > 1) {
+            navigationHistory.pop();
+            const prev = navigationHistory[navigationHistory.length - 1];
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(prev).classList.add('active');
+        } else {
+            goHome();
+        }
+    }
+
+    const moduleIcons = {
+        "Kerosene": "⛽",
+        "Intern": "🧑‍✈️",
+        "Wind": "💨",
+        "Real-Time": "⏱️",
+        "Kerosene Leak": "🛢️",
+        "Ice Brakes": "🧊"
+    };
+
+    function generateRandomizer() {
+        const hasTurbulence = document.getElementById('turbulence').checked;
+        const trackMode = document.querySelector('input[name="track-mode"]:checked').value;
+        const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+
+        // 1. Филтриране по наличен експанжън
+        let filtered = airports.filter(a => a.exp === 'base' || (a.exp === 'turbulence' && hasTurbulence));
+
+        // 2. Филтриране по трудност
+        if (difficulty === 'easy') {
+            filtered = filtered.filter(a => a.color === 'green' || a.color === 'yellow');
+        } else if (difficulty === 'hard') {
+            filtered = filtered.filter(a => a.color === 'red' || a.color === 'black');
+        }
+
+        if (filtered.length === 0) {
+            document.getElementById('result-content').innerHTML = `
+                <div class="result-card">
+                    <p style="color: #ef4444;">Няма налични писти с тези критерии. Проверете изборите си.</p>
+                </div>
+            `;
+            goToScreen('screen-randomizer');
+            return;
+        }
+
+        // 3. Избор на случайна писта
+        const selectedAirport = filtered[Math.floor(Math.random() * filtered.length)];
+        let activeModules = [...selectedAirport.modules];
+
+        // 4. Ако е избран режим "Random", модифицираме модулите за запазване на трудността
+        if (trackMode === 'random') {
+            const count = activeModules.length;
+            activeModules = [];
+            let availablePool = [...allPossibleModules];
+            for (let i = 0; i < count && availablePool.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * availablePool.length);
+                activeModules.push(availablePool.splice(randomIndex, 1)[0]);
+            }
+        }
+
+        // Цвят за визуализация
+        let dotClass = 'dot-green';
+        let colorName = 'Зелена (Routine Landing)';
+        if (selectedAirport.color === 'yellow') { dotClass = 'dot-yellow'; colorName = 'Жълта (Exceptional Conditions)'; }
+        if (selectedAirport.color === 'red') { dotClass = 'dot-red'; colorName = 'Червена (Elite Pilots Only)'; }
+        if (selectedAirport.color === 'black') { dotClass = 'dot-black'; colorName = 'Черна (Heroic Landing)'; }
+
+        // Резултат
+        document.getElementById('result-content').innerHTML = `
+            <div class="result-card">
+                <img class="scenario-image" src="${selectedAirport.image}" alt="${selectedAirport.name}">
+                <h2>
+                    <span class="dot ${dotClass}"></span> 
+                    #${selectedAirport.id} ${selectedAirport.name}
+                </h2>
+                <p class="info-row"><strong>Модули:</strong> ${activeModules.length > 0 ? activeModules.map(module => `<span class="module-icon" title="${module}">${moduleIcons[module] || '⚙️'}</span>${module}`).join(' ') : 'Няма'}</p>
+                <p class="info-row"><strong>Special Abilities:</strong> <span class="ability-count">${selectedAirport.specialAbilities > 0 ? '⭐'.repeat(selectedAirport.specialAbilities) : '—'} <small>(${selectedAirport.specialAbilities})</small></span></p>
+            </div>
+        `;
+
+        goToScreen('screen-randomizer');
+    }
+</script>
+
+</body>
+</html>
