@@ -378,39 +378,73 @@
 </div>
 
 <script>
-    // Пълен официален списък с летища (Базова игра + Turbulence)
-    // Официалните 21 сценария от Sky Team.
-    // Източник: Dized Rules / официалните правила.
-    // Traffic и Turns са Approach Track Effects, а не Special Modules.
+    // Пълен списък с летища (Базова игра + Turbulence)
+    // Базова игра: официални 21 сценария (Dized / Flight Log)
+    // Turbulence: 20 сценария – летища и специални правила от официалния rulebook;
+    // модулите за повечето са приблизителни (консенсус от BGG logsheet-ове и unboxing-и),
+    // защото пълният точен мапинг не е публикуван свободно.
+    // Traffic и Turns са Approach Track Effects.
     const airports = [
+        // ========== BASE GAME ==========
         // 🟢 Green — Routine Landing
-        { id: 1, name: "YUL Montréal-Trudeau", color: "green", exp: "base", modules: [], effects: [], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/cc6de749-2bbf-4766-9414-bec2c0fa4a1c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 2, name: "LHR Heathrow", color: "green", exp: "base", modules: [], effects: ["Traffic"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 3, name: "HND Haneda", color: "green", exp: "base", modules: [], effects: ["Turns"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 4, name: "OSL Gardermoen", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 5, name: "ATL Hartsfield-Jackson", color: "green", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 6, name: "PRG Václav Havel", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 1, name: "YUL Montréal-Trudeau", color: "green", exp: "base", modules: [], effects: [], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/cc6de749-2bbf-4766-9414-bec2c0fa4a1c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 2, name: "LHR Heathrow", color: "green", exp: "base", modules: [], effects: ["Traffic"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 3, name: "HND Haneda", color: "green", exp: "base", modules: [], effects: ["Turns"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 4, name: "OSL Gardermoen", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 5, name: "ATL Hartsfield-Jackson", color: "green", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 6, name: "PRG Václav Havel", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
 
         // 🟡 Yellow — Exceptional Conditions
-        { id: 7, name: "LHR Heathrow", color: "yellow", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 8, name: "TGU Toncontín", color: "yellow", exp: "base", modules: ["Kerosene"], effects: ["Turns"], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 9, name: "GIG Galeão", color: "yellow", exp: "base", modules: ["Wind"], effects: ["Turns"], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 10, name: "KEF Keflavík", color: "yellow", exp: "base", modules: ["Ice Brakes"], effects: [], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 11, name: "PRG Václav Havel", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 12, name: "KUL Kuala Lumpur", color: "yellow", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 13, name: "ATL Hartsfield-Jackson", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: ["Traffic"], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 7, name: "LHR Heathrow", color: "yellow", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 8, name: "TGU Toncontín", color: "yellow", exp: "base", modules: ["Kerosene"], effects: ["Turns"], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 9, name: "GIG Galeão", color: "yellow", exp: "base", modules: ["Wind"], effects: ["Turns"], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 10, name: "KEF Keflavík", color: "yellow", exp: "base", modules: ["Ice Brakes"], effects: [], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 11, name: "PRG Václav Havel", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 12, name: "KUL Kuala Lumpur", color: "yellow", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 13, name: "ATL Hartsfield-Jackson", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: ["Traffic"], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
 
         // 🔴 Red — Elite Pilots Only
-        { id: 14, name: "PBH Paro", color: "red", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 15, name: "HND Haneda", color: "red", exp: "base", modules: ["Kerosene", "Intern"], effects: ["Traffic"], specialAbilities: 1 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 16, name: "GIG Galeão", color: "red", exp: "base", modules: ["Wind", "Kerosene Leak"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 17, name: "OSL Gardermoen", color: "red", exp: "base", modules: ["Kerosene Leak", "Ice Brakes"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 18, name: "TGU Toncontín", color: "red", exp: "base", modules: ["Kerosene", "Wind"], effects: ["Turns"], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 14, name: "PBH Paro", color: "red", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 15, name: "HND Haneda", color: "red", exp: "base", modules: ["Kerosene", "Intern"], effects: ["Traffic"], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 16, name: "GIG Galeão", color: "red", exp: "base", modules: ["Wind", "Kerosene Leak"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 17, name: "OSL Gardermoen", color: "red", exp: "base", modules: ["Kerosene Leak", "Ice Brakes"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 18, name: "TGU Toncontín", color: "red", exp: "base", modules: ["Kerosene", "Wind"], effects: ["Turns"], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
 
         // ⚫ Black — Heroic Landing
-        { id: 19, name: "KEF Keflavík", color: "black", exp: "base", modules: ["Wind", "Ice Brakes"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 20, name: "KUL Kuala Lumpur", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2 , image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
-        { id: 21, name: "PBH Paro", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" }
+        { id: 19, name: "KEF Keflavík", color: "black", exp: "base", modules: ["Wind", "Ice Brakes"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 20, name: "KUL Kuala Lumpur", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 21, name: "PBH Paro", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        // ========== TURBULENCE EXPANSION ==========
+        // Летища и специални правила: официален rulebook.
+        // Модулите за повечето са приблизителни (BGG logsheet / unboxing консенсус).
+        // 🟢 Green
+        { id: 22, name: "TER Lajes, Azores", color: "green", exp: "turbulence", modules: ["Altitude 5000"], effects: [], specialAbilities: 0, notes: "Двигателите са изключени (няма гориво). В края на всяка рунда мести и двата трака. Специално аварийно спиране.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 23, name: "SXM Princess Juliana", color: "green", exp: "turbulence", modules: ["Intern"], effects: [], specialAbilities: 0, notes: "Плажната писта – внимавай с turbulence при спускане.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 24, name: "DUS Düsseldorf", color: "green", exp: "turbulence", modules: ["Kerosene"], effects: [], specialAbilities: 0, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+
+        // 🟡 Yellow
+        { id: 25, name: "WAW Warsaw Chopin", color: "yellow", exp: "turbulence", modules: ["Alarms"], effects: [], specialAbilities: 1, notes: "Колесникът е блокиран → belly landing. Спирачките = spoilers / reverse thrust. Ограничени аларми.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 26, name: "KBP Boryspil", color: "yellow", exp: "turbulence", modules: ["Alarms", "Total Trust"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 27, name: "SYD Kingsford Smith", color: "yellow", exp: "turbulence", modules: ["Wind", "Low Visibility"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 28, name: "MAD Madrid–Barajas", color: "yellow", exp: "turbulence", modules: ["Alarms"], effects: [], specialAbilities: 0, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 29, name: "CPT Cape Town", color: "yellow", exp: "turbulence", modules: ["Wind"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 30, name: "PEK Beijing Capital", color: "yellow", exp: "turbulence", modules: ["Low Visibility"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+
+        // 🔴 Red
+        { id: 31, name: "TER Lajes, Azores", color: "red", exp: "turbulence", modules: ["Altitude 5000", "Alarms"], effects: [], specialAbilities: 1, notes: "Двигателите са изключени (няма гориво). В края на всяка рунда мести и двата трака. Специално аварийно спиране.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 32, name: "WAW Warsaw Chopin", color: "red", exp: "turbulence", modules: ["Alarms", "Kerosene"], effects: [], specialAbilities: 2, notes: "Колесникът е блокиран → belly landing. Спирачките = spoilers / reverse thrust.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 33, name: "NZIR Ice Runway", color: "red", exp: "turbulence", modules: ["Wind"], effects: [], specialAbilities: 1, notes: "Пингвини вместо самолети. Wind модулът се обръща (насрещен вятър).", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 34, name: "SXM Princess Juliana", color: "red", exp: "turbulence", modules: ["Turbulence", "Intern"], effects: [], specialAbilities: 1, notes: "Плажната писта + turbulence.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 35, name: "PEK Beijing Capital", color: "red", exp: "turbulence", modules: ["Low Visibility", "Alarms"], effects: [], specialAbilities: 2, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 36, name: "KBP Boryspil", color: "red", exp: "turbulence", modules: ["Alarms", "Total Trust"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+
+        // ⚫ Black
+        { id: 37, name: "NZIR Ice Runway", color: "black", exp: "turbulence", modules: ["Wind", "Ice Brakes"], effects: [], specialAbilities: 2, notes: "Пингвини вместо самолети. Wind модулът се обръща (насрещен вятър).", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 38, name: "TER Lajes, Azores", color: "black", exp: "turbulence", modules: ["Altitude 5000", "Alarms", "Kerosene"], effects: [], specialAbilities: 2, notes: "Двигателите са изключени (няма гориво). В края на всяка рунда мести и двата трака.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 39, name: "WAW Warsaw Chopin", color: "black", exp: "turbulence", modules: ["Alarms", "Total Trust"], effects: [], specialAbilities: 2, notes: "Колесникът е блокиран → belly landing.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 40, name: "SYD Kingsford Smith", color: "black", exp: "turbulence", modules: ["Turbulence", "Low Visibility", "Wind"], effects: [], specialAbilities: 2, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 41, name: "DUS Düsseldorf", color: "black", exp: "turbulence", modules: ["Kerosene Leak", "Low Visibility"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" }
     ];
 
     const allPossibleModules = [
@@ -419,7 +453,12 @@
         "Wind",
         "Real-Time",
         "Kerosene Leak",
-        "Ice Brakes"
+        "Ice Brakes",
+        "Alarms",
+        "Altitude 5000",
+        "Total Trust",
+        "Low Visibility",
+        "Turbulence"
     ];
 
     // Навигация с история (като в Carcassonne)
@@ -462,7 +501,12 @@
         "Wind": "💨",
         "Real-Time": "⏱️",
         "Kerosene Leak": "🛢️",
-        "Ice Brakes": "🧊"
+        "Ice Brakes": "🧊",
+        "Alarms": "🚨",
+        "Altitude 5000": "📉",
+        "Total Trust": "🤫",
+        "Low Visibility": "🌫️",
+        "Turbulence": "🌪️"
     };
 
     function generateRandomizer() {
@@ -494,11 +538,14 @@
         const selectedAirport = filtered[Math.floor(Math.random() * filtered.length)];
         let activeModules = [...selectedAirport.modules];
 
-        // 4. Ако е избран режим "Random", модифицираме модулите за запазване на трудността
+        // 4. Ако е избран режим "Random", модифицираме модулите
         if (trackMode === 'random') {
             const count = activeModules.length;
             activeModules = [];
-            let availablePool = [...allPossibleModules];
+            // При random взимаме от всички възможни модули (вкл. Turbulence ако е чекнато)
+            let availablePool = hasTurbulence ? [...allPossibleModules] : allPossibleModules.filter(m => 
+                !["Alarms","Altitude 5000","Total Trust","Low Visibility","Turbulence"].includes(m)
+            );
             for (let i = 0; i < count && availablePool.length > 0; i++) {
                 const randomIndex = Math.floor(Math.random() * availablePool.length);
                 activeModules.push(availablePool.splice(randomIndex, 1)[0]);
@@ -512,21 +559,27 @@
         if (selectedAirport.color === 'red') { dotClass = 'dot-red'; colorName = 'Червена (Elite Pilots Only)'; }
         if (selectedAirport.color === 'black') { dotClass = 'dot-black'; colorName = 'Черна (Heroic Landing)'; }
 
+        const expLabel = selectedAirport.exp === 'turbulence' ? '<span style="background:#0369a1;color:white;padding:2px 8px;border-radius:6px;font-size:11px;margin-left:6px;">Turbulence</span>' : '';
+        const notesHtml = selectedAirport.notes ? `<p style="margin-top:12px;padding:10px;background:#1e3a5f;border-radius:8px;font-size:13px;color:#bae6fd;"><strong>⚠️ Специални правила:</strong> ${selectedAirport.notes}</p>` : '';
+
         // Резултат
         document.getElementById('result-content').innerHTML = `
             <div class="result-card">
                 <img class="scenario-image" src="${selectedAirport.image}" alt="${selectedAirport.name}">
                 <h2>
                     <span class="dot ${dotClass}"></span> 
-                    #${selectedAirport.id} ${selectedAirport.name}
+                    #${selectedAirport.id} ${selectedAirport.name}${expLabel}
                 </h2>
+                <p class="info-row"><strong>Трудност:</strong> ${colorName}</p>
                 <p class="info-row"><strong>Модули:</strong> ${activeModules.length > 0 ? activeModules.map(module => `<span class="module-icon" title="${module}">${moduleIcons[module] || '⚙️'}</span>${module}`).join(' ') : 'Няма'}</p>
                 <p class="info-row"><strong>Special Abilities:</strong> <span class="ability-count">${selectedAirport.specialAbilities > 0 ? '⭐'.repeat(selectedAirport.specialAbilities) : '—'} <small>(${selectedAirport.specialAbilities})</small></span></p>
+                ${notesHtml}
             </div>
         `;
 
         goToScreen('screen-randomizer');
     }
+
 </script>
 
 </body>
