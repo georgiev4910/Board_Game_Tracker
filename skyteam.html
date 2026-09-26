@@ -200,6 +200,31 @@
             align-items: center;
             gap: 6px;
         }
+        /* Полета за вход на имена в настройките */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+        .input-group input[type="text"] {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input[type="text"]:focus {
+            border-color: #0284c7;
+        }
+
         .dot {
             display: inline-block;
             width: 12px;
@@ -411,8 +436,21 @@
 
     <!-- Страница с настройки -->
     <div id="screen-settings" class="screen">
-        <h1>Настройки на пистите</h1>
-        <p>Изберете режим и трудност:</p>
+        <h1>Настройки</h1>
+        <p>Изберете пилоти, режим и трудност:</p>
+
+        <!-- Ново поле за избор/смяна на имената на играчите -->
+        <div class="section-box">
+            <h3>Пилоти</h3>
+            <div class="input-group">
+                <label for="player-1-name">Играч 1:</label>
+                <input type="text" id="player-1-name" value="Митко">
+            </div>
+            <div class="input-group">
+                <label for="player-2-name">Играч 2:</label>
+                <input type="text" id="player-2-name" value="Нина">
+            </div>
+        </div>
         
         <div class="section-box">
             <h3>Режим на пистите</h3>
@@ -495,10 +533,7 @@
 </div>
 
 <script>
-    // Имена на играчите от тракера
-    const trackerPlayers = ["Митко", "Нина"];
-
-    // Пълен списък с летища (Базова игра + Turbulence)[span_0](start_span)[span_0](end_span)
+    // Пълен списък с летища (Базова игра + Turbulence)[span_2](start_span)[span_2](end_span)
     const airports = [
         // ========== BASE GAME ==========
         { id: 1, name: "YUL Montréal-Trudeau", color: "green", exp: "base", modules: [], effects: [], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/cc6de749-2bbf-4766-9414-bec2c0fa4a1c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
@@ -567,6 +602,14 @@
     let navigationHistory = ['screen-home'];
     let currentFlightLogFilter = 'all';
     let currentSelectedAirportId = null; // Запомня текущо генерираната писта
+
+    // Зареждане на запазените имена при зареждане на страницата
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedP1 = localStorage.getItem('skyteam_player1');
+        const savedP2 = localStorage.getItem('skyteam_player2');
+        if (savedP1) document.getElementById('player-1-name').value = savedP1;
+        if (savedP2) document.getElementById('player-2-name').value = savedP2;
+    });
 
     function goToScreen(screenId) {
         if (navigationHistory[navigationHistory.length - 1] !== screenId) {
@@ -717,6 +760,12 @@
         const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
         const completed = getCompletedAirports();
 
+        // Взимане и запазване на имената на пилотите от полетата
+        const p1Name = document.getElementById('player-1-name').value.trim() || "Играч 1";
+        const p2Name = document.getElementById('player-2-name').value.trim() || "Играч 2";
+        localStorage.setItem('skyteam_player1', p1Name);
+        localStorage.setItem('skyteam_player2', p2Name);
+
         // 1. Филтриране по наличен експанжън
         let filtered = airports.filter(a => a.exp === 'base' || (a.exp === 'turbulence' && hasTurbulence));
 
@@ -763,8 +812,9 @@
             }
         }
 
-        // 6. Случайно разпределение на ролите (Пилот / Ко-пилот) между Митко и Нина
-        const shuffledPlayers = [...trackerPlayers].sort(() => Math.random() - 0.5);
+        // 6. Случайно разпределение на ролите (Пилот / Ко-пилот) между двамата играчи
+        const currentPlayers = [p1Name, p2Name];
+        const shuffledPlayers = [...currentPlayers].sort(() => Math.random() - 0.5);
         const pilot = shuffledPlayers[0];
         const copilot = shuffledPlayers[1];
 
