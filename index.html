@@ -401,10 +401,7 @@ function pickRandomGame(){
     const gameType = myGamesObj[randomGame];
     const typeLabel = gameType === 'coop' ? '🤝 Кооперативна игра (Co-op)' : '⚔️ Състезателна игра (PvP)';
     
-    let extraBtnHtml = '';
-    if(randomGame.trim().toLowerCase() === 'heat'){
-        extraBtnHtml = `<div style="margin-top:15px;"><a href="./Heat.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏎️ Heat: Companion app</a></div>`;
-    }
+    let extraBtnHtml = getCompanionButtonHtml(randomGame);
 
     out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">🎲 Избраната игра за днес е:<br><br><span style="color:var(--blue);font-size:24px;">${esc(randomGame)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}</div>`;
 }
@@ -417,13 +414,25 @@ function onManualGameSelected(){
     const gameType = myGamesObj[game];
     const typeLabel = gameType === 'coop' ? '🤝 Кооперативна игра (Co-op)' : '⚔️ Състезателна игра (PvP)';
     
-    let extraBtnHtml = '';
-    if(game.trim().toLowerCase() === 'heat'){
-        extraBtnHtml = `<div style="margin-top:15px;"><a href="./Heat.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏎️ Heat: Companion app</a></div>`;
-    }
+    let extraBtnHtml = getCompanionButtonHtml(game);
 
     out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">📋 Избрахте ръчно:<br><br><span style="color:var(--green-dark);font-size:24px;">${esc(game)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}</div>`;
 }
+
+function getCompanionButtonHtml(gameName) {
+    const key = (gameName || '').trim().toLowerCase();
+    if (key === 'heat') {
+        return `<div style="margin-top:15px;"><a href="./Heat.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏎️ Heat: Companion app</a></div>`;
+    }
+    if (key === 'sky team' || key === 'skyteam') {
+        return `<div style="margin-top:15px;"><a href="./skyteam.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">✈️ Sky Team: Рандомайзер</a></div>`;
+    }
+    if (key === 'каркасон' || key === 'carcassonne') {
+        return `<div style="margin-top:15px;"><a href="./carcassonne.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏰 Carcassonne: Companion</a></div>`;
+    }
+    return '';
+}
+
 function updateUI(){
     const select=document.getElementById('gameSelect'), old=select.value;
     const games=Object.keys(myGamesObj).filter(g=>myGamesObj[g]===currentLogFilter).sort((a,b)=>a.localeCompare(b,'bg'));
