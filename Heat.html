@@ -12,10 +12,10 @@
       theme: {
         extend: {
           colors: {
-            darkbg: '#121212',
-            surface: '#1e1e1e',
-            surfaceContainer: '#2c2c2c',
-            racingRed: '#ff5252'
+            darkbg: '#0c0c0e',
+            surface: '#17171a',
+            surfaceContainer: '#242428',
+            racingRed: '#ef4444'
           }
         }
       }
@@ -26,11 +26,20 @@
   <!-- Google Fonts Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #121212; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background:
+        radial-gradient(900px 480px at 8% -8%, rgba(239,68,68,.14), transparent 50%),
+        radial-gradient(700px 400px at 100% 0%, rgba(239,68,68,.08), transparent 45%),
+        #0c0c0e !important;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0c0c0e; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #555; }
+    header { backdrop-filter: blur(12px); }
+    .animate-fade-in { animation: fadeIn .22s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
 <body class="bg-darkbg text-gray-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
@@ -64,7 +73,7 @@
     <div id="header-actions" class="flex items-center space-x-2"></div>
   </header>
 
-  <main id="app-container" class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 pb-20"></main>
+  <main id="app-container" class="flex-1 max-w-xl w-full mx-auto p-4 sm:p-5 pb-24"></main>
 
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
@@ -581,7 +590,7 @@
 
     function goToTracker() {
   // Замени този линк с реалния URL адрес на твоя тракер в GitHub Pages
-  window.location.href = 'https://georgiev4910.github.io/Board_Game_Tracker/';
+  window.location.href = './index.html';
 }
 
     function renderApp() {
@@ -732,7 +741,7 @@
             `).join('')}
           </div>
 
-          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center justify-between z-40">
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-xl mx-auto flex items-center justify-between z-40">
             <div class="text-xs text-gray-400">
               Available Tracks: <span class="text-white font-bold">${ownedTracksCount}</span>
             </div>
@@ -811,7 +820,7 @@
             `).join('')}
           </div>
 
-          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center space-x-3 z-40">
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-xl mx-auto flex items-center space-x-3 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
               Back
             </button>
@@ -1185,7 +1194,7 @@
             </div>
           </div>
 
-          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-4xl mx-auto flex items-center space-x-3 z-40">
+          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-xl mx-auto flex items-center space-x-3 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
               Back
             </button>
