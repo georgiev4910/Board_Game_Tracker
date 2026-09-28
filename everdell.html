@@ -11,9 +11,9 @@
       theme: {
         extend: {
           colors: {
-            darkbg: '#0f172a',
-            surface: '#1e293b',
-            surfaceContainer: '#334155',
+            darkbg: '#0a0f1d',
+            surface: '#151c2f',
+            surfaceContainer: '#222d44',
             forestGreen: '#15803d',
             amberWood: '#d97706'
           }
@@ -22,86 +22,91 @@
     }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #0a0f1d; }
+    ::-webkit-scrollbar-thumb { background: #222d44; border-radius: 3px; }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+      backdrop-filter: blur(12px);
+    }
   </style>
 </head>
-<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col items-center justify-start selection:bg-emerald-500 selection:text-slate-900 p-0 sm:py-4">
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col items-center justify-start selection:bg-emerald-500 selection:text-slate-900 p-0 sm:py-6">
 
-  <div class="w-full sm:max-w-xl bg-darkbg sm:bg-surface/70 sm:border sm:border-slate-700/60 sm:rounded-2xl sm:shadow-2xl min-h-screen sm:min-h-[85vh] flex flex-col relative overflow-hidden">
+  <div class="w-full sm:max-w-xl bg-darkbg sm:bg-surface/90 sm:border sm:border-emerald-500/20 sm:rounded-3xl sm:shadow-2xl min-h-screen sm:min-h-[90vh] flex flex-col relative overflow-hidden">
 
-    <!-- Хедър -->
-    <header class="bg-surface/90 backdrop-blur-md border-b border-slate-700/60 px-3 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-md">
-      <div class="flex items-center justify-between w-full">
-        <div class="flex items-center space-x-1 border-r border-slate-700/80 pr-2">
-          <button onclick="navigateTo('HomeScreen')" title="Начало" class="bg-surfaceContainer hover:bg-slate-600/50 text-white p-2 rounded-xl text-xs transition border border-slate-600/40">
-            <i class="fa-solid fa-house text-emerald-400"></i>
-          </button>
-          <button onclick="goBackStep()" title="Назад" class="bg-surfaceContainer hover:bg-slate-600/50 text-white p-2 rounded-xl text-xs transition border border-slate-600/40">
-            <i class="fa-solid fa-arrow-left text-amber-400"></i>
-          </button>
-          <button onclick="goToTracker()" title="Към тракера" class="bg-surfaceContainer hover:bg-slate-600/50 text-white p-2 rounded-xl text-xs transition border border-slate-600/40">
-            <i class="fa-solid fa-flag-checkered text-teal-300"></i>
-          </button>
+    <!-- Горен навигационен бар -->
+    <header class="bg-surface/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-lg">
+      <div class="flex items-center space-x-1.5 border-r border-slate-700/60 pr-3">
+        <button onclick="navigateTo('HomeScreen')" title="Начало" class="bg-surfaceContainer hover:bg-emerald-950/60 hover:border-emerald-500/50 text-white p-2 rounded-xl text-xs transition border border-slate-700/80 shadow-sm">
+          <i class="fa-solid fa-house text-emerald-400"></i>
+        </button>
+        <button onclick="goBackStep()" title="Назад" class="bg-surfaceContainer hover:bg-amber-950/60 hover:border-amber-500/50 text-white p-2 rounded-xl text-xs transition border border-slate-700/80 shadow-sm">
+          <i class="fa-solid fa-arrow-left text-amber-400"></i>
+        </button>
+        <button onclick="goToTracker()" title="Към тракера" class="bg-surfaceContainer hover:bg-teal-950/60 hover:border-teal-500/50 text-white p-2 rounded-xl text-xs transition border border-slate-700/80 shadow-sm">
+          <i class="fa-solid fa-flag-checkered text-teal-300"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="toggleLanguage()" title="Смяна на езика / Change Language" class="bg-surfaceContainer hover:bg-slate-700 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-sm">
+          <i class="fa-solid fa-globe text-amber-400"></i>
+          <span id="lang-btn-text">BG</span>
+        </button>
+
+        <button onclick="openScoreCalculator()" title="Калкулатор за точки" class="bg-gradient-to-r from-emerald-800 to-emerald-700 hover:from-emerald-700 hover:to-emerald-600 text-emerald-100 border border-emerald-500/50 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md transition active:scale-95">
+          <i class="fa-solid fa-calculator text-amber-300 text-sm"></i>
+          <span data-i18n="calcBtn">Точки</span>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2 pl-3 border-l border-slate-700/60">
+        <div class="text-right hidden xs:block">
+          <h1 class="font-black text-xs tracking-wider text-slate-100 leading-none">EVERDELL</h1>
+          <p class="text-[9px] text-emerald-400 font-bold leading-none mt-1">КОМПЬОНТ</p>
         </div>
-
-        <div class="flex items-center space-x-2">
-          <button onclick="toggleLanguage()" title="Смени езика / Change Language" class="bg-surfaceContainer hover:bg-slate-600 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1">
-            <i class="fa-solid fa-globe"></i>
-            <span id="lang-btn-text">BG</span>
-          </button>
-
-          <button onclick="openScoreCalculator()" title="Калкулатор за точки" class="bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-300 border border-emerald-500/50 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-md transition active:scale-95">
-            <i class="fa-solid fa-calculator text-amber-300 text-sm"></i>
-            <span data-i18n="calcBtn">Точки</span>
-          </button>
-        </div>
-
-        <div class="flex items-center space-x-1.5 pl-2 border-l border-slate-700/80">
-          <div class="text-right">
-            <h1 class="font-extrabold text-xs sm:text-sm tracking-tight text-slate-100 leading-none">EVERDELL</h1>
-            <p class="text-[9px] text-emerald-400 font-semibold leading-none mt-0.5">Companion</p>
-          </div>
-          <div class="bg-emerald-950/80 border border-emerald-500/40 p-1.5 rounded-xl text-emerald-400 font-bold text-xs flex items-center justify-center w-7 h-7 shadow-sm">
-            <i class="fa-solid fa-tree"></i>
-          </div>
+        <div class="bg-emerald-950 border border-emerald-500/50 p-2 rounded-xl text-emerald-400 font-bold text-xs flex items-center justify-center w-8 h-8 shadow-inner">
+          <i class="fa-solid fa-tree text-sm"></i>
         </div>
       </div>
     </header>
 
-    <!-- Основно съдържание -->
-    <main id="app-container" class="flex-1 w-full p-3 sm:p-4 pb-24"></main>
+    <!-- Основно динамично съдържание -->
+    <main id="app-container" class="flex-1 w-full p-4 sm:p-5 pb-24"></main>
 
-    <!-- Модал: Калкулатор -->
-    <div id="score-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 hidden">
-      <div class="bg-surface border border-slate-700/80 rounded-2xl w-full max-w-lg p-4 space-y-3 shadow-2xl relative max-h-[90vh] flex flex-col">
-        <div class="flex items-center justify-between border-b border-slate-700 pb-2">
-          <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-trophy text-amber-400"></i>
-            <h3 class="font-extrabold text-sm text-slate-100" data-i18n="scoreTableTitle">Таблица с Резултати</h3>
+    <!-- Модал: Калкулатор на точки -->
+    <div id="score-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+      <div class="bg-surface border border-emerald-500/30 rounded-3xl w-full max-w-lg p-5 space-y-4 shadow-2xl relative max-h-[92vh] flex flex-col">
+        <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
+          <div class="flex items-center space-x-2.5">
+            <div class="p-2 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+              <i class="fa-solid fa-trophy text-sm"></i>
+            </div>
+            <h3 class="font-extrabold text-sm text-slate-100 uppercase tracking-wide" data-i18n="scoreTableTitle">Таблица с резултати</h3>
           </div>
           <div class="flex items-center space-x-2">
-            <button onclick="resetCalculatorScores()" title="Занули резултатите" class="bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/40 px-2 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition">
+            <button onclick="resetCalculatorScores()" title="Занули резултатите" class="bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/40 px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center space-x-1.5 transition">
               <i class="fa-solid fa-rotate-right"></i>
-              <span data-i18n="resetBtn">Занули</span>
+              <span data-i18n="resetBtn">Зануляване</span>
             </button>
-            <button onclick="closeScoreCalculator()" class="text-slate-400 hover:text-white p-1">
-              <i class="fa-solid fa-xmark text-base"></i>
+            <button onclick="closeScoreCalculator()" class="text-slate-400 hover:text-white p-1.5 rounded-xl bg-slate-800/80">
+              <i class="fa-solid fa-xmark text-sm"></i>
             </button>
           </div>
         </div>
 
         <div id="calculator-columns-container" class="overflow-x-auto flex-1 py-1"></div>
 
-        <button onclick="closeScoreCalculator()" class="w-full bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-bold py-2 rounded-xl text-xs transition" data-i18n="closeBtn">Затвори</button>
+        <button onclick="closeScoreCalculator()" class="w-full bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-lg" data-i18n="closeBtn">Затвори прозореца</button>
       </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+    <!-- Изскачащи известия (Toasts) -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   </div>
 
@@ -111,98 +116,98 @@
     const UI_TEXT = {
       bg: {
         calcBtn: "Точки",
-        scoreTableTitle: "Таблица с Резултати",
-        resetBtn: "Занули",
+        scoreTableTitle: "Финално класиране",
+        resetBtn: "Изчисти",
         closeBtn: "Затвори",
-        homeTitle: "Изградете Вашето Долина Селище",
-        homeDesc: "Генерирайте съобразени с вашите експанжъни локации, специални събития и уникални мийпъли.",
-        newGameBtn: "Нова Игра / Настройка",
-        expTitle: "Избор на Експанжъни",
-        expDesc: "Избраните модули отключват нови карти и специфични видове мийпъли:",
-        active: "Активен",
+        homeTitle: "Изградете своето горско селище",
+        homeDesc: "Генерирайте персонализирани горски локации, специални събития и разпределете уникални мийпъли според вашите експанжъни.",
+        newGameBtn: "Нова игра и настройки",
+        expTitle: "Избор на експанжъни",
+        expDesc: "Изберете кои разширения участват в партията за отключване на нови механики и мийпъли:",
+        active: "Включен",
         inactive: "Изключен",
-        advancedModule: "Разширен модул: Случайни Основни Събития",
-        pearlWarning: "Внимание: При игра с Pearlbrook основните събития не се използват (заменят се с Чудеса)! Дължи се на официалните правила.",
-        basicEventsCount: "Брой основни събития на борда:",
+        advancedModule: "Разширен модул: Случайни основни събития",
+        pearlWarning: "Важно: Според официалните правила на Pearlbrook, основните събития се заменят с Велики чудеса!",
+        basicEventsCount: "Брой основни събития на игралното поле:",
         backBtn: "Назад",
-        continueBtn: "Продължи",
-        playersTitle: "Настройки за Играчите",
-        playersDesc: "Уникален вид и цвят мийпъл за всеки играч:",
-        randomCritters: "Рандом Мийпъли",
-        playerCount: "Брой играчи",
-        critterType: "Вид Мийпъл (Уникален цвят):",
-        bigCritter: "Голям Мийпъл (Spirecrest):",
-        genGameBtn: "Генерирай Игра",
-        genGameTitle: "Генерирана Игра",
-        configFor: "Конфигурация за",
-        player: "играч",
-        players: "играча",
-        reloadBtn: "Презареди",
-        playerDist: "Разпределение на Играчите",
-        forestLoc: "Горски Локации",
-        specEvents: "Специални Събития",
-        wonders: "Pearlbrook: Чудеса (Wonders)",
-        weather: "Spirecrest: Метеорологични Условия и Маршрути",
-        markets: "Bellfaire: Пазарни Плочки",
-        stations: "New Leaf: Гарови Елементи",
-        basicEventsSelected: "Избрани Основни Събития",
-        req: "Изисква:",
-        effect: "Ефект / Точки:",
-        cost: "Цена:",
+        continueBtn: "Продължи напред",
+        playersTitle: "Настройка на участниците",
+        playersDesc: "Персонализирайте имената, уникалните видове мийпъли и големи животни:",
+        randomCritters: "Случайно разпределение",
+        playerCount: "Брой играчи на масата",
+        critterType: "Вид мийпъл (Цвят):",
+        bigCritter: "Голямо животно (Spirecrest):",
+        genGameBtn: "Генерирай конфигурация",
+        genGameTitle: "Персонализирано разпределение",
+        configFor: "Параметри за",
+        player: "участник",
+        players: "участника",
+        reloadBtn: "Преразпределение",
+        playerDist: "Разпределение по играчи",
+        forestLoc: "Горски локации на партията",
+        specEvents: "Специални събития",
+        wonders: "Pearlbrook: Велики чудеса",
+        weather: "Spirecrest: Време и планински маршрути",
+        markets: "Bellfaire: Пазарни плочки",
+        stations: "New Leaf: Централна гара и влакове",
+        basicEventsSelected: "Избрани основни събития",
+        req: "Изискване:",
+        effect: "Ефект / Награда:",
+        cost: "Необходими ресурси:",
         bigCritterLabel: "Голям мийпъл:",
         baseScore: "Базови точки:",
-        tokensScore: "Жетони:",
-        purpleScore: "Prosperity:",
-        eventsScore: "Събития:",
-        journeyScore: "Пътуване:",
-        expeditionScore: "Експедиция:",
-        pearlWondersScore: "Бисери/Чудеса:",
-        totalScore: "Общ Резултат",
-        handLimit56: "Игра с 5-6 играчи: Лимитът на ръката ви е 7 карти. При подготовка за пролет (Spring) не се получава нов работник!",
-        toastCritters: "Уникални случайни мийпъли бяха разпределени!",
-        toastGen: "Успешно генерирано пълно оформление за играта!",
-        toastReset: "Резултатите бяха занулени!",
-        toastReady: "Готово!"
+        tokensScore: "Жетони и ресурси:",
+        purpleScore: "Просперитет (Лилави):",
+        eventsScore: "Постигнати събития:",
+        journeyScore: "Пътуване в реката:",
+        expeditionScore: "Планинска експедиция:",
+        pearlWondersScore: "Бисери и чудеса:",
+        totalScore: "Краен резултат",
+        handLimit56: "Игра с 5-6 играчи: Лимитът на ръката ви е 7 карти. При смяна на сезона към Пролет не се получава нов работник!",
+        toastCritters: "Уникалните мийпъли бяха успешно разпределени!",
+        toastGen: "Играта е конфигурирана и готова за старт!",
+        toastReset: "Всички точки бяха нулирани!",
+        toastReady: "Приятна игра в Евердейл!"
       },
       en: {
         calcBtn: "Points",
-        scoreTableTitle: "Scoreboard",
+        scoreTableTitle: "Final Scoreboard",
         resetBtn: "Reset",
         closeBtn: "Close",
-        homeTitle: "Build Your Valley Settlement",
-        homeDesc: "Generate locations, special events, and unique critters tailored to your expansions.",
-        newGameBtn: "New Game / Setup",
+        homeTitle: "Build Your Forest Settlement",
+        homeDesc: "Generate customized forest locations, special events, and unique critters tailored to your active expansions.",
+        newGameBtn: "New Game & Setup",
         expTitle: "Select Expansions",
-        expDesc: "Selected modules unlock new cards and specific critter types:",
+        expDesc: "Choose active modules to unlock new cards, mechanics, and specific critter types:",
         active: "Active",
         inactive: "Inactive",
         advancedModule: "Advanced Module: Random Basic Events",
-        pearlWarning: "Warning: When playing with Pearlbrook, basic events are not used (replaced by Wonders)! Per official rules.",
-        basicEventsCount: "Number of basic events on board:",
+        pearlWarning: "Warning: When playing with Pearlbrook, basic events are replaced by Wonders per official rules!",
+        basicEventsCount: "Number of basic events on the board:",
         backBtn: "Back",
         continueBtn: "Continue",
         playersTitle: "Player Setup",
-        playersDesc: "Unique critter type and color for each player:",
-        randomCritters: "Random Critters",
-        playerCount: "Player count",
-        critterType: "Critter Type (Unique Color):",
+        playersDesc: "Customize participant names, unique critter types, and big animals:",
+        randomCritters: "Randomize All",
+        playerCount: "Player count at the table",
+        critterType: "Critter Type (Color):",
         bigCritter: "Big Critter (Spirecrest):",
-        genGameBtn: "Generate Game",
-        genGameTitle: "Generated Game",
+        genGameBtn: "Generate Game Setup",
+        genGameTitle: "Custom Game Layout",
         configFor: "Configuration for",
         player: "player",
         players: "players",
-        reloadBtn: "Reload",
-        playerDist: "Player Distribution",
-        forestLoc: "Forest Locations",
+        reloadBtn: "Reshuffle Setup",
+        playerDist: "Player Assignments",
+        forestLoc: "Game Forest Locations",
         specEvents: "Special Events",
         wonders: "Pearlbrook: Wonders",
         weather: "Spirecrest: Weather & Trails",
         markets: "Bellfaire: Market Tiles",
-        stations: "New Leaf: Station Elements",
+        stations: "New Leaf: Station & Trains",
         basicEventsSelected: "Selected Basic Events",
         req: "Requires:",
-        effect: "Effect / Points:",
+        effect: "Effect / Reward:",
         cost: "Cost:",
         bigCritterLabel: "Big Critter:",
         baseScore: "Base points:",
@@ -214,10 +219,10 @@
         pearlWondersScore: "Pearls/Wonders:",
         totalScore: "Total Score",
         handLimit56: "5-6 Player Game: Hand limit is 7 cards. During Spring preparation, you do not receive a new worker!",
-        toastCritters: "Unique random critters distributed!",
+        toastCritters: "Unique random critters distributed successfully!",
         toastGen: "Successfully generated full game setup!",
         toastReset: "Scores have been reset!",
-        toastReady: "Ready!"
+        toastReady: "Have a wonderful game of Everdell!"
       }
     };
 
@@ -242,17 +247,17 @@
       "Катерици (Squirrels)": { color: "#ea580c", textColor: "#ffffff", icon: "fa-acorn" },
       
       "Аксолотли (Axolotls)": { color: "#ec4899", textColor: "#ffffff", icon: "fa-heart" },
-      "Оттри (Otters)": { color: "#b45309", textColor: "#ffffff", icon: "fa-water" },
+      "Витри (Otters)": { color: "#b45309", textColor: "#ffffff", icon: "fa-water" },
       "Жаби (Frogs)": { color: "#16a34a", textColor: "#ffffff", icon: "fa-frog" },
-      "Звезди / Морски звезди (Starfish / Starlings)": { color: "#1e293b", textColor: "#ffffff", icon: "fa-star" },
+      "Морски звезди (Starfish / Starlings)": { color: "#1e293b", textColor: "#ffffff", icon: "fa-star" },
 
       "Мечки (Bears)": { color: "#3f1f0f", textColor: "#fef3c7", icon: "fa-paw" },
-      "Лосове / Стоати (Stoats)": { color: "#a16207", textColor: "#ffffff", icon: "fa-mountain" },
-      "Планински кози / Гущери (Lizards)": { color: "#65a30d", textColor: "#ffffff", icon: "fa-gem" },
+      "Стоати (Stoats)": { color: "#a16207", textColor: "#ffffff", icon: "fa-mountain" },
+      "Гущери (Lizards)": { color: "#65a30d", textColor: "#ffffff", icon: "fa-gem" },
       "Бухове (Owls)": { color: "#64748b", textColor: "#ffffff", icon: "fa-feather" },
 
       "Кардинали (Cardinals)": { color: "#dc2626", textColor: "#ffffff", icon: "fa-crow" },
-      "Топоди (Toads)": { color: "#15803d", textColor: "#ffffff", icon: "fa-frog" },
+      "Тоди (Toads)": { color: "#15803d", textColor: "#ffffff", icon: "fa-frog" },
       "Плъхове (Rats)": { color: "#1e293b", textColor: "#ffffff", icon: "fa-ghost" },
 
       "Паяци (Spiders)": { color: "#581c87", textColor: "#f3e8ff", icon: "fa-spider" },
@@ -264,85 +269,85 @@
 
     const EVERDELL_DATA = {
       expansions: [
-        { id: "base", name: "Everdell (Base Game)", isOwned: true, noteBg: "Задължителна основна игра", noteEn: "Mandatory base game" },
-        { id: "pearlbrook", name: "Pearlbrook", isOwned: false, noteBg: "Въвежда Бисери, Подводни локации и Чудеса", noteEn: "Introduces Pearls, Underwater locations & Wonders" },
-        { id: "spirecrest", name: "Spirecrest", isOwned: false, noteBg: "Въвежда Големи Мийпъли, Време и Планински маршрути", noteEn: "Introduces Big Critters, Weather & Mountain trails" },
-        { id: "bellfaire", name: "Bellfaire", isOwned: false, noteBg: "Поддръжка до 6 играча и Пазарни плочки", noteEn: "Support up to 6 players & Market tiles" },
-        { id: "mistwood", name: "Mistwood", isOwned: false, noteBg: "Легендарни карти и Паяци", noteEn: "Legendary cards and Spiders" },
-        { id: "newleaf", name: "New Leaf", isOwned: false, noteBg: "Гара, влакове и нови обитатели", noteEn: "Station, trains and new residents" }
+        { id: "base", name: "Everdell (Основна игра)", isOwned: true, noteBg: "Задължителна база от правила и карти", noteEn: "Mandatory base game rules and cards" },
+        { id: "pearlbrook", name: "Pearlbrook", isOwned: false, noteBg: "Добавя речен свят, бисери и велики чудеса", noteEn: "Introduces river world, pearls, and grand wonders" },
+        { id: "spirecrest", name: "Spirecrest", isOwned: false, noteBg: "Планински експедиции, време и големи мийпъли", noteEn: "Mountain expeditions, weather events, and big critters" },
+        { id: "bellfaire", name: "Bellfaire", isOwned: false, noteBg: "Поддръжка до 6 играча и пазарни плочки", noteEn: "Support for up to 6 players and market tiles" },
+        { id: "mistwood", name: "Mistwood", isOwned: false, noteBg: "Легендарни карти и паякоподобни същества", noteEn: "Legendary cards and spider characters" },
+        { id: "newleaf", name: "New Leaf", isOwned: false, noteBg: "Централна гара, влакове и нови обитатели", noteEn: "Central station, trains, and new station residents" }
       ],
       crittersByExp: {
         base: ["Мишки (Mice)", "Таралежи (Hedgehogs)", "Костенурки (Turtles)", "Катерици (Squirrels)"],
-        pearlbrook: ["Аксолотли (Axolotls)", "Оттри (Otters)", "Жаби (Frogs)", "Звезди / Морски звезди (Starfish / Starlings)"],
-        spirecrest: ["Мечки (Bears)", "Лосове / Стоати (Stoats)", "Планински кози / Гущери (Lizards)", "Бухове (Owls)"],
-        bellfaire: ["Кардинали (Cardinals)", "Топоди (Toads)", "Плъхове (Rats)"],
+        pearlbrook: ["Аксолотли (Axolotls)", "Витри (Otters)", "Жаби (Frogs)", "Морски звезди (Starfish / Starlings)"],
+        spirecrest: ["Мечки (Bears)", "Стоати (Stoats)", "Гущери (Lizards)", "Бухове (Owls)"],
+        bellfaire: ["Кардинали (Cardinals)", "Тоди (Toads)", "Плъхове (Rats)"],
         mistwood: ["Паяци (Spiders)", "Пеперуди (Butterflies)"],
         newleaf: ["Къртици (Moles)", "Котки (Cats)"]
       },
-      bigCritters: ["Гигантски Мечок", "Планински Елен", "Гигантски Орел", "Вълк Навигатор", "Голяма Костенурка", "Планинска Коза"],
+      bigCritters: ["Гигантски мечок", "Планински елен", "Гигантски орел", "Вълк навигатор", "Голяма костенурка", "Планинска коза"],
 
       forestLocations: [
-        { id: 1, exp: "base", nameBg: "3 Клончета", nameEn: "3 Twigs", effectBg: "Вземете 3 Клончета", effectEn: "Take 3 Twigs" },
-        { id: 2, exp: "base", nameBg: "2 Смоли", nameEn: "2 Resins", effectBg: "Вземете 2 Смоли", effectEn: "Take 2 Resins" },
-        { id: 3, exp: "base", nameBg: "2 Камъка", nameEn: "2 Pebbles", effectBg: "Вземете 2 Камъка", effectEn: "Take 2 Pebbles" },
-        { id: 4, exp: "base", nameBg: "2 Боровинки & 1 Карта", nameEn: "2 Berries & 1 Card", effectBg: "Вземете 2 Боровинки и изтеглете 1 Карта", effectEn: "Take 2 Berries and draw 1 Card" },
-        { id: 5, exp: "base", nameBg: "3 Карти & 1 Ресурс", nameEn: "3 Cards & 1 Resource", effectBg: "Изтеглете 3 Карти и вземете 1 Ресурс по избор", effectEn: "Draw 3 Cards and take 1 Resource of choice" },
-        { id: 6, exp: "base", nameBg: "Копиране на Зелена Сграда", nameEn: "Copy Green Building", effectBg: "Активирайте 1 Зелена Production сграда от вашия град", effectEn: "Activate 1 Green Production building from your city" },
-        { id: 7, exp: "base", nameBg: "Теглене от Поляната", nameEn: "Meadow Draw", effectBg: "Вземете 2 Карти от Meadow и ги заменете", effectEn: "Take 2 Cards from Meadow and replace them" },
-        { id: 8, exp: "base", nameBg: "Изхвърляне за Ресурси", nameEn: "Discard for Resources", effectBg: "Изхвърлете до 3 Карти -> равен брой Ресурси", effectEn: "Discard up to 3 Cards -> equal resources" },
-        { id: 9, exp: "base", nameBg: "2 Точки & 2 Карти", nameEn: "2 Points & 2 Cards", effectBg: "Вземете 2 Точки и изтеглете 2 Карти", effectEn: "Take 2 Points and draw 2 Cards" },
-        { id: 10, exp: "base", nameBg: "Отстъпка за Сграда", nameEn: "Building Discount", effectBg: "Платете 1 Ресурс по-малко за следваща Сграда", effectEn: "Pay 1 fewer resource for next Building" },
-        { id: 11, exp: "pearlbrook", nameBg: "Подводно Търгуване", nameEn: "Underwater Trade", effectBg: "Платете 2 Смоли -> вземете 1 Бисер и 1 Карта", effectEn: "Pay 2 Resins -> take 1 Pearl and 1 Card" },
-        { id: 12, exp: "pearlbrook", nameBg: "Речен Поток", nameEn: "River Flow", effectBg: "Вземете 1 Бисер и изтеглете 2 Карти", effectEn: "Take 1 Pearl and draw 2 Cards" },
-        { id: 13, exp: "spirecrest", nameBg: "Планински Маршрут", nameEn: "Mountain Trail", effectBg: "Вземете 1 Карта и подгответе планинска експедиция", effectEn: "Take 1 Card and prepare mountain expedition" },
-        { id: 14, exp: "newleaf", nameBg: "Централна Гара", nameEn: "Central Station", effectBg: "Разменете карта от ръката си с карта от Влаковата линия", effectEn: "Swap a card from hand with one from Train line" }
+        { id: 1, exp: "base", nameBg: "3 Клончета", nameEn: "3 Twigs", effectBg: "Получавате точно 3 клончета от запаса.", effectEn: "Take 3 twigs from the supply." },
+        { id: 2, exp: "base", nameBg: "2 Смоли", nameEn: "2 Resins", effectBg: "Получавате точно 2 смоли от запаса.", effectEn: "Take 2 resins from the supply." },
+        { id: 3, exp: "base", nameBg: "2 Камъка", nameEn: "2 Pebbles", effectBg: "Получавате точно 2 камъка от запаса.", effectEn: "Take 2 pebbles from the supply." },
+        { id: 4, exp: "base", nameBg: "2 Боровинки & 1 Карта", nameEn: "2 Berries & 1 Card", effectBg: "Взимате 2 боровинки и теглите 1 карта.", effectEn: "Take 2 berries and draw 1 card." },
+        { id: 5, exp: "base", nameBg: "3 Карти & 1 Ресурс", nameEn: "3 Cards & 1 Resource", effectBg: "Теглите 3 карти и взимате 1 ресурс по ваш избор.", effectEn: "Draw 3 cards and take 1 resource of choice." },
+        { id: 6, exp: "base", nameBg: "Копиране на производствена сграда", nameEn: "Copy Green Building", effectBg: "Активирате отново 1 зелена сграда от вашето селище.", effectEn: "Activate 1 green production building from your city." },
+        { id: 7, exp: "base", nameBg: "Размяна в поляната", nameEn: "Meadow Refresh", effectBg: "Изхвърляте и подменяте до 2 карти от общата поляна.", effectEn: "Discard and replace up to 2 cards from the meadow." },
+        { id: 8, exp: "base", nameBg: "Размяна на карти за ресурси", nameEn: "Discard for Resources", effectBg: "Изхвърляте до 3 карти от ръка за равен брой ресурси.", effectEn: "Discard up to 3 cards for an equal number of resources." },
+        { id: 9, exp: "base", nameBg: "2 Точки & 2 Карти", nameEn: "2 Points & 2 Cards", effectBg: "Получавате 2 точки за победа и теглите 2 карти.", effectEn: "Take 2 victory points and draw 2 cards." },
+        { id: 10, exp: "base", nameBg: "Строителна отстъпка", nameEn: "Building Discount", effectBg: "Плащате с 1 ресурс по-малко за следващата сграда.", effectEn: "Pay 1 fewer resource for your next building." },
+        { id: 11, exp: "pearlbrook", nameBg: "Подводна търговия", nameEn: "Underwater Trade", effectBg: "Плащате 2 смоли -> взимате 1 бисер и 1 карта.", effectEn: "Pay 2 resins -> take 1 pearl and 1 card." },
+        { id: 12, exp: "pearlbrook", nameBg: "Речен поток", nameEn: "River Flow", effectBg: "Взимате 1 ценен бисер и теглите 2 карти.", effectEn: "Take 1 pearl and draw 2 cards." },
+        { id: 13, exp: "spirecrest", nameBg: "Планинска пътека", nameEn: "Mountain Trail", effectBg: "Теглите карта и напредвате в планинския маршрут.", effectEn: "Draw a card and advance on your mountain route." },
+        { id: 14, exp: "newleaf", nameBg: "Централна гара", nameEn: "Central Station", effectBg: "Разменяте карта от ръка с карта от влаковата линия.", effectEn: "Swap a card from hand with one from the train line." }
       ],
 
       basicEvents: [
-        { nameBg: "Голяма обиколка", nameEn: "Grand Tour", reqBg: "3 Дестинации (Червени карти)", reqEn: "3 Destination cards", reward: "3 VP" },
-        { nameBg: "Фестивал на реколтата", nameEn: "Harvest Festival", reqBg: "4 Производствени (Зелени карти)", reqEn: "4 Production cards", reward: "3 VP" },
-        { nameBg: "Градски паметник", nameEn: "City Monument", reqBg: "3 Просперитет (Лилави карти)", reqEn: "3 Prosperity cards", reward: "3 VP" },
-        { nameBg: "Картографска експедиция", nameEn: "Cartographer's Expedition", reqBg: "3 Управленски (Сини карти)", reqEn: "3 Governance cards", reward: "3 VP" }
+        { nameBg: "Голяма обиколка на долината", nameEn: "Grand Tour", reqBg: "3 Дестинации (червени карти в града)", reqEn: "3 Destination cards", reward: "3 т." },
+        { nameBg: "Фестивал на горската реколта", nameEn: "Harvest Festival", reqBg: "4 Производствени (зелени карти в града)", reqEn: "4 Production cards", reward: "3 т." },
+        { nameBg: "Градски исторически паметник", nameEn: "City Monument", reqBg: "3 Просперитет (лилави карти в града)", reqEn: "3 Prosperity cards", reward: "3 т." },
+        { nameBg: "Картографска експедиция", nameEn: "Cartographer's Expedition", reqBg: "3 Управленски (сини карти в града)", reqEn: "3 Governance cards", reward: "3 т." }
       ],
 
       specialEvents: [
-        { id: 1, exp: "base", nameBg: "Ято пратеници", nameEn: "A Flock of Messengers", reqBg: "Поща + Пощальон", reqEn: "Post Office + Mail Carrier", rewardBg: "3 т. + 1 т. за всяка Поща в града ви", rewardEn: "3 VP + 1 VP per Post Office in your city" },
-        { id: 2, exp: "base", nameBg: "Древен учен", nameEn: "Ancient Scholar", reqBg: "Учител + Училище", reqEn: "Teacher + School", rewardBg: "3 т. + 1 т. за всяка карта с история/книги", rewardEn: "3 VP + 1 VP per history/book card" },
-        { id: 3, exp: "base", nameBg: "Архитектурна гилдия", nameEn: "Architect's Guild", reqBg: "Кран + Стъкларница/Хан", reqEn: "Crane + Inn", rewardBg: "3 т. + 1 т. за всяка уникална Сграда", rewardEn: "3 VP + 1 VP per unique Building" },
-        { id: 4, exp: "base", nameBg: "Алианс на лекарите", nameEn: "Flying Doctor's Alliance", reqBg: "Лекар + Манастир", reqEn: "Doctor + Monastery", rewardBg: "3 т. + 1 т. за всеки съпруг/съпруга или Лекар", rewardEn: "3 VP + 1 VP per Husband/Wife or Doctor" },
-        { id: 5, exp: "base", nameBg: "Голямо тържество", nameEn: "Grand Celebration", reqBg: "3 Различни Зелени Сгради", reqEn: "3 Different Green Buildings", rewardBg: "3 т. + 1 т. за всяко друго постигнато Събитие", rewardEn: "3 VP + 1 VP per other achieved Event" },
-        { id: 6, exp: "base", nameBg: "Трупа на артистите", nameEn: "Performer's Troupe", reqBg: "Бард + Театър", reqEn: "Bard + Theater", rewardBg: "3 т. + 1 т. за всеки изпълнител в града", rewardEn: "3 VP + 1 VP per performer in city" },
-        { id: 7, exp: "pearlbrook", nameBg: "Речен панаир", nameEn: "River Fair Festival", reqBg: "2 Бисера + Подводна Сграда", reqEn: "2 Pearls + Underwater Building", rewardBg: "6 точки в края на играта", rewardEn: "6 VP at end of game" },
-        { id: 8, exp: "spirecrest", nameBg: "Върхова експедиция", nameEn: "Peak Expedition", reqBg: "3 Завършени Планински Карти", reqEn: "3 Completed Mountain Cards", rewardBg: "5 точки в края на играта", rewardEn: "5 VP at end of game" }
+        { id: 1, exp: "base", nameBg: "Ято горски пратеници", nameEn: "A Flock of Messengers", reqBg: "Поща + Пощальон", reqEn: "Post Office + Mail Carrier", rewardBg: "3 т. + 1 допълнителна точка за всяка Поща в селището", rewardEn: "3 VP + 1 VP per Post Office in city" },
+        { id: 2, exp: "base", nameBg: "Съвет на древния учен", nameEn: "Ancient Scholar", reqBg: "Учител + Училище", reqEn: "Teacher + School", rewardBg: "3 т. + 1 точка за всяка историческа карта в града", rewardEn: "3 VP + 1 VP per history/book card" },
+        { id: 3, exp: "base", nameBg: "Архитектурна гилдия", nameEn: "Architect's Guild", reqBg: "Кран + Стъкларница или Хан", reqEn: "Crane + Inn", rewardBg: "3 т. + 1 точка за всяка уникална построена сграда", rewardEn: "3 VP + 1 VP per unique Building" },
+        { id: 4, exp: "base", nameBg: "Алианс на горските лекари", nameEn: "Flying Doctor's Alliance", reqBg: "Лекар + Манастир", reqEn: "Doctor + Monastery", rewardBg: "3 т. + 1 точка за всеки съпруг/съпруга или лекар", rewardEn: "3 VP + 1 VP per Husband/Wife or Doctor" },
+        { id: 5, exp: "base", nameBg: "Голямо годишно тържество", nameEn: "Grand Celebration", reqBg: "3 Различни зелени производствени сгради", reqEn: "3 Different Green Buildings", rewardBg: "3 т. + 1 точка за всяко друго постигнато събитие", rewardEn: "3 VP + 1 VP per other achieved Event" },
+        { id: 6, exp: "base", nameBg: "Трупа на странстващите артисти", nameEn: "Performer's Troupe", reqBg: "Бард + Театър", reqEn: "Bard + Theater", rewardBg: "3 т. + 1 точка за всеки изпълнител в града ви", rewardEn: "3 VP + 1 VP per performer in city" },
+        { id: 7, exp: "pearlbrook", nameBg: "Голям речен панаир", nameEn: "River Fair Festival", reqBg: "2 Бисера + 1 Подводна сграда", reqEn: "2 Pearls + Underwater Building", rewardBg: "6 точки за победа в края на играта", rewardEn: "6 VP at end of game" },
+        { id: 8, exp: "spirecrest", nameBg: "Върхова планинска експедиция", nameEn: "Peak Expedition", reqBg: "3 Завършени планински маршрутни карти", reqEn: "3 Completed Mountain Cards", rewardBg: "5 точки за победа в края на играта", rewardEn: "5 VP at end of game" }
       ],
 
       wonders: [
-        { nameBg: "Перлен дворец", nameEn: "The Pearl Palace", cost: "3 Бисера + 3 Смоли", costEn: "3 Pearls + 3 Resins", effectBg: "Носи 15 точки в края на играта.", effectEn: "Grants 15 points at the end of the game." },
+        { nameBg: "Великият перлен дворец", nameEn: "The Pearl Palace", cost: "3 Бисера + 3 Смоли", costEn: "3 Pearls + 3 Resins", effectBg: "Носи внушителни 15 точки в края на партията.", effectEn: "Grants 15 points at the end of the game." },
         { nameBg: "Коралова цитадела", nameEn: "Coral Citadel", cost: "3 Бисера + 3 Камъка", costEn: "3 Pearls + 3 Pebbles", effectBg: "Носи 14 точки и позволява съхранение на карти.", effectEn: "Grants 14 points and card storage." },
-        { nameBg: "Потънал кораб", nameEn: "Sunken Shipwreck", cost: "3 Бисера + 3 Клончета", costEn: "3 Pearls + 3 Twigs", effectBg: "Носи 13 точки и дава допълнителен ресурс.", effectEn: "Grants 13 points and extra resource." },
-        { nameBg: "Абисален паметник", nameEn: "Abyssal Monument", cost: "4 Бисера", costEn: "4 Pearls", effectBg: "Носи 16 точки.", effectEn: "Grants 16 points." }
+        { nameBg: "Потънал древен кораб", nameEn: "Sunken Shipwreck", cost: "3 Бисера + 3 Клончета", costEn: "3 Pearls + 3 Twigs", effectBg: "Носи 13 точки и дава бонус ресурс при строеж.", effectEn: "Grants 13 points and extra resource." },
+        { nameBg: "Абисален паметник", nameEn: "Abyssal Monument", cost: "4 Ценни бисера", costEn: "4 Pearls", effectBg: "Носи 16 точки в крайното класиране.", effectEn: "Grants 16 points." }
       ],
 
       weatherCards: [
-        { seasonBg: "Пролет", seasonEn: "Spring", nameBg: "Гъста Мъгла", nameEn: "Dense Fog", effectBg: "Работниците изискват 1 допълнителна боровинка за хранене.", effectEn: "Workers require 1 additional berry for feeding." },
-        { seasonBg: "Лято", seasonEn: "Summer", nameBg: "Проливен Дъжд", nameEn: "Heavy Rain", effectBg: "Нямате право да теглите карти от тестето при подготовка.", effectEn: "No drawing cards from deck during preparation." },
-        { seasonBg: "Есен", seasonEn: "Autumn", nameBg: "Ранен Снег", nameEn: "Early Snow", effectBg: "Всички карти в ръката ви струват 1 допълнителен ресурс.", effectEn: "All cards in hand cost 1 additional resource." }
+        { seasonBg: "Пролет", seasonEn: "Spring", nameBg: "Гъста сутрешна мъгла", nameEn: "Dense Fog", effectBg: "Работниците изискват 1 допълнителна боровинка за хранене през сезона.", effectEn: "Workers require 1 additional berry for feeding." },
+        { seasonBg: "Лято", seasonEn: "Summer", nameBg: "Продължителен проливен дъжд", nameEn: "Heavy Rain", effectBg: "Нямате право да теглите нови карти от тестето при подготовка.", effectEn: "No drawing cards from deck during preparation." },
+        { seasonBg: "Есен", seasonEn: "Autumn", nameBg: "Рано паднал дълбок сняг", nameEn: "Early Snow", effectBg: "Всички карти в ръката ви струват 1 допълнителен ресурс за изграждане.", effectEn: "All cards in hand cost 1 additional resource." }
       ],
 
       discoveryCards: [
-        { seasonBg: "Пролет", seasonEn: "Spring", nameBg: "Загубен път", nameEn: "Lost Path", effectBg: "Платете 2 клончета или губите 2 точки в края.", effectEn: "Pay 2 twigs or lose 2 points at the end." },
-        { seasonBg: "Лято", seasonEn: "Summer", nameBg: "Скрита пещера", nameEn: "Hidden Cave", effectBg: "Вземете 2 случайна ресурса и 1 карта.", effectEn: "Take 2 random resources and 1 card." },
-        { seasonBg: "Есен", seasonEn: "Autumn", nameBg: "Върхов преход", nameEn: "Peak Crossing", effectBg: "Изисква голям мийпъл за финално пътуване.", effectEn: "Requires big critter for final journey." }
+        { seasonBg: "Пролет", seasonEn: "Spring", nameBg: "Загубен горски път", nameEn: "Lost Path", effectBg: "Платете 2 клончета или ще загубите 2 точки в края.", effectEn: "Pay 2 twigs or lose 2 points at the end." },
+        { seasonBg: "Лято", seasonEn: "Summer", nameBg: "Скрита планинска пещера", nameEn: "Hidden Cave", effectBg: "Взимате 2 случайна ресурса и 1 допълнителна карта.", effectEn: "Take 2 random resources and 1 card." },
+        { seasonBg: "Есен", seasonEn: "Autumn", nameBg: "Върхов планински преход", nameEn: "Peak Crossing", effectBg: "Изисква голям мийпъл за финално експедиционно пътуване.", effectEn: "Requires big critter for final journey." }
       ],
 
       marketTiles: [
-        { nameBg: "Горски пазар", nameEn: "Forest Market", effectBg: "Разменете 2 клончета за 1 камък или смола.", effectEn: "Exchange 2 twigs for 1 pebble or resin." },
-        { nameBg: "Селищен обмен", nameEn: "Village Trade", effectBg: "Изхвърлете 1 карта от ръка за 2 боровинки.", effectEn: "Discard 1 card from hand for 2 berries." }
+        { nameBg: "Обявен горски пазар", nameEn: "Forest Market", effectBg: "Разменяте 2 клончета за 1 камък или смола по избор.", effectEn: "Exchange 2 twigs for 1 pebble or resin." },
+        { nameBg: "Селищен бартер", nameEn: "Village Trade", effectBg: "Изхвърляте 1 карта от ръка в замяна на 2 боровинки.", effectEn: "Discard 1 card from hand for 2 berries." }
       ],
 
       stationTiles: [
-        { nameBg: "Експресна линия", nameEn: "Express Line", effectBg: "Позволява бързо придвижване на мийпъл към гарата.", effectEn: "Allows fast worker movement to the station." },
-        { nameBg: "Резервация за пътуване", nameEn: "Travel Reservation", effectBg: "Запазете специална карта с намаление.", effectEn: "Reserve a special card with a discount." }
+        { nameBg: "Бърза експресна линия", nameEn: "Express Line", effectBg: "Позволява бързо придвижване на мийпъл към централната гара.", effectEn: "Allows fast worker movement to the station." },
+        { nameBg: "Резервация за пътуване", nameEn: "Travel Reservation", effectBg: "Запазвате специална карта в гарата с отстъпка.", effectEn: "Reserve a special card with a discount." }
       ]
     };
 
@@ -370,7 +375,7 @@
     function getCritterBadgeHtml(critterName) {
       const details = CRITTER_DETAILS[critterName] || { color: '#475569', textColor: '#ffffff', icon: 'fa-paw' };
       return `
-        <div class="inline-flex items-center space-x-1.5 px-2 py-1 rounded-lg border border-white/20 shadow-sm text-xs font-bold" style="background-color: ${details.color}; color: ${details.textColor};">
+        <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-xl border border-white/15 shadow-sm text-xs font-bold" style="background-color: ${details.color}; color: ${details.textColor};">
           <i class="fa-solid ${details.icon || 'fa-paw'} text-[11px]"></i>
           <span>${critterName}</span>
         </div>
@@ -430,73 +435,73 @@
 
       container.innerHTML = `
         <div class="space-y-2 mb-2 px-1">
-          ${is5Or6Players ? `<div class="text-[10px] text-amber-300 bg-amber-950/40 p-1.5 rounded border border-amber-500/30">${t('handLimit56')}</div>` : ''}
+          ${is5Or6Players ? `<div class="text-[11px] text-amber-300 bg-amber-950/60 p-2 rounded-xl border border-amber-500/30 flex items-center space-x-2"><i class="fa-solid fa-triangle-exclamation"></i><span>${t('handLimit56')}</span></div>` : ''}
         </div>
-        <div class="flex space-x-3 min-w-max pb-2">
+        <div class="flex space-x-3.5 min-w-max pb-2">
           ${store.participants.map((p, idx) => {
             const total = calculatePlayerTotal(p);
             return `
-              <div class="bg-slate-900/80 border border-slate-700/80 rounded-xl p-3 w-52 flex flex-col justify-between space-y-2">
-                <div class="border-b border-slate-700 pb-1.5 flex items-center justify-between">
+              <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-3.5 w-56 flex flex-col justify-between space-y-3 shadow-xl">
+                <div class="border-b border-slate-700/80 pb-2 flex items-center justify-between">
                   <span class="font-extrabold text-xs text-amber-300 truncate">${p.name}</span>
                   <div class="scale-90 origin-right">${getCritterBadgeHtml(p.critter)}</div>
                 </div>
 
-                <div class="space-y-1.5 text-[11px]">
+                <div class="space-y-2 text-[11px]">
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-300 flex items-center space-x-1.5">
-                      <i class="fa-solid fa-star text-amber-400 w-3.5 text-center"></i>
+                    <span class="text-slate-300 flex items-center space-x-2">
+                      <i class="fa-solid fa-star text-amber-400 w-4 text-center"></i>
                       <span>${t('baseScore')}</span>
                     </span>
-                    <input type="number" value="${p.scores.base}" min="0" onchange="updatePlayerScore(${idx}, 'base', this.value)" class="w-12 bg-surfaceContainer border border-slate-600 rounded text-center text-white font-bold py-0.5">
+                    <input type="number" value="${p.scores.base}" min="0" onchange="updatePlayerScore(${idx}, 'base', this.value)" class="w-14 bg-surfaceContainer border border-slate-600 rounded-lg text-center text-white font-bold py-1">
                   </div>
 
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-300 flex items-center space-x-1.5">
-                      <i class="fa-solid fa-coins text-yellow-400 w-3.5 text-center"></i>
+                    <span class="text-slate-300 flex items-center space-x-2">
+                      <i class="fa-solid fa-coins text-yellow-400 w-4 text-center"></i>
                       <span>${t('tokensScore')}</span>
                     </span>
-                    <input type="number" value="${p.scores.tokens}" min="0" onchange="updatePlayerScore(${idx}, 'tokens', this.value)" class="w-12 bg-surfaceContainer border border-slate-600 rounded text-center text-white font-bold py-0.5">
+                    <input type="number" value="${p.scores.tokens}" min="0" onchange="updatePlayerScore(${idx}, 'tokens', this.value)" class="w-14 bg-surfaceContainer border border-slate-600 rounded-lg text-center text-white font-bold py-1">
                   </div>
 
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-300 flex items-center space-x-1.5">
-                      <i class="fa-solid fa-gem text-purple-400 w-3.5 text-center"></i>
+                    <span class="text-slate-300 flex items-center space-x-2">
+                      <i class="fa-solid fa-gem text-purple-400 w-4 text-center"></i>
                       <span>${t('purpleScore')}</span>
                     </span>
-                    <input type="number" value="${p.scores.purple}" min="0" onchange="updatePlayerScore(${idx}, 'purple', this.value)" class="w-12 bg-surfaceContainer border border-slate-600 rounded text-center text-white font-bold py-0.5">
+                    <input type="number" value="${p.scores.purple}" min="0" onchange="updatePlayerScore(${idx}, 'purple', this.value)" class="w-14 bg-surfaceContainer border border-slate-600 rounded-lg text-center text-white font-bold py-1">
                   </div>
 
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-300 flex items-center space-x-1.5">
-                      <i class="fa-solid fa-award text-teal-400 w-3.5 text-center"></i>
+                    <span class="text-slate-300 flex items-center space-x-2">
+                      <i class="fa-solid fa-award text-teal-400 w-4 text-center"></i>
                       <span>${t('eventsScore')}</span>
                     </span>
-                    <input type="number" value="${p.scores.events}" min="0" onchange="updatePlayerScore(${idx}, 'events', this.value)" class="w-12 bg-surfaceContainer border border-slate-600 rounded text-center text-white font-bold py-0.5">
+                    <input type="number" value="${p.scores.events}" min="0" onchange="updatePlayerScore(${idx}, 'events', this.value)" class="w-14 bg-surfaceContainer border border-slate-600 rounded-lg text-center text-white font-bold py-1">
                   </div>
 
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-300 flex items-center space-x-1.5">
-                      <i class="fa-solid ${isSpirecrestActive ? 'fa-mountain text-amber-600' : 'fa-ship text-blue-400'} w-3.5 text-center"></i>
-                      <span class="truncate max-w-[90px]">${isSpirecrestActive ? t('expeditionScore') : t('journeyScore')}</span>
+                    <span class="text-slate-300 flex items-center space-x-2">
+                      <i class="fa-solid ${isSpirecrestActive ? 'fa-mountain text-amber-600' : 'fa-ship text-blue-400'} w-4 text-center"></i>
+                      <span class="truncate max-w-[95px]">${isSpirecrestActive ? t('expeditionScore') : t('journeyScore')}</span>
                     </span>
-                    <input type="number" value="${p.scores.journey}" min="0" onchange="updatePlayerScore(${idx}, 'journey', this.value)" class="w-12 bg-surfaceContainer border border-slate-600 rounded text-center text-white font-bold py-0.5">
+                    <input type="number" value="${p.scores.journey}" min="0" onchange="updatePlayerScore(${idx}, 'journey', this.value)" class="w-14 bg-surfaceContainer border border-slate-600 rounded-lg text-center text-white font-bold py-1">
                   </div>
 
                   ${isPearlbrookActive ? `
-                    <div class="flex justify-between items-center pt-1 border-t border-slate-800">
-                      <span class="text-cyan-300 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-water text-cyan-400 w-3.5 text-center"></i>
+                    <div class="flex justify-between items-center pt-1.5 border-t border-slate-800">
+                      <span class="text-cyan-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-water text-cyan-400 w-4 text-center"></i>
                         <span>${t('pearlWondersScore')}</span>
                       </span>
-                      <input type="number" value="${p.scores.pearlOrWonders}" min="0" onchange="updatePlayerScore(${idx}, 'pearlOrWonders', this.value)" class="w-12 bg-surfaceContainer border border-cyan-700/60 rounded text-center text-cyan-200 font-bold py-0.5">
+                      <input type="number" value="${p.scores.pearlOrWonders}" min="0" onchange="updatePlayerScore(${idx}, 'pearlOrWonders', this.value)" class="w-14 bg-surfaceContainer border border-cyan-700/60 rounded-lg text-center text-cyan-200 font-bold py-1">
                     </div>
                   ` : ''}
                 </div>
 
-                <div class="bg-emerald-950/90 border border-emerald-500/40 rounded-lg p-2 text-center mt-2">
-                  <div class="text-[9px] text-emerald-400 font-bold uppercase">${t('totalScore')}</div>
-                  <div class="text-lg font-extrabold text-amber-300" id="total-score-${idx}">${total}</div>
+                <div class="bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500/40 rounded-xl p-2.5 text-center mt-2 shadow-inner">
+                  <div class="text-[9px] text-emerald-400 font-extrabold uppercase tracking-widest">${t('totalScore')}</div>
+                  <div class="text-xl font-black text-amber-300 mt-0.5" id="total-score-${idx}">${total}</div>
                 </div>
               </div>
             `;
@@ -527,14 +532,14 @@
     function showToast(message) {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      toast.className = 'bg-surfaceContainer text-white px-3 py-2.5 rounded-xl shadow-xl border border-slate-600 pointer-events-auto flex items-center space-x-2 text-xs transition transform translate-y-2 opacity-0 duration-300';
-      toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span class="font-medium">${message}</span>`;
+      toast.className = 'bg-surfaceContainer text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/40 pointer-events-auto flex items-center space-x-2.5 text-xs transition transform translate-y-3 opacity-0 duration-300';
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 text-base"></i><span class="font-bold">${message}</span>`;
       container.appendChild(toast);
-      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => toast.classList.remove('translate-y-3', 'opacity-0'), 15);
       setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
+        toast.classList.add('translate-y-3', 'opacity-0');
         setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      }, 3200);
     }
 
     function renderApp() {
@@ -566,13 +571,13 @@
 
     function renderHomeScreen() {
       return `
-        <div class="flex flex-col items-center justify-center py-2 px-1 text-center animate-fade-in">
-          <!-- НОВА ТЕМАТИЧНА ИЛЮСТРАЦИЯ ЗА ЕВЕРДЕЙЛ -->
-          <div class="relative w-full h-52 rounded-2xl overflow-hidden mb-4 border border-emerald-900/60 shadow-2xl bg-gradient-to-b from-emerald-950 via-slate-900 to-darkbg flex flex-col items-center justify-center p-2">
-            <svg viewBox="0 0 400 220" class="w-full h-full rounded-xl" xmlns="http://www.w3.org/2000/svg">
+        <div class="flex flex-col items-center justify-center py-4 px-2 text-center">
+          <!-- Художествена векторна илюстрация с разчупен асиметричен изглед -->
+          <div class="relative w-full h-60 rounded-3xl overflow-hidden mb-5 border border-emerald-500/30 shadow-2xl bg-gradient-to-b from-emerald-950 via-slate-900 to-darkbg flex flex-col items-center justify-center p-3">
+            <svg viewBox="0 0 400 240" class="w-full h-full rounded-2xl" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#064e3b" />
+                  <stop offset="0%" stop-color="#042f2e" />
                   <stop offset="100%" stop-color="#0f172a" />
                 </linearGradient>
                 <linearGradient id="trunkGrad" x1="0" y1="0" x2="1" y2="0">
@@ -582,53 +587,52 @@
                 </linearGradient>
               </defs>
               
-              <!-- Фон небе -->
-              <rect width="400" height="220" fill="url(#skyGrad)" />
+              <rect width="400" height="240" fill="url(#skyGrad)" />
               
               <!-- Звезди и луна -->
-              <circle cx="340" cy="45" r="24" fill="#fef08a" opacity="0.9" />
-              <circle cx="80" cy="50" r="1.5" fill="#ffffff" opacity="0.6" />
-              <circle cx="150" cy="35" r="2" fill="#ffffff" opacity="0.8" />
-              <circle cx="250" cy="60" r="1.5" fill="#ffffff" opacity="0.5" />
+              <circle cx="330" cy="40" r="26" fill="#fef08a" opacity="0.9" />
+              <circle cx="70" cy="55" r="2" fill="#ffffff" opacity="0.7" />
+              <circle cx="140" cy="30" r="2.5" fill="#ffffff" opacity="0.9" />
+              <circle cx="240" cy="65" r="1.5" fill="#ffffff" opacity="0.5" />
               
-              <!-- Далечни хълмове -->
-              <path d="M 0 170 Q 150 130 400 160 L 400 220 L 0 220 Z" fill="#065f46" opacity="0.6" />
-              <path d="M 0 185 Q 220 140 400 185 L 400 220 L 0 220 Z" fill="#047857" opacity="0.8" />
+              <!-- Асиметрични хълмове -->
+              <path d="M 0 180 Q 120 130 400 170 L 400 240 L 0 240 Z" fill="#065f46" opacity="0.5" />
+              <path d="M 0 195 Q 240 145 400 190 L 400 240 L 0 240 Z" fill="#047857" opacity="0.75" />
 
               <!-- Магическо дърво на Евердейл -->
-              <path d="M 170 220 L 170 120 Q 130 95 100 80 Q 140 60 170 95 L 170 220 Z" fill="url(#trunkGrad)" />
-              <path d="M 230 220 L 230 120 Q 270 95 300 80 Q 260 60 230 95 L 230 220 Z" fill="url(#trunkGrad)" />
-              <rect x="175" y="110" width="50" height="110" fill="url(#trunkGrad)" rx="5" />
+              <path d="M 175 240 L 175 130 Q 130 100 95 85 Q 135 60 175 105 L 175 240 Z" fill="url(#trunkGrad)" />
+              <path d="M 225 240 L 225 130 Q 270 100 305 85 Q 265 60 225 105 L 225 240 Z" fill="url(#trunkGrad)" />
+              <rect x="178" y="120" width="44" height="120" fill="url(#trunkGrad)" rx="6" />
               
-              <!-- Корона на дървото (многослойна зеленина) -->
-              <circle cx="200" cy="75" r="65" fill="#15803d" />
-              <circle cx="160" cy="90" r="45" fill="#16a34a" opacity="0.9" />
-              <circle cx="240" cy="90" r="45" fill="#16a34a" opacity="0.9" />
-              <circle cx="200" cy="45" r="40" fill="#22c55e" opacity="0.8" />
+              <!-- Корона на дървото -->
+              <circle cx="200" cy="75" r="70" fill="#15803d" />
+              <circle cx="155" cy="95" r="48" fill="#16a34a" opacity="0.9" />
+              <circle cx="245" cy="95" r="48" fill="#16a34a" opacity="0.9" />
+              <circle cx="200" cy="42" r="42" fill="#22c55e" opacity="0.85" />
 
-              <!-- Уютна къщичка в основата (символ на селището) -->
-              <polygon points="175,150 200,125 225,150" fill="#d97706" />
-              <rect x="182" y="150" width="36" height="30" fill="#334155" rx="2" />
-              <rect x="193" y="162" width="14" height="18" fill="#fef08a" opacity="0.8" />
+              <!-- Уютна горска къщичка -->
+              <polygon points="172,155 200,128 228,155" fill="#d97706" />
+              <rect x="180" y="155" width="40" height="32" fill="#1e293b" rx="3" />
+              <rect x="191" y="167" width="18" height="20" fill="#fef08a" opacity="0.9" />
 
-              <!-- Трева на преден план -->
-              <path d="M 0 200 Q 200 185 400 200 L 400 220 L 0 220 Z" fill="#022c22" />
+              <!-- Трева -->
+              <path d="M 0 210 Q 200 195 400 210 L 400 240 L 0 240 Z" fill="#022c22" />
             </svg>
 
-            <div class="absolute bottom-2 left-0 right-0 px-3 flex justify-center">
-              <span class="bg-slate-900/90 text-emerald-400 border border-emerald-500/40 px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md shadow-md">
-                Everdell Companion
+            <div class="absolute bottom-3 left-0 right-0 px-4 flex justify-center">
+              <span class="bg-slate-900/95 text-emerald-400 border border-emerald-500/50 px-4 py-1 rounded-full text-[11px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg">
+                Everdell Companion Hub
               </span>
             </div>
           </div>
 
-          <h2 class="text-xl font-extrabold text-slate-100 mb-1.5 tracking-tight">${t('homeTitle')}</h2>
-          <p class="text-slate-300/80 text-xs mb-5 max-w-xs leading-relaxed">${t('homeDesc')}</p>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-100 mb-2 tracking-tight" data-i18n="homeTitle">Изградете своето горско селище</h2>
+          <p class="text-slate-300 text-xs sm:text-sm mb-6 max-w-sm leading-relaxed" data-i18n="homeDesc">Генерирайте персонализирани горски локации, специални събития и разпределете уникални мийпъли според вашите експанжъни.</p>
 
-          <div class="w-full max-w-xs space-y-3">
-            <button onclick="navigateTo('ExpansionsScreen')" class="w-full bg-gradient-to-r from-emerald-700 to-amber-800 hover:from-emerald-600 hover:to-amber-700 text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg border border-emerald-500/30 flex items-center justify-center space-x-2.5 transition text-sm">
-              <i class="fa-solid fa-tree text-emerald-300"></i>
-              <span>${t('newGameBtn')}</span>
+          <div class="w-full max-w-sm space-y-3">
+            <button onclick="navigateTo('ExpansionsScreen')" class="w-full bg-gradient-to-r from-emerald-600 via-emerald-700 to-amber-700 hover:from-emerald-500 hover:to-amber-600 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl border border-emerald-400/40 flex items-center justify-center space-x-3 transition text-sm transform active:scale-95">
+              <i class="fa-solid fa-tree text-amber-300 text-base"></i>
+              <span data-i18n="newGameBtn">Нова игра и настройки</span>
             </button>
           </div>
         </div>
@@ -639,60 +643,63 @@
       const isPearlbrookOwned = EVERDELL_DATA.expansions.find(e => e.id === 'pearlbrook')?.isOwned;
 
       return `
-        <div class="space-y-4 pb-20">
+        <div class="space-y-4 pb-24">
           <div>
-            <h2 class="text-lg font-extrabold text-slate-100">${t('expTitle')}</h2>
-            <p class="text-xs text-slate-400">${t('expDesc')}</p>
+            <h2 class="text-lg font-extrabold text-slate-100" data-i18n="expTitle">Избор на експанжъни</h2>
+            <p class="text-xs text-slate-400" data-i18n="expDesc">Изберете кои разширения участват в партията за отключване на нови механики и мийпъли:</p>
           </div>
 
-          <div class="space-y-2">
+          <div class="space-y-2.5">
             ${EVERDELL_DATA.expansions.map((exp, idx) => `
-              <div onclick="toggleExpansion(${idx})" class="bg-surface hover:bg-surfaceContainer border ${exp.isOwned ? 'border-emerald-500/50 bg-emerald-950/20' : 'border-slate-800'} rounded-xl p-3 flex items-center justify-between cursor-pointer transition select-none">
-                <div class="flex items-center space-x-2.5">
-                  <div class="w-5 h-5 rounded-lg ${exp.isOwned ? 'bg-emerald-600 text-white' : 'border border-slate-600'} flex items-center justify-center text-[10px]">
+              <div onclick="toggleExpansion(${idx})" class="glass-card hover:border-emerald-500/60 border ${exp.isOwned ? 'border-emerald-500/60 bg-emerald-950/30' : 'border-slate-800'} rounded-2xl p-3.5 flex items-center justify-between cursor-pointer transition select-none shadow-md">
+                <div class="flex items-center space-x-3">
+                  <div class="w-6 h-6 rounded-xl ${exp.isOwned ? 'bg-emerald-600 text-white shadow-md' : 'border border-slate-600 bg-slate-900'} flex items-center justify-center text-xs font-bold">
                     ${exp.isOwned ? '<i class="fa-solid fa-check"></i>' : ''}
                   </div>
                   <div>
-                    <span class="font-bold text-slate-100 text-xs sm:text-sm block leading-tight">${exp.name}</span>
-                    <span class="text-[9.5px] text-slate-400 leading-none">${currentLang === 'bg' ? exp.noteBg : exp.noteEn}</span>
+                    <span class="font-extrabold text-slate-100 text-xs sm:text-sm block leading-tight">${exp.name}</span>
+                    <span class="text-[10px] text-slate-400 leading-tight mt-0.5 block">${currentLang === 'bg' ? exp.noteBg : exp.noteEn}</span>
                   </div>
                 </div>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${exp.isOwned ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">${exp.isOwned ? t('active') : t('inactive')}</span>
+                <span class="text-[10px] font-bold px-2.5 py-1 rounded-xl ${exp.isOwned ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">${exp.isOwned ? t('active') : t('inactive')}</span>
               </div>
             `).join('')}
           </div>
 
-          <!-- ADVANCED MODULE TOGGLE -->
-          <div class="bg-surface border border-amber-500/30 rounded-xl p-3 space-y-2">
+          <!-- Разширен модул с разчупен дизайн -->
+          <div class="glass-card border border-amber-500/40 rounded-2xl p-4 space-y-3 shadow-lg">
             <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-sliders text-amber-400"></i>
-                <span class="font-bold text-xs text-amber-200">${t('advancedModule')}</span>
+              <div class="flex items-center space-x-2.5">
+                <div class="p-2 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                  <i class="fa-solid fa-sliders text-xs"></i>
+                </div>
+                <span class="font-extrabold text-xs text-amber-200" data-i18n="advancedModule">Разширен модул: Случайни основни събития</span>
               </div>
-              <input type="checkbox" ${store.advancedModule.enabled ? 'checked' : ''} onchange="toggleAdvancedModule(this.checked)" class="w-4 h-4 accent-amber-500 cursor-pointer">
+              <input type="checkbox" ${store.advancedModule.enabled ? 'checked' : ''} onchange="toggleAdvancedModule(this.checked)" class="w-5 h-5 accent-amber-500 cursor-pointer rounded">
             </div>
             
             ${store.advancedModule.enabled ? `
               ${isPearlbrookOwned ? `
-                <div class="p-2 bg-red-950/50 border border-red-500/40 text-red-300 text-[10px] rounded-lg">
-                  <i class="fa-solid fa-triangle-exclamation"></i> ${t('pearlWarning')}
+                <div class="p-2.5 bg-red-950/60 border border-red-500/40 text-red-200 text-[11px] rounded-xl flex items-center space-x-2">
+                  <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                  <span>${t('pearlWarning')}</span>
                 </div>
               ` : ''}
-              <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs">
-                <span class="text-slate-300">${t('basicEventsCount')}</span>
-                <select onchange="store.advancedModule.randomBasicEventsCount = parseInt(this.value)" class="bg-surfaceContainer border border-slate-600 rounded px-2 py-1 text-white font-bold">
+              <div class="pt-2.5 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                <span class="text-slate-300 font-semibold" data-i18n="basicEventsCount">Брой основни събития на игралното поле:</span>
+                <select onchange="store.advancedModule.randomBasicEventsCount = parseInt(this.value)" class="bg-surfaceContainer border border-slate-600 rounded-xl px-3 py-1.5 text-white font-bold">
                   <option value="1" ${store.advancedModule.randomBasicEventsCount === 1 ? 'selected' : ''}>1</option>
                   <option value="2" ${store.advancedModule.randomBasicEventsCount === 2 ? 'selected' : ''}>2</option>
                   <option value="3" ${store.advancedModule.randomBasicEventsCount === 3 ? 'selected' : ''}>3</option>
-                  <option value="4" ${store.advancedModule.randomBasicEventsCount === 4 ? 'selected' : ''}>4 (All)</option>
+                  <option value="4" ${store.advancedModule.randomBasicEventsCount === 4 ? 'selected' : ''}>4 (Всички)</option>
                 </select>
               </div>
             ` : ''}
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center justify-between z-40">
-            <button onclick="goBackStep()" class="bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-5 rounded-xl border border-slate-700 text-xs transition">${t('backBtn')}</button>
-            <button onclick="navigateTo('PlayersSetupScreen')" class="bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg text-xs transition">${t('continueBtn')}</button>
+          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3.5 flex items-center justify-between z-40 shadow-2xl">
+            <button onclick="goBackStep()" class="bg-surface hover:bg-surfaceContainer text-slate-300 font-bold py-3 px-6 rounded-xl border border-slate-700 text-xs transition" data-i18n="backBtn">Назад</button>
+            <button onclick="navigateTo('PlayersSetupScreen')" class="bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-extrabold py-3 px-7 rounded-xl shadow-lg text-xs transition" data-i18n="continueBtn">Продължи напред</button>
           </div>
         </div>
       `;
@@ -778,18 +785,18 @@
         <div class="space-y-4 pb-24">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-extrabold text-slate-100">${t('playersTitle')}</h2>
-              <p class="text-xs text-slate-400">${t('playersDesc')}</p>
+              <h2 class="text-lg font-extrabold text-slate-100" data-i18n="playersTitle">Настройка на участниците</h2>
+              <p class="text-xs text-slate-400" data-i18n="playersDesc">Персонализирайте имената, уникалните видове мийпъли и големи животни:</p>
             </div>
-            <button onclick="randomizeCritters()" class="bg-amber-900/60 border border-amber-500/40 text-amber-300 px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center space-x-1 shadow transition">
-              <i class="fa-solid fa-dice"></i>
-              <span>${t('randomCritters')}</span>
+            <button onclick="randomizeCritters()" class="bg-amber-950/80 border border-amber-500/50 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow transition hover:bg-amber-900">
+              <i class="fa-solid fa-dice text-amber-400"></i>
+              <span data-i18n="randomCritters">Случайно</span>
             </button>
           </div>
 
-          <div class="bg-surface rounded-xl border border-slate-700/60 p-3 flex items-center justify-between">
-            <span class="font-bold text-slate-200 text-xs">${t('playerCount')} ${isBellfaireActive ? '(до 6 / up to 6)' : '(до 4 / up to 4)'}</span>
-            <select onchange="updateParticipantCount(parseInt(this.value))" class="bg-surfaceContainer border border-slate-600 rounded-lg px-3 py-1.5 text-white font-bold text-xs">
+          <div class="glass-card rounded-2xl border border-slate-700/60 p-3.5 flex items-center justify-between shadow-md">
+            <span class="font-bold text-slate-200 text-xs" data-i18n="playerCount">Брой играчи на масата</span>
+            <select onchange="updateParticipantCount(parseInt(this.value))" class="bg-surfaceContainer border border-slate-600 rounded-xl px-3.5 py-1.5 text-white font-extrabold text-xs">
               ${options.map(n => `<option value="${n}" ${currentCount === n ? 'selected' : ''}>${n}</option>`).join('')}
             </select>
           </div>
@@ -800,27 +807,27 @@
               const selectableBigs = getSelectableBigCrittersForPlayer(idx);
 
               return `
-                <div class="bg-surface rounded-xl border border-slate-700/50 p-3 space-y-2">
+                <div class="glass-card rounded-2xl border border-slate-700/70 p-4 space-y-3 shadow-lg">
                   <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2 flex-1 mr-2">
-                      <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 font-bold flex items-center justify-center text-xs border border-emerald-400/30">${idx + 1}</div>
-                      <input type="text" value="${p.name}" oninput="store.participants[${idx}].name = this.value" class="w-full bg-surfaceContainer border border-slate-600 rounded-lg px-2 py-1 text-white text-xs font-semibold">
+                    <div class="flex items-center space-x-2.5 flex-1 mr-3">
+                      <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-300 font-black flex items-center justify-center text-xs border border-emerald-400/40 shadow-inner">${idx + 1}</div>
+                      <input type="text" value="${p.name}" oninput="store.participants[${idx}].name = this.value" class="w-full bg-surfaceContainer border border-slate-600 rounded-xl px-3 py-1.5 text-white text-xs font-bold">
                     </div>
                     <div>${getCritterBadgeHtml(p.critter)}</div>
                   </div>
 
-                  <div class="grid grid-cols-1 ${isSpirecrestActive ? 'sm:grid-cols-2' : ''} gap-2 pt-2 border-t border-slate-700/50">
+                  <div class="grid grid-cols-1 ${isSpirecrestActive ? 'sm:grid-cols-2' : ''} gap-2.5 pt-2.5 border-t border-slate-700/60">
                     <div>
-                      <label class="text-[10px] font-bold text-slate-400 block mb-0.5">${t('critterType')}</label>
-                      <select onchange="changePlayerCritter(${idx}, this.value)" class="w-full bg-surfaceContainer border border-slate-600 rounded-lg px-2 py-1 text-white text-[11px]">
+                      <label class="text-[10px] font-extrabold text-slate-400 block mb-1 uppercase tracking-wider" data-i18n="critterType">Вид мийпъл (Цвят):</label>
+                      <select onchange="changePlayerCritter(${idx}, this.value)" class="w-full bg-surfaceContainer border border-slate-600 rounded-xl px-3 py-1.5 text-white text-xs font-medium">
                         ${selectableCritters.map(c => `<option value="${c}" ${p.critter === c ? 'selected' : ''}>${c}</option>`).join('')}
                       </select>
                     </div>
 
                     ${isSpirecrestActive ? `
                       <div>
-                        <label class="text-[10px] font-bold text-amber-400 block mb-0.5">${t('bigCritter')}</label>
-                        <select onchange="changePlayerBigCritter(${idx}, this.value)" class="w-full bg-surfaceContainer border border-amber-600/60 rounded-lg px-2 py-1 text-amber-200 text-[11px]">
+                        <label class="text-[10px] font-extrabold text-amber-400 block mb-1 uppercase tracking-wider" data-i18n="bigCritter">Голямо животно (Spirecrest):</label>
+                        <select onchange="changePlayerBigCritter(${idx}, this.value)" class="w-full bg-surfaceContainer border border-amber-600/60 rounded-xl px-3 py-1.5 text-amber-200 text-xs font-medium">
                           ${selectableBigs.map(bc => `<option value="${bc}" ${p.bigCritter === bc ? 'selected' : ''}>${bc}</option>`).join('')}
                         </select>
                       </div>
@@ -831,9 +838,9 @@
             }).join('')}
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
-            <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-3 rounded-xl border border-slate-700 text-xs transition">${t('backBtn')}</button>
-            <button onclick="generateSetup()" class="flex-1 bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg text-xs transition">${t('genGameBtn')}</button>
+          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3.5 flex items-center space-x-3 z-40 shadow-2xl">
+            <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-bold py-3 px-4 rounded-xl border border-slate-700 text-xs transition" data-i18n="backBtn">Назад</button>
+            <button onclick="generateSetup()" class="flex-1 bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg text-xs transition" data-i18n="genGameBtn">Генерирай конфигурация</button>
           </div>
         </div>
       `;
@@ -866,7 +873,7 @@
       if (current.length < count) {
         for (let i = current.length; i < count; i++) {
           current.push({
-            name: `${currentLang === 'bg' ? 'Играч' : 'Player'} ${i + 1}`,
+            name: `${currentLang === 'bg' ? 'Участник' : 'Player'} ${i + 1}`,
             critter: "",
             bigCritter: "",
             scores: { base: 0, tokens: 0, purple: 0, events: 0, journey: 0, pearlOrWonders: 0 }
@@ -943,25 +950,27 @@
         <div class="space-y-4 pb-24">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-extrabold text-slate-100">${t('genGameTitle')}</h2>
+              <h2 class="text-lg font-extrabold text-slate-100" data-i18n="genGameTitle">Персонализирано разпределение</h2>
               <p class="text-xs text-slate-400">${t('configFor')} ${pCount} ${pCount === 1 ? t('player') : t('players')}</p>
             </div>
-            <button onclick="generateSetup()" class="bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg transition flex items-center space-x-1">
-              <i class="fa-solid fa-shuffle text-xs"></i>
-              <span>${t('reloadBtn')}</span>
+            <button onclick="generateSetup()" class="bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-shuffle text-amber-300"></i>
+              <span data-i18n="reloadBtn">Преразпределение</span>
             </button>
           </div>
 
-          <div class="bg-surface rounded-xl border border-slate-700/60 p-3 space-y-2">
-            <span class="font-bold text-xs text-amber-300 flex items-center space-x-1.5">
-              <i class="fa-solid fa-users"></i>
-              <span>${t('playerDist')}</span>
+          <!-- Участници -->
+          <div class="glass-card rounded-2xl border border-slate-700/60 p-4 space-y-3 shadow-lg">
+            <span class="font-extrabold text-xs text-amber-300 flex items-center space-x-2 uppercase tracking-wide">
+              <i class="fa-solid fa-users text-amber-400"></i>
+              <span data-i18n="playerDist">Разпределение по играчи</span>
             </span>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               ${store.participants.map(p => `
-                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between">
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700/80 flex items-center justify-between shadow-sm">
                   <div>
-                    <div class="font-bold text-slate-100 text-xs">${p.name}</div>${isSpirecrestActive ? `<div class="text-[10px] text-amber-400 mt-0.5">${t('bigCritterLabel')} ${p.bigCritter}</div>` : ''}
+                    <div class="font-extrabold text-slate-100 text-xs">${p.name}</div>
+                    ${isSpirecrestActive ? `<div class="text-[10px] text-amber-400 font-semibold mt-1">${t('bigCritterLabel')} ${p.bigCritter}</div>` : ''}
                   </div>
                   <div>${getCritterBadgeHtml(p.critter)}</div>
                 </div>
@@ -969,136 +978,143 @@
             </div>
           </div>
 
+          <!-- Pearlbrook Wonders -->
           ${isPearlbrookActive && store.setup.selectedWonders.length > 0 ? `
-            <div class="bg-surface rounded-xl border border-cyan-500/40 p-3 space-y-2">
-              <span class="font-bold text-xs text-cyan-300 flex items-center space-x-1.5">
-                <i class="fa-solid fa-water"></i>
-                <span>${t('wonders')}</span>
+            <div class="glass-card rounded-2xl border border-cyan-500/40 p-4 space-y-3 shadow-lg">
+              <span class="font-extrabold text-xs text-cyan-300 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-water text-cyan-400"></i>
+                <span data-i18n="wonders">Pearlbrook: Велики чудеса</span>
               </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 ${store.setup.selectedWonders.map(w => `
-                  <div class="bg-slate-900/80 p-2 rounded-lg border border-cyan-800/40 text-[11px]">
-                    <div class="font-bold text-cyan-200">${currentLang === 'bg' ? w.nameBg : w.nameEn}</div>
-                    <div class="text-slate-300 text-[10px]">${t('cost')} ${currentLang === 'bg' ? w.cost : w.costEn}</div>
-                    <div class="text-emerald-400 text-[10px]">${currentLang === 'bg' ? w.effectBg : w.effectEn}</div>
+                  <div class="bg-slate-900/90 p-3 rounded-xl border border-cyan-800/40 text-xs space-y-1">
+                    <div class="font-extrabold text-cyan-200">${currentLang === 'bg' ? w.nameBg : w.nameEn}</div>
+                    <div class="text-slate-300 text-[11px]"><span class="text-slate-400 font-semibold">${t('cost')}</span> ${currentLang === 'bg' ? w.cost : w.costEn}</div>
+                    <div class="text-emerald-400 text-[11px] font-medium">${currentLang === 'bg' ? w.effectBg : w.effectEn}</div>
                   </div>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
+          <!-- Spirecrest Weather -->
           ${isSpirecrestActive ? `
-            <div class="bg-surface rounded-xl border border-amber-600/40 p-3 space-y-2">
-              <span class="font-bold text-xs text-amber-300 flex items-center space-x-1.5">
-                <i class="fa-solid fa-mountain"></i>
-                <span>${t('weather')}</span>
+            <div class="glass-card rounded-2xl border border-amber-600/40 p-4 space-y-3 shadow-lg">
+              <span class="font-extrabold text-xs text-amber-300 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-mountain text-amber-400"></i>
+                <span data-i18n="weather">Spirecrest: Време и планински маршрути</span>
               </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 ${store.setup.selectedWeather.map(w => `
-                  <div class="bg-slate-900/80 p-2 rounded-lg border border-amber-800/40 text-[11px]">
-                    <div class="font-bold text-amber-200"><i class="fa-solid fa-cloud-sun"></i> ${currentLang === 'bg' ? w.seasonBg : w.seasonEn}: ${currentLang === 'bg' ? w.nameBg : w.nameEn}</div>
-                    <div class="text-slate-300 text-[10px]">${currentLang === 'bg' ? w.effectBg : w.effectEn}</div>
+                  <div class="bg-slate-900/90 p-3 rounded-xl border border-amber-800/40 text-xs space-y-1">
+                    <div class="font-extrabold text-amber-200"><i class="fa-solid fa-cloud-sun mr-1"></i> ${currentLang === 'bg' ? w.seasonBg : w.seasonEn}: ${currentLang === 'bg' ? w.nameBg : w.nameEn}</div>
+                    <div class="text-slate-300 text-[11px]">${currentLang === 'bg' ? w.effectBg : w.effectEn}</div>
                   </div>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
+          <!-- Bellfaire Markets -->
           ${isBellfaireActive && store.setup.selectedMarkets.length > 0 ? `
-            <div class="bg-surface rounded-xl border border-purple-500/40 p-3 space-y-2">
-              <span class="font-bold text-xs text-purple-300 flex items-center space-x-1.5">
-                <i class="fa-solid fa-store"></i>
-                <span>${t('markets')}</span>
+            <div class="glass-card rounded-2xl border border-purple-500/40 p-4 space-y-3 shadow-lg">
+              <span class="font-extrabold text-xs text-purple-300 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-store text-purple-400"></i>
+                <span data-i18n="markets">Bellfaire: Пазарни плочки</span>
               </span>
-              <div class="space-y-1">
+              <div class="space-y-2">
                 ${store.setup.selectedMarkets.map(m => `
-                  <div class="bg-slate-900/80 p-2 rounded-lg border border-purple-800/40 text-[11px] flex items-center justify-between">
-                    <span class="font-bold text-purple-200">${currentLang === 'bg' ? m.nameBg : m.nameEn}</span>
-                    <span class="text-slate-300 text-[10px]">${currentLang === 'bg' ? m.effectBg : m.effectEn}</span>
+                  <div class="bg-slate-900/90 p-3 rounded-xl border border-purple-800/40 text-xs flex items-center justify-between">
+                    <span class="font-extrabold text-purple-200">${currentLang === 'bg' ? m.nameBg : m.nameEn}</span>
+                    <span class="text-slate-300 text-[11px] text-right">${currentLang === 'bg' ? m.effectBg : m.effectEn}</span>
                   </div>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
+          <!-- New Leaf Stations -->
           ${isNewLeafActive && store.setup.selectedStations.length > 0 ? `
-            <div class="bg-surface rounded-xl border border-blue-500/40 p-3 space-y-2">
-              <span class="font-bold text-xs text-blue-300 flex items-center space-x-1.5">
-                <i class="fa-solid fa-train"></i>
-                <span>${t('stations')}</span>
+            <div class="glass-card rounded-2xl border border-blue-500/40 p-4 space-y-3 shadow-lg">
+              <span class="font-extrabold text-xs text-blue-300 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-train text-blue-400"></i>
+                <span data-i18n="stations">New Leaf: Централна гара и влакове</span>
               </span>
-              <div class="space-y-1">
+              <div class="space-y-2">
                 ${store.setup.selectedStations.map(s => `
-                  <div class="bg-slate-900/80 p-2 rounded-lg border border-blue-800/40 text-[11px] flex items-center justify-between">
-                    <span class="font-bold text-blue-200">${currentLang === 'bg' ? s.nameBg : s.nameEn}</span>
-                    <span class="text-slate-300 text-[10px]">${currentLang === 'bg' ? s.effectBg : s.effectEn}</span>
+                  <div class="bg-slate-900/90 p-3 rounded-xl border border-blue-800/40 text-xs flex items-center justify-between">
+                    <span class="font-extrabold text-blue-200">${currentLang === 'bg' ? s.nameBg : s.nameEn}</span>
+                    <span class="text-slate-300 text-[11px] text-right">${currentLang === 'bg' ? s.effectBg : s.effectEn}</span>
                   </div>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
+          <!-- Advanced Basic Events -->
           ${store.advancedModule.enabled && !isPearlbrookActive && store.setup.selectedBasicEvents.length > 0 ? `
-            <div class="bg-surface rounded-xl border border-amber-500/40 p-3 space-y-2">
-              <span class="font-bold text-xs text-amber-300 flex items-center space-x-1.5">
-                <i class="fa-solid fa-sliders"></i>
+            <div class="glass-card rounded-2xl border border-amber-500/40 p-4 space-y-3 shadow-lg">
+              <span class="font-extrabold text-xs text-amber-300 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-sliders text-amber-400"></i>
                 <span>${t('basicEventsSelected')} (${store.setup.selectedBasicEvents.length})</span>
               </span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 ${store.setup.selectedBasicEvents.map(b => `
-                  <div class="bg-slate-900/80 p-2 rounded-lg border border-amber-800/40 text-[11px]">
-                    <div class="font-bold text-amber-200">${currentLang === 'bg' ? b.nameBg : b.name} (${b.reward})</div>
-                    <div class="text-slate-400 text-[10px]">${t('req')} ${currentLang === 'bg' ? b.reqBg : b.req}</div>
+                  <div class="bg-slate-900/90 p-3 rounded-xl border border-amber-800/40 text-xs space-y-1">
+                    <div class="font-extrabold text-amber-200">${currentLang === 'bg' ? b.nameBg : b.name} <span class="text-emerald-400">(${b.reward})</span></div>
+                    <div class="text-slate-300 text-[11px]"><span class="text-slate-400 font-semibold">${t('req')}</span> ${currentLang === 'bg' ? b.reqBg : b.req}</div>
                   </div>
                 `).join('')}
               </div>
             </div>
           ` : ''}
 
-          <div class="bg-surface rounded-xl border border-slate-700/60 p-3 space-y-2.5">
-            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
-              <span class="font-bold text-xs text-emerald-400 flex items-center space-x-1.5">
-                <i class="fa-solid fa-tree"></i>
-                <span>${t('forestLoc')} (${store.setup.selectedForestLocations.length})</span>
+          <!-- Forest Locations -->
+          <div class="glass-card rounded-2xl border border-slate-700/60 p-4 space-y-3 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-2.5">
+              <span class="font-extrabold text-xs text-emerald-400 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-tree text-emerald-400"></i>
+                <span data-i18n="forestLoc">Горски локации на партията</span> (${store.setup.selectedForestLocations.length})
               </span>
             </div>
-            <div class="grid grid-cols-1 gap-2">
+            <div class="grid grid-cols-1 gap-2.5">
               ${store.setup.selectedForestLocations.map(f => `
-                <div class="bg-slate-900/60 p-2.5 rounded-lg border border-emerald-800/40 flex items-center justify-between">
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-emerald-800/40 flex items-center justify-between shadow-sm">
                   <div>
-                    <div class="font-bold text-xs text-amber-200">${currentLang === 'bg' ? f.nameBg : f.nameEn}</div>
-                    <div class="text-[11px] text-slate-300">${currentLang === 'bg' ? f.effectBg : f.effectEn}</div>
+                    <div class="font-extrabold text-xs text-amber-200">${currentLang === 'bg' ? f.nameBg : f.nameEn}</div>
+                    <div class="text-[11px] text-slate-300 mt-0.5">${currentLang === 'bg' ? f.effectBg : f.effectEn}</div>
                   </div>
-                  <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold uppercase">${f.exp}</span>
+                  <span class="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-xl font-black uppercase tracking-wider">${f.exp}</span>
                 </div>
               `).join('')}
             </div>
           </div>
 
-          <div class="bg-surface rounded-xl border border-slate-700/60 p-3 space-y-2.5">
-            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
-              <span class="font-bold text-xs text-amber-400 flex items-center space-x-1.5">
-                <i class="fa-solid fa-star"></i>
-                <span>${t('specEvents')} (4)</span>
+          <!-- Special Events -->
+          <div class="glass-card rounded-2xl border border-slate-700/60 p-4 space-y-3 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-2.5">
+              <span class="font-extrabold text-xs text-amber-400 flex items-center space-x-2 uppercase tracking-wide">
+                <i class="fa-solid fa-star text-amber-400"></i>
+                <span data-i18n="specEvents">Специални събития</span> (4)
               </span>
             </div>
-            <div class="grid grid-cols-1 gap-2">
+            <div class="grid grid-cols-1 gap-2.5">
               ${store.setup.selectedEvents.map(e => `
-                <div class="bg-slate-900/60 p-2.5 rounded-lg border border-amber-800/40 space-y-1">
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-amber-800/40 space-y-2 shadow-sm">
                   <div class="flex items-center justify-between">
-                    <div class="font-bold text-xs text-amber-200">${currentLang === 'bg' ? e.nameBg : e.nameEn}</div>
-                    <span class="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold uppercase">${e.exp}</span>
+                    <div class="font-extrabold text-xs text-amber-200">${currentLang === 'bg' ? e.nameBg : e.nameEn}</div>
+                    <span class="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-xl font-black uppercase tracking-wider">${e.exp}</span>
                   </div>
-                  <div class="text-[10px] text-slate-300">${t('req')} <span class="text-slate-100 font-semibold">${currentLang === 'bg' ? e.reqBg : e.reqEn}</span></div>
-                  <div class="text-[10px] text-emerald-400 font-medium bg-emerald-950/40 p-1.5 rounded border border-emerald-500/20">${t('effect')}${currentLang === 'bg' ? e.rewardBg : e.rewardEn}</div>
+                  <div class="text-[11px] text-slate-300"><span class="text-slate-400 font-semibold" data-i18n="req">Изискване:</span> <span class="text-slate-100 font-bold">${currentLang === 'bg' ? e.reqBg : e.reqEn}</span></div>
+                  <div class="text-[11px] text-emerald-300 font-semibold bg-emerald-950/50 p-2 rounded-xl border border-emerald-500/20"><span class="text-emerald-400 font-bold">${t('effect')}</span> ${currentLang === 'bg' ? e.rewardBg : e.rewardEn}</div>
                 </div>
               `).join('')}
             </div>
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
-            <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-3 rounded-xl border border-slate-700 text-xs transition">${t('backBtn')}</button>
-            <button onclick="showToast('${t('toastReady')}')" class="flex-1 bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg text-xs transition">${t('toastReady')}</button>
+          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3.5 flex items-center space-x-3 z-40 shadow-2xl">
+            <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-bold py-3 px-4 rounded-xl border border-slate-700 text-xs transition" data-i18n="backBtn">Назад</button>
+            <button onclick="showToast('${t('toastReady')}')" class="flex-1 bg-emerald-700 hover:bg-emerald-600 border border-emerald-400/30 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg text-xs transition">Запази готовност</button>
           </div>
         </div>
       `;
@@ -1109,4 +1125,3 @@
   </script>
 </body>
 </html>
-
