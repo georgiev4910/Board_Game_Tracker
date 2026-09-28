@@ -7,348 +7,158 @@
     <!-- FontAwesome за икони -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-color: #0f0f12;
-            --card-bg: #1a1518;
-            --border-color: #3d242c;
-            --accent-color: #9f1239; /* Тъмно бордо */
-            --accent-hover: #881337;
-            --accent-light: #e11d48;
-            --text-color: #f4f4f5;
-            --text-muted: #a1a1aa;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Постоянен хедър с бутони */
-        .top-header {
-            width: 100%;
-            max-width: 440px;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            border-radius: 12px 12px 0 0;
-            padding: 10px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-sizing: border-box;
-            margin-top: 20px;
-        }
-
-        .top-header .nav-btns {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            border-right: 1px solid var(--border-color);
-            padding-right: 12px;
-            margin-right: 4px;
-        }
-
-        .top-header .nav-btn {
-            background: #0f0f12;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s, color 0.2s;
-            font-size: 15px;
-            text-decoration: none;
-            padding: 0;
-        }
-
-        .top-header .nav-btn:hover {
-            background: #311018;
-            border-color: var(--accent-light);
-            color: #fff;
-        }
-
-        .top-header .nav-btn.home-btn { color: #fb7185; }
-        .top-header .nav-btn.home-btn:hover { color: #f43f5e; border-color: #fb7185; }
-        .top-header .nav-btn.back-btn { color: #fda4af; }
-        .top-header .nav-btn.back-btn:hover { color: #fb7185; border-color: #e11d48; }
-        .top-header .nav-btn.tracker-btn { color: #f43f5e; }
-        .top-header .nav-btn.tracker-btn:hover { color: #fb7185; border-color: #e11d48; }
-
-        .top-header .title-area {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            justify-content: flex-end;
-        }
-
-        .top-header .logo-icon {
-            background: linear-gradient(135deg, #9f1239, #4c0519);
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 15px;
-            box-shadow: 0 2px 8px rgba(159, 18, 57, 0.4);
-        }
-
-        .top-header .title-mini {
-            font-size: 13px;
-            font-weight: 700;
-            color: #fb7185;
-            letter-spacing: 0.4px;
-            line-height: 1.2;
-        }
-
-        .top-header .title-sub {
-            font-size: 10px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        /* Главен контейнер */
-        .container {
-            background-color: var(--card-bg);
-            padding: 28px 32px 32px;
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-            width: 100%;
-            max-width: 440px;
-            text-align: center;
-            box-sizing: border-box;
-            border: 1px solid var(--border-color);
-            border-top: none;
-            margin-bottom: 40px;
-        }
-
-        h1 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: #fb7185;
-            font-size: 24px;
-            letter-spacing: 0.5px;
-        }
-
-        p {
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        /* Екрани */
-        .screen {
-            display: none;
-        }
-        .screen.active {
-            display: block;
-        }
-
-        /* Бутони */
-        .btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            width: 100%;
-            margin-top: 8px;
-        }
-        .btn:hover {
-            background-color: var(--accent-hover);
-        }
-        .btn:active {
-            transform: scale(0.98);
-        }
-        .btn-secondary {
-            background-color: #3f3f46;
-        }
-        .btn-secondary:hover {
-            background-color: #27272a;
-        }
-
-        .image-container {
-            width: 100%;
-            height: 180px;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-        }
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Избор на играчи и конфигурационни редове */
-        .player-setup-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            background: #181215;
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 0.75rem;
-            border-left: 5px solid #ccc;
-            text-align: left;
-            border-top: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-        }
-        .player-setup-row.red { border-left-color: #ef4444; }
-        .player-setup-row.blue { border-left-color: #3b82f6; }
-        .player-setup-row.black { border-left-color: #71717a; }
-        .player-setup-row.green { border-left-color: #22c55e; }
-
-        input[type="text"] {
-            background: #0f0f12;
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 0.5rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-        input[type="text"]:focus {
-            border-color: var(--accent-light);
-            outline: none;
-        }
-
-        .player-count-btns {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-top: 1rem;
-        }
-
-        /* Чекбоксове за експаншъни */
-        .expansion-list {
-            text-align: left;
-            background: #181215;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .expansion-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            color: #d4d4d8;
-            cursor: pointer;
-        }
-        .expansion-item input {
-            accent-color: var(--accent-color);
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-
-        /* Зарове стилове */
-        .dice-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .market-dice-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #181215;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .player-dice-card {
-            background: #181215;
-            padding: 0.75rem;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border-color);
-            text-align: left;
-        }
-
-        .dice-pair {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .die {
-            width: 42px;
-            height: 42px;
-            background: #fff;
-            color: #000;
-            border-radius: 6px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.25rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.1s, opacity 0.2s, background-color 0.2s;
-        }
-
-        .die:active {
-            transform: scale(0.92);
-        }
-
-        .die.used {
-            text-decoration: line-through;
-            opacity: 0.35;
-            filter: grayscale(0.5);
-        }
-
-        .die.white { background: #f3f4f6; color: #111; border: 2px solid #d1d5db; }
-        .die.red { background: #ef4444; color: #fff; }
-        .die.blue { background: #3b82f6; color: #fff; }
-        .die.black { background: #27272a; color: #fff; border: 1px solid #52525b; }
-        .die.green { background: #22c55e; color: #fff; }
-
-        .roll-btn {
-            background: #9f1239;
-            color: white;
-            border: none;
-            padding: 0.85rem;
-            font-size: 1.05rem;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
-            margin-top: 1rem;
-        }
-        .roll-btn:hover {
-            background: #881337;
-        }
-    </style>
+:root {
+  --bg: #0c0a0b;
+  --card: #1a1216;
+  --card-2: #24181e;
+  --border: rgba(225, 29, 72, 0.18);
+  --accent: #e11d48;
+  --accent-dark: #9f1239;
+  --accent-soft: rgba(225, 29, 72, 0.12);
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --radius: 14px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0; padding: 0; min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 10% -5%, rgba(225,29,72,.14), transparent 50%),
+    radial-gradient(700px 400px at 100% 10%, rgba(159,18,57,.1), transparent 45%),
+    var(--bg);
+  display: flex; flex-direction: column; align-items: center;
+}
+.top-header {
+  width: 100%; max-width: 100%;
+  background: linear-gradient(180deg, rgba(26,18,22,.98), rgba(26,18,22,.95));
+  border: none; border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 0;
+  backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 50;
+}
+.top-header .nav-btns {
+  display: flex; gap: 6px; align-items: center;
+  border-right: 1px solid var(--border); padding-right: 10px; margin-right: 4px;
+}
+.top-header .nav-btn {
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--muted); width: 36px; height: 36px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .18s; font-size: 14px; text-decoration: none; padding: 0;
+}
+.top-header .nav-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
+.top-header .nav-btn.home-btn { color: #fb7185; }
+.top-header .nav-btn.back-btn { color: #fda4af; }
+.top-header .nav-btn.tracker-btn { color: #f43f5e; }
+.top-header .title-area { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+.top-header .logo-icon {
+  background: linear-gradient(135deg, #e11d48, #9f1239);
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;
+  box-shadow: 0 4px 14px rgba(225,29,72,.35);
+}
+.top-header .title-mini { font-size: 12px; font-weight: 800; color: #fb7185; letter-spacing: .03em; line-height: 1.2; }
+.top-header .title-sub { font-size: 10px; color: var(--muted); font-weight: 500; }
+.container {
+  background: transparent;
+  padding: 18px 16px 32px; border-radius: 0;
+  box-shadow: none;
+  width: 100%; max-width: 480px; text-align: center; box-sizing: border-box;
+  border: none; margin-bottom: 0; flex: 1;
+}
+h1 { margin: 0 0 6px; color: #fb7185; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+p { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn .22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.btn {
+  background: linear-gradient(135deg, #e11d48, #9f1239); color: white; border: 0;
+  padding: 13px 20px; font-size: 15px; font-weight: 700; border-radius: 12px;
+  cursor: pointer; transition: .18s; width: 100%; margin-top: 8px;
+  box-shadow: 0 6px 18px rgba(225,29,72,.28);
+}
+.btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn:active { transform: scale(.98); }
+.btn-secondary { background: linear-gradient(135deg, #3f3f46, #27272a); box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.image-container {
+  width: 100%; height: 160px; border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+  border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.image-container img { width: 100%; height: 100%; object-fit: cover; }
+.player-setup-row {
+  display: flex; flex-direction: column; gap: .4rem;
+  background: var(--card-2); padding: .75rem; border-radius: 12px; margin-bottom: .7rem;
+  border-left: 4px solid #ccc; text-align: left;
+  border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.player-setup-row.red { border-left-color: #ef4444; }
+.player-setup-row.blue { border-left-color: #3b82f6; }
+.player-setup-row.black { border-left-color: #71717a; }
+.player-setup-row.green { border-left-color: #22c55e; }
+input[type="text"] {
+  background: var(--bg); border: 1px solid var(--border); color: white;
+  padding: .5rem .65rem; border-radius: 8px; font-size: .95rem; font-family: inherit;
+}
+input[type="text"]:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(225,29,72,.2); }
+.player-count-btns { display: flex; flex-direction: column; gap: .7rem; margin-top: .8rem; }
+.expansion-list {
+  text-align: left; background: var(--card-2); padding: 12px; border-radius: 12px;
+  border: 1px solid var(--border); margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.expansion-item {
+  display: flex; align-items: center; gap: 10px; font-size: .9rem; color: #d4d4d8; cursor: pointer;
+}
+.expansion-item input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+.dice-grid { display: flex; flex-direction: column; gap: .9rem; }
+.market-dice-box {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card-2); padding: .75rem 1rem; border-radius: 12px; border: 1px solid var(--border);
+}
+.player-dice-card {
+  background: var(--card-2); padding: .75rem; border-radius: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--border); text-align: left;
+}
+.dice-pair { display: flex; gap: .5rem; }
+.die {
+  width: 42px; height: 42px; background: #fff; color: #000; border-radius: 8px;
+  display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 1.2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3); cursor: pointer; user-select: none; transition: .15s;
+}
+.die:active { transform: scale(.92); }
+.die.used { text-decoration: line-through; opacity: .35; filter: grayscale(.5); }
+.die.white { background: #f3f4f6; color: #111; border: 2px solid #d1d5db; }
+.die.red { background: #ef4444; color: #fff; }
+.die.blue { background: #3b82f6; color: #fff; }
+.die.black { background: #27272a; color: #fff; border: 1px solid #52525b; }
+.die.green { background: #22c55e; color: #fff; }
+.roll-btn {
+  background: linear-gradient(135deg, #e11d48, #9f1239); color: white; border: none;
+  padding: .9rem; font-size: 1.05rem; font-weight: 800; border-radius: 12px; cursor: pointer;
+  width: 100%; margin-top: 1rem; box-shadow: 0 6px 18px rgba(225,29,72,.3);
+}
+.roll-btn:hover { filter: brightness(1.08); }
+@media (min-width: 520px) {
+  body { padding: 16px 0; }
+  .top-header {
+    max-width: 480px; margin-top: 0; border-radius: 18px 18px 0 0;
+    border: 1px solid var(--border); border-bottom: none;
+  }
+  .container {
+    max-width: 480px;
+    background: linear-gradient(180deg, rgba(26,18,22,.98), rgba(20,14,17,.99));
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    padding: 22px 20px 28px; margin-bottom: 24px;
+  }
+}
+</style>
 </head>
 <body>
 
@@ -361,7 +171,7 @@
         <button type="button" class="nav-btn back-btn" onclick="goBackStep()" title="Назад">
             <i class="fa-solid fa-arrow-left"></i>
         </button>
-        <a href="index.html" class="nav-btn tracker-btn" title="Към Board Game Tracker">
+        <a href="./index.html" class="nav-btn tracker-btn" title="Към Board Game Tracker">
             <i class="fa-solid fa-flag-checkered"></i>
         </a>
     </div>
