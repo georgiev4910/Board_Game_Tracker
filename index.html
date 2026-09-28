@@ -1969,34 +1969,154 @@ function renderDetailedStats(){
 
 function renderDetailedPvp(logs,out){
     const players=getAllPlayersList().filter(p=>logs.some(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,p)));
-    const wins={};players.forEach(p=>wins[p]=0);
+    const wins={}; const played={}; players.forEach(p=>{wins[p]=0;played[p]=0});
     const positions={};players.forEach(p=>positions[p]={sum:0,count:0});
-    logs.forEach(log=>{const ws=getPvpWinners(log),scores=getPvpScores(log);ws.forEach(w=>wins[w]=(wins[w]||0)+1);scores.forEach((x,i)=>{if(!positions[x.player])positions[x.player]={sum:0,count:0};positions[x.player].sum+=i+1;positions[x.player].count++});});
-    const h2hLogs=logs.filter(l=>Object.keys(l.scores||{}).length===2), h2hWins={};h2hLogs.forEach(l=>getPvpWinners(l).forEach(w=>h2hWins[w]=(h2hWins[w]||0)+1));
-    let html=`<div class="game-stats-box"><h3>⚔️ Подробна PvP статистика</h3>`;
+    logs.forEach(log=>{
+        const ws=getPvpWinners(log), scores=getPvpScores(log);
+        Object.keys(log.scores||{}).forEach(p=>{if(played[p]!==undefined)played[p]++});
+        ws.forEach(w=>{if(wins[w]!==undefined)wins[w]++});
+        scores.forEach((x,i)=>{if(!positions[x.player])positions[x.player]={sum:0,count:0};positions[x.player].sum+=i+1;positions[x.player].count++});
+    });
+    const h2hLogs=logs.filter(l=>Object.keys(l.scores||{}).length===2);
+    const h2hWins={};h2hLogs.forEach(l=>getPvpWinners(l).forEach(w=>h2hWins[w]=(h2hWins[w]||0)+1));
 
-    if(detailScope==='all'){
-        html+=`<div class="dashboard">${statCard(logs.length,'Партии')}${statCard(new Set(logs.map(l=>l.game)).size,'Различни игри')}`;
-        players.slice(0,2).forEach(p=>{const g=logs.filter(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,p)).length,r=g?wins[p]/g*100:0;html+=statCard(formatPercent(r),esc(p)+' Win rate')});
-        html+=`</div><div class="stats-note small">Тук нарочно не усредняваме точки или разлики между различни игри. Техните точкови скали са различни и такава средна стойност би била подвеждаща.</div>`;
-        if(players.length>=2){const a=players[0],b=players[1],ag=h2hLogs.filter(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,a)).length,bg=h2hLogs.filter(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,b)).length;html+=`<div class="stats-section-label">👥 Директен двубой</div><div class="head-to-head"><div class="h2h-card"><div class="small">${esc(a)}</div><div class="num">${h2hWins[a]||0}</div><div class="small">победи</div></div><div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${h2hWins[b]||0}</div><div class="small">победи</div></div></div><div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни партии</div>`;}
-        html+=`<div class="stats-section-label">📍 Средно класиране</div><div class="mobile-stat-list">`;
-        players.slice(0,3).forEach(p=>html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(p)}</b><b>${positions[p]&&positions[p].count?formatNumber(positions[p].sum/positions[p].count):'-'}</b></div><div class="small">1.00 = първо място</div></div>`);
-        html+=`</div>`;
-    }else{
-        let scoreSum=0,scoreCount=0,winningSum=0,winnerCount=0;let highest=null;const margins=[];let closest=null,biggest=null;
-        logs.forEach(log=>{const scores=getPvpScores(log);if(!scores.length)return;scores.forEach(x=>{scoreSum+=x.score;scoreCount++;if(highest===null||x.score>highest.score)highest={player:x.player,score:x.score,game:log.game,date:log.date}});winningSum+=scores[0].score;winnerCount++;if(scores.length>=2){const m=scores[0].score-scores[1].score;margins.push(m);const item={game:log.game,margin:m,winner:scores[0].player};if(closest===null||m<closest.margin)closest=item;if(biggest===null||m>biggest.margin)biggest=item;}});
-        const avg=scoreCount?scoreSum/scoreCount:0,avgW=winnerCount?winningSum/winnerCount:0,avgM=margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0;
-        html+=`<div class="dashboard">${statCard(logs.length,'Партии')}${statCard(formatNumber(avgW),'Среден победен резултат')}${statCard(highest?highest.score:'-','Най-висок резултат',highest?esc(highest.player):'')}${statCard(formatNumber(avgM),'Средна разлика')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">🎯 Среден резултат</div><div class="num">${formatNumber(avg)}</div></div><div class="stat-card"><div class="small">🔥 Най-голяма победа</div><div class="num">${biggest?biggest.margin:'-'}</div><div class="small">${biggest?esc(biggest.game)+' • '+esc(biggest.winner):''}</div></div><div class="stat-card"><div class="small">🎯 Най-близък мач</div><div class="num">${closest?closest.margin:'-'}</div><div class="small">${closest?esc(closest.game):''}</div></div></div>`;
+    const scopeLabel = detailScope==='specific'
+        ? (document.getElementById('detailGameSelect')?.value || 'Избрана игра')
+        : 'Всички игри';
+
+    let html=`<div class="game-stats-box"><h3>⚔️ Подробна PvP · ${esc(scopeLabel)}</h3>`;
+    html+=`<div class="dashboard">
+        ${statCard(logs.length,'Партии')}
+        ${statCard(new Set(logs.map(l=>l.game)).size,'Игри')}
+        ${players.slice(0,2).map(p=>{
+            const g=played[p]||0, r=g?wins[p]/g*100:0;
+            return statCard(formatPercent(r), esc(p)+' WR');
+        }).join('')}
+    </div>`;
+
+    /* ALWAYS: clear win/loss table per player */
+    html+=`<div class="stats-section-label">🏆 Резултати по играчи</div>
+    <div class="stats-note small">Победа = 1-во място (при равенство всички с макс. точки получават победа).</div>
+    <div class="mobile-stat-list">`;
+    if(!players.length){
+        html+=`<div class="empty">Няма играчи в тези записи.</div>`;
+    } else {
+        const rows = players.map(p=>{
+            const g=played[p]||0, w=wins[p]||0, l=Math.max(0,g-w), r=g?w/g*100:0;
+            return {p,g,w,l,r};
+        }).sort((a,b)=>b.w-a.w||b.r-a.r);
+        rows.forEach(x=>{
+            html+=`<div class="mobile-stat-item">
+                <div class="top"><b>${esc(x.p)}</b><b>${formatPercent(x.r)}</b></div>
+                <div class="meta">
+                    <span class="pill">🎮 ${x.g} партии</span>
+                    <span class="pill">🏆 ${x.w} победи</span>
+                    <span class="pill">❌ ${x.l} загуби</span>
+                    ${positions[x.p]&&positions[x.p].count?`<span class="pill">🥇 ср. място ${formatNumber(positions[x.p].sum/positions[x.p].count)}</span>`:''}
+                </div>
+                <div style="margin-top:7px">${winRateBar(x.r)}</div>
+            </div>`;
+        });
     }
     html+=`</div>`;
 
-    const gm={};logs.forEach(log=>{if(!gm[log.game])gm[log.game]={games:0,scoreSum:0,count:0,winnerSum:0,marginSum:0,marginCount:0,closest:null};const d=gm[log.game],scores=getPvpScores(log);d.games++;scores.forEach(x=>{d.scoreSum+=x.score;d.count++});if(scores.length)d.winnerSum+=scores[0].score;if(scores.length>=2){const m=scores[0].score-scores[1].score;d.marginSum+=m;d.marginCount++;if(d.closest===null||m<d.closest)d.closest=m}});
-    html+=`<div class="game-stats-box"><h3>🎲 По игри</h3><div class="mobile-stat-list">`;
-    Object.entries(gm).sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0],'bg')).forEach(([game,d])=>{const avg=d.count?d.scoreSum/d.count:0,w=d.games?d.winnerSum/d.games:0,m=d.marginCount?d.marginSum/d.marginCount:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><span class="pill">🎮 ${d.games} партии</span></div><div class="meta"><span class="pill">📊 ср. резултат ${formatNumber(avg)}</span><span class="pill">🏆 ср. победител ${formatNumber(w)}</span><span class="pill">↔️ ср. разлика ${formatNumber(m)}</span><span class="pill">🎯 най-близка ${d.closest===null?'-':d.closest}</span></div></div>`});
-    html+=`</div></div><div class="game-stats-box"><h3>🕒 Последни PvP партии</h3><div class="mobile-stat-list">`;
-    [...logs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,10).forEach(log=>{const scores=getPvpScores(log),w=getPvpWinners(log),margin=scores.length>=2?scores[0].score-scores[1].score:null;html+=`<div class="recent-result"><div class="date">${formatDate(log.date)}</div><div><div class="game">${esc(log.game)}</div><div class="score">${esc(scores.map(x=>`${x.player}: ${x.score}`).join(' • '))}</div></div><div>🏆 ${w.length?esc(w[0]):'-'}<br><span class="small">+${margin===null?'-':margin}</span></div></div>`});
-    html+=`</div></div>`;out.innerHTML=html;
+    /* Head to head for 2+ players */
+    if(players.length>=2){
+        const a=players[0], b=players[1];
+        html+=`<div class="stats-section-label">👥 Директен двубой</div>
+        <div class="small">Само партии с точно тези двама.</div>
+        <div class="head-to-head">
+            <div class="h2h-card"><div class="small">${esc(a)}</div><div class="num">${h2hWins[a]||0}</div><div class="small">победи</div></div>
+            <div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${h2hWins[b]||0}</div><div class="small">победи</div></div>
+        </div>
+        <div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни партии</div>`;
+    }
+
+    /* Score analytics only meaningful for single game (same scale) */
+    if(detailScope==='specific' && logs.length){
+        let scoreSum=0,scoreCount=0,winningSum=0,winnerCount=0;let highest=null;const margins=[];let closest=null,biggest=null;
+        logs.forEach(log=>{
+            const scores=getPvpScores(log); if(!scores.length)return;
+            scores.forEach(x=>{scoreSum+=x.score;scoreCount++;if(highest===null||x.score>highest.score)highest={player:x.player,score:x.score,date:log.date}});
+            winningSum+=scores[0].score; winnerCount++;
+            if(scores.length>=2){
+                const m=scores[0].score-scores[1].score; margins.push(m);
+                const item={margin:m,winner:scores[0].player};
+                if(closest===null||m<closest.margin)closest=item;
+                if(biggest===null||m>biggest.margin)biggest=item;
+            }
+        });
+        const avg=scoreCount?scoreSum/scoreCount:0, avgW=winnerCount?winningSum/winnerCount:0, avgM=margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0;
+        html+=`<div class="stats-section-label">📊 Точки (само за тази игра)</div>
+        <div class="dashboard">
+            ${statCard(formatNumber(avgW),'Ср. победен рез.')}
+            ${statCard(highest?highest.score:'-','Рекорд',highest?esc(highest.player):'')}
+            ${statCard(formatNumber(avg),'Ср. резултат')}
+            ${statCard(formatNumber(avgM),'Ср. разлика')}
+        </div>
+        <div class="stat-subgrid">
+            <div class="stat-card"><div class="small">🔥 Най-голяма победа</div><div class="num">${biggest?biggest.margin:'-'}</div><div class="small">${biggest?esc(biggest.winner):''}</div></div>
+            <div class="stat-card"><div class="small">🎯 Най-близък мач</div><div class="num">${closest?closest.margin:'-'}</div></div>
+        </div>`;
+    } else if(detailScope==='all'){
+        html+=`<div class="stats-note small" style="margin-top:12px">Точките не се усредняват между различни игри — скалите са различни.</div>`;
+    }
+    html+=`</div>`;
+
+    /* By games: wins per player for each game */
+    const gm={};
+    logs.forEach(log=>{
+        if(!gm[log.game]) gm[log.game]={games:0, wins:{}, scoreSum:0, count:0, winnerSum:0, marginSum:0, marginCount:0, closest:null};
+        const d=gm[log.game], scores=getPvpScores(log), ws=getPvpWinners(log);
+        d.games++;
+        ws.forEach(w=>d.wins[w]=(d.wins[w]||0)+1);
+        scores.forEach(x=>{d.scoreSum+=x.score;d.count++});
+        if(scores.length) d.winnerSum+=scores[0].score;
+        if(scores.length>=2){
+            const m=scores[0].score-scores[1].score;
+            d.marginSum+=m; d.marginCount++;
+            if(d.closest===null||m<d.closest) d.closest=m;
+        }
+    });
+
+    html+=`<div class="game-stats-box"><h3>🎲 По игри · победи</h3>
+    <div class="stats-note small">Колко победи има всеки играч във всяка игра.</div>
+    <div class="table-responsive compact-table"><table>
+        <thead><tr><th style="text-align:left">Игра</th>${players.map(p=>`<th>${esc(p)}</th>`).join('')}<th>Партии</th></tr></thead>
+        <tbody>`;
+    const gameEntries=Object.entries(gm).sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0],'bg'));
+    if(!gameEntries.length){
+        html+=`<tr><td colspan="${Math.max(2,players.length+2)}" class="empty">Няма данни.</td></tr>`;
+    } else gameEntries.forEach(([game,d])=>{
+        const maxW=Math.max(0,...players.map(p=>d.wins[p]||0));
+        const leaders=players.filter(p=>(d.wins[p]||0)===maxW&&maxW>0);
+        const single=leaders.length===1;
+        html+=`<tr><td class="player-cell">${esc(game)}</td>`;
+        players.forEach(p=>{
+            const w=d.wins[p]||0;
+            const cls=single&&w===maxW?'leader-cell':(!single&&w===maxW&&maxW>0?'tie-cell':'');
+            html+=`<td class="${cls}">${w||'–'}</td>`;
+        });
+        html+=`<td><b>${d.games}</b></td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+
+    /* Recent games */
+    html+=`<div class="game-stats-box"><h3>🕒 Последни PvP партии</h3><div class="mobile-stat-list">`;
+    const recent=[...logs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
+    if(!recent.length) html+=`<div class="empty">Няма записи.</div>`;
+    else recent.forEach(log=>{
+        const scores=getPvpScores(log), w=getPvpWinners(log), margin=scores.length>=2?scores[0].score-scores[1].score:null;
+        const winLabel=w.length>1?`🤝 ${w.join(' & ')}`:`🏆 ${w[0]||'-'}`;
+        html+=`<div class="recent-result">
+            <div class="date">${formatDate(log.date)}</div>
+            <div><div class="game">${esc(log.game)}</div>
+            <div class="score">${esc(scores.map(x=>`${x.player}: ${x.score}`).join(' • '))}</div></div>
+            <div>${esc(winLabel)}<br><span class="small">${margin===null?'':'+'+margin}</span></div>
+        </div>`;
+    });
+    html+=`</div></div>`;
+    out.innerHTML=html;
 }
 
 
