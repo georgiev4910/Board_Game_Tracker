@@ -82,6 +82,48 @@ td.coop-win{background:#f0fdf4;color:var(--green-dark);font-weight:bold}td.coop-
 .empty{padding:20px;text-align:center;color:#888;background:#f8f9fa;border-radius:10px}
 .small{font-size:12px;color:var(--muted)}.success{color:var(--green-dark)}.error{color:#991b1b}
 @media(max-width:650px){body{padding:8px}.container{padding:15px}.dashboard{grid-template-columns:repeat(2,1fr)}.tabs{overflow-x:auto}.tab{min-width:110px}.player-card{padding:10px}.score-wrapper span{display:none}}
+
+/* Mobile-first polish */
+.stats-note{padding:10px 12px;background:#f8f9fa;border-radius:9px;margin-bottom:12px}
+.stats-section-label{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:18px 2px 8px}
+.compact-table table{white-space:normal}
+.compact-table th,.compact-table td{padding:8px 6px}
+.player-cell{font-weight:700;text-align:left}
+.leader-cell{background:#d4edda!important;color:#155724;font-weight:800}
+.tie-cell{background:#fff3cd!important;color:#856404;font-weight:700}
+.head-to-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.h2h-card{background:#f8f9fa;border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.h2h-card .num{font-size:25px;font-weight:800}
+.stat-subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.mobile-stat-list{display:grid;gap:9px}
+.mobile-stat-item{background:#f8f9fa;border:1px solid var(--border);border-radius:10px;padding:11px}
+.mobile-stat-item .top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.mobile-stat-item .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+.mobile-stat-item .pill{background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px;color:#495057}
+.recent-result{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;background:#f8f9fa;border:1px solid var(--border);border-radius:10px;padding:10px}
+.recent-result .game{font-weight:800}.recent-result .score{font-size:13px;color:#495057}.recent-result .date{font-size:11px;color:var(--muted)}
+.manage-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.manage-card{background:#f8f9fa;border:1px solid var(--border);border-radius:12px;padding:15px}
+.manage-card-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:5px}
+.manage-card .small{margin-bottom:10px}.manage-card input,.manage-card select,.manage-card button{margin-bottom:9px}
+.manage-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.manage-actions button{margin:0}
+.danger-card{border-color:#f1caca;background:#fffafa}
+.danger-card button{margin-bottom:8px}
+@media(max-width:650px){
+  body{padding:6px}.container{padding:12px;border-radius:10px}
+  h2{font-size:21px;margin:8px 0 12px}h3{font-size:17px}
+  .tabs{margin:0 -4px 17px;gap:3px}.tab{min-width:92px;padding:10px 4px;font-size:12px}
+  .stats-nav{display:grid;grid-template-columns:1fr 1fr;gap:7px}.stats-nav-btn{min-width:0;padding:10px 7px;font-size:12px}.stats-nav-btn:last-child{grid-column:1/-1}
+  .dashboard{gap:7px;margin:10px 0 15px}.stat-card{padding:10px 7px}.stat-card .num{font-size:21px}
+  .game-stats-box{padding:12px;margin-bottom:12px}.game-stats-box h3{margin-top:2px}
+  .table-responsive{overflow:visible}.compact-table table{font-size:12px}.compact-table th,.compact-table td{padding:7px 4px}
+  .winrate-bar-container{min-width:0;gap:5px}.winrate-track{height:8px}.winrate-text{min-width:37px;font-size:11px}
+  .stat-subgrid{gap:7px}.stat-subgrid .stat-card .small{font-size:11px}
+  .head-to-head{gap:7px}.h2h-card{padding:10px}.h2h-card .num{font-size:22px}
+  .player-selector-bar{margin-bottom:10px}.player-filter-btn{padding:9px 14px}
+  .detail-filters{padding:10px;margin-bottom:12px}.stats-scope{gap:7px}.scope-btn{padding:10px 7px;font-size:13px}
+  .manage-grid{grid-template-columns:1fr;gap:10px}.manage-card{padding:12px}.manage-actions{grid-template-columns:1fr 1fr}
+}
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -237,7 +279,7 @@ window.saveDataToFirebase = async function () {
 
     <!-- ТАБ: СТАТИСТИКА -->
     <div id="stats" class="tab-content">
-        <div class="section-title"><h2>Статистика</h2><button class="btn-secondary" onclick="refreshStats()">↻ Обнови</button></div>
+        <div class="section-title"><h2>📊 Статистика</h2><div class="small">Обновява се автоматично</div></div>
 
         <div class="stats-nav">
             <button id="statsOverviewBtn" class="stats-nav-btn active" onclick="showStatsPanel('overview')">📊 Обща статистика</button>
@@ -272,31 +314,44 @@ window.saveDataToFirebase = async function () {
 
     <!-- ТАБ: УПРАВЛЕНИЕ -->
     <div id="manage" class="tab-content">
-        <h2>Управление на колекцията</h2>
-        <label>Добави нова игра</label>
-        <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
-        <label>Тип на играта</label>
-        <select id="gameTypeInput"><option value="pvp">PvP (Състезателна с точки)</option><option value="coop">Co-op (Кооперативна)</option></select>
-        <button onclick="addGame()">Добави игра</button>
-        <hr>
-        <label>Добави нов играч</label>
-        <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
-        <button onclick="addPlayer()">Добави играч</button>
-        <hr>
-        <label>Играчи</label><div id="managePlayersList"></div>
-        <hr>
-        <label style="color:#007bff">Импортиране и Експортиране на CSV</label>
-        <input type="file" id="csvFileInput" accept=".csv,.txt">
-        <button class="btn-info" onclick="importCsvData()">Зареди CSV в историята</button>
-        <button class="btn-info" onclick="exportCsvData()">📥 Изтегли CSV история</button>
-        <div class="small">Формат за лесно прехвърляне между компютри.</div>
-        <hr>
-        <label style="color:#dc3545">Глобални действия</label>
-        <button class="btn-danger" onclick="clearAllLogs()">Изтрий цялата история</button>
-        <button class="btn-secondary" onclick="resetToDefaultGames()">Върни стандартните игри</button>
-        <button class="btn-info" onclick="exportData()">💾 Архивирай данните (JSON)</button>
-        <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
-        <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">📥 Възстанови архив (JSON)</button>
+        <h2>⚙️ Управление</h2>
+        <div class="manage-grid">
+            <div class="manage-card">
+                <div class="manage-card-title">🎲 Игри</div>
+                <div class="small">Добавяй нови игри и избирай дали са PvP или Co-op.</div>
+                <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
+                <select id="gameTypeInput"><option value="pvp">⚔️ PvP</option><option value="coop">🤝 Co-op</option></select>
+                <button onclick="addGame()">Добави игра</button>
+            </div>
+
+            <div class="manage-card">
+                <div class="manage-card-title">👥 Играчи</div>
+                <div class="small">Добавяй играчи. Обичайният режим е за двама.</div>
+                <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
+                <button onclick="addPlayer()">Добави играч</button>
+                <div id="managePlayersList"></div>
+            </div>
+
+            <div class="manage-card">
+                <div class="manage-card-title">💾 Данни</div>
+                <div class="small">CSV е удобен за историята, а JSON пази целия тракер.</div>
+                <input type="file" id="csvFileInput" accept=".csv,.txt">
+                <div class="manage-actions">
+                    <button class="btn-info" onclick="importCsvData()">📤 Зареди CSV</button>
+                    <button class="btn-info" onclick="exportCsvData()">📥 Изтегли CSV</button>
+                    <button class="btn-info" onclick="exportData()">💾 Архивирай JSON</button>
+                    <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
+                    <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">📥 Възстанови JSON</button>
+                </div>
+            </div>
+
+            <div class="manage-card danger-card">
+                <div class="manage-card-title">⚠️ Опасни действия</div>
+                <div class="small">Тези действия могат да променят или изтрият данни.</div>
+                <button class="btn-secondary" onclick="resetToDefaultGames()">Върни стандартните игри</button>
+                <button class="btn-danger" onclick="clearAllLogs()">Изтрий цялата история</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -679,13 +734,7 @@ function winRateBar(rate){
                     class="winrate-fill"
                     style="
                         width:${safeRate}%;
-                        background:
-                            linear-gradient(
-                                90deg,
-                                #dc3545 0%,
-                                #ffc107 50%,
-                                #28a745 100%
-                            );
+                        background:#6c757d;
                     ">
                 </div>
 
@@ -796,222 +845,97 @@ function statCard(number, label, extra = ''){
    ========================================================= */
 
 function showStats(){
-
     const out = document.getElementById('statsOverviewOutput');
     if(!out) return;
+    if(!gameLogs.length){ out.innerHTML = '<div class="empty">Все още няма записани партии.</div>'; return; }
 
-    if(!gameLogs.length){
-        out.innerHTML = '<div class="empty">Все още няма записани партии.</div>';
-        return;
-    }
+    const pvpLogs=getModeLogs('pvp'), coopLogs=getModeLogs('coop');
+    const uniqueGames=new Set(gameLogs.map(log=>log.game).filter(Boolean)).size;
+    const allPlayers=getAllPlayersList();
+    const pvpPlayers=allPlayers.filter(p=>pvpLogs.some(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,p)));
 
-    const pvpLogs = getModeLogs('pvp');
-    const coopLogs = getModeLogs('coop');
-    const uniqueGames = new Set(gameLogs.map(log => log.game).filter(Boolean)).size;
+    let html=`<div class="dashboard">
+        ${statCard(gameLogs.length,'Общо партии')}
+        ${statCard(pvpLogs.length,'PvP партии')}
+        ${statCard(coopLogs.length,'Co-op опити')}
+        ${statCard(uniqueGames,'Различни игри')}
+    </div>`;
 
-    let html = `
-        <div class="dashboard">
-            ${statCard(gameLogs.length,'Общо партии')}
-            ${statCard(pvpLogs.length,'PvP партии')}
-            ${statCard(coopLogs.length,'Co-op опити')}
-            ${statCard(uniqueGames,'Различни игри')}
-        </div>
-    `;
-
-    /* =========================================================
-       PvP: ОБОБЩЕНА ТАБЛИЦА ПО ИГРИ И ИГРАЧИ
-       ========================================================= */
-
-    const pvpGames = [...new Set(pvpLogs.map(log => log.game).filter(Boolean))]
-        .sort((a,b) => a.localeCompare(b,'bg'));
-
-    const pvpPlayers = getAllPlayersList().filter(player =>
-        pvpLogs.some(log => log.scores && Object.prototype.hasOwnProperty.call(log.scores, player))
-    );
-
-    html += `
-        <div class="game-stats-box">
-            <h3>🏆 PvP победи по игри</h3>
-            <div class="small" style="margin-bottom:12px;">
-                Всеки ред е игра, а всяка колона е играч. Клетката показва броя победи на играча в съответната игра.
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="text-align:left;">Игра</th>
-                            ${pvpPlayers.map(p => `<th>${esc(p)}</th>`).join('')}
-                            <th>Партии</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    `;
+    /* PvP overview */
+    const pvpGames=[...new Set(pvpLogs.map(log=>log.game).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'bg'));
+    html+=`<div class="game-stats-box">
+        <h3>🏆 PvP резултати по игри</h3>
+        <div class="stats-note small">Зеленото показва единствения играч с най-много победи в тази игра. При равенство никой не се оцветява.</div>
+        <div class="table-responsive compact-table">
+            <table><thead><tr><th style="text-align:left">Игра</th>${pvpPlayers.map(p=>`<th>${esc(p)}</th>`).join('')}<th>Партии</th></tr></thead><tbody>`;
 
     if(!pvpGames.length){
-        html += `<tr><td colspan="${Math.max(2,pvpPlayers.length+2)}" class="empty">Няма записани PvP партии.</td></tr>`;
-    } else {
-        pvpGames.forEach(game => {
-            const logs = pvpLogs.filter(log => log.game === game);
-            html += `<tr><td style="text-align:left;"><b>${esc(game)}</b></td>`;
-
-            const winsByPlayer = {};
-            pvpPlayers.forEach(player => {
-                winsByPlayer[player] = logs.reduce((count, log) => {
-                    return count + (getPvpWinners(log).includes(player) ? 1 : 0);
-                }, 0);
-            });
-            const maxWins = Math.max(...Object.values(winsByPlayer), 0);
-            const leaders = Object.keys(winsByPlayer).filter(player => winsByPlayer[player] === maxWins && maxWins > 0);
-            const hasSingleLeader = leaders.length === 1;
-
-            pvpPlayers.forEach(player => {
-                const wins = winsByPlayer[player];
-                const isLeader = hasSingleLeader && wins === maxWins;
-                html += `<td class="${isLeader ? 'winner-score' : ''}">${wins || '–'}</td>`;
-            });
-
-            html += `<td><b>${logs.length}</b></td></tr>`;
+        html+=`<tr><td colspan="${Math.max(2,pvpPlayers.length+2)}" class="empty">Няма записани PvP партии.</td></tr>`;
+    } else pvpGames.forEach(game=>{
+        const logs=pvpLogs.filter(log=>log.game===game), winsByPlayer={};
+        pvpPlayers.forEach(player=>winsByPlayer[player]=logs.reduce((n,log)=>n+(getPvpWinners(log).includes(player)?1:0),0));
+        const maxWins=Math.max(...Object.values(winsByPlayer),0);
+        const leaders=Object.keys(winsByPlayer).filter(p=>winsByPlayer[p]===maxWins&&maxWins>0);
+        const single=leaders.length===1;
+        html+=`<tr><td class="player-cell">${esc(game)}</td>`;
+        pvpPlayers.forEach(player=>{
+            const w=winsByPlayer[player];
+            html+=`<td class="${single&&w===maxWins?'leader-cell':(!single&&w===maxWins&&maxWins>0?'tie-cell':'')}">${w||'–'}</td>`;
         });
+        html+=`<td><b>${logs.length}</b></td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+
+    /* PvP summary + head to head */
+    const pvpPlayerWins={};
+    pvpLogs.forEach(log=>getPvpWinners(log).forEach(w=>pvpPlayerWins[w]=(pvpPlayerWins[w]||0)+1));
+    const pvpSummary=pvpPlayers.map(player=>{
+        const games=pvpLogs.filter(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,player)).length;
+        const wins=pvpPlayerWins[player]||0;
+        return {player,games,wins,losses:Math.max(0,games-wins),rate:games?wins/games*100:0};
+    });
+    const h2hLogs=pvpLogs.filter(log=>{
+        const ps=Object.keys(log.scores||{}); return ps.length===2 && pvpPlayers.includes(ps[0]) && pvpPlayers.includes(ps[1]);
+    });
+    const h2hWins={}; h2hLogs.forEach(log=>getPvpWinners(log).forEach(w=>h2hWins[w]=(h2hWins[w]||0)+1));
+
+    html+=`<div class="game-stats-box"><h3>⚔️ PvP обобщение</h3>
+        <div class="mobile-stat-list">`;
+    if(pvpSummary.length) pvpSummary.sort((a,b)=>b.wins-a.wins||b.rate-a.rate).forEach(x=>{
+        html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(x.player)}</b><b>${formatPercent(x.rate)}</b></div><div class="meta"><span class="pill">🎮 ${x.games} партии</span><span class="pill">🏆 ${x.wins} победи</span><span class="pill">❌ ${x.losses} загуби</span></div><div style="margin-top:7px">${winRateBar(x.rate)}</div></div>`;
+    }); else html+=`<div class="empty">Няма PvP данни.</div>`;
+    html+=`</div>`;
+
+    if(pvpPlayers.length>=2){
+        const a=pvpPlayers[0], b=pvpPlayers[1];
+        html+=`<div class="stats-section-label">👥 Директен двубой</div><div class="small">Показва само партии, в които точно тези двама са играли един срещу друг.</div><div class="head-to-head">
+            <div class="h2h-card"><div class="small">${esc(a)}</div><div class="num">${h2hWins[a]||0}</div><div class="small">победи</div></div>
+            <div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${h2hWins[b]||0}</div><div class="small">победи</div></div>
+        </div><div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни PvP партии</div>`;
     }
+    html+=`</div>`;
 
-    html += `
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
+    /* Co-op */
+    const coopWins=coopLogs.filter(l=>l.coopResult==='win').length, coopLosses=coopLogs.length-coopWins;
+    const coopRate=coopLogs.length?coopWins/coopLogs.length*100:0;
+    const counts={}; coopLogs.forEach(l=>counts[l.game]=(counts[l.game]||0)+1);
+    const most=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]||null;
+    let team=0; coopLogs.forEach(l=>team+=Array.isArray(l.participants)?l.participants.length:0);
+    const avgTeam=coopLogs.length?team/coopLogs.length:0;
+    const coopMap={};
+    coopLogs.forEach(l=>(l.participants||[]).forEach(p=>{if(!coopMap[p])coopMap[p]={attempts:0,wins:0};coopMap[p].attempts++;if(l.coopResult==='win')coopMap[p].wins++;}));
+    const coopPlayers=Object.entries(coopMap).map(([player,d])=>({player,...d,losses:d.attempts-d.wins,rate:d.attempts?d.wins/d.attempts*100:0}));
 
-    /* =========================================================
-       PvP: ЛИЧНО ОБОБЩЕНИЕ
-       ========================================================= */
-
-    const pvpPlayerWins = {};
-    pvpLogs.forEach(log => {
-        getPvpWinners(log).forEach(winner => {
-            pvpPlayerWins[winner] = (pvpPlayerWins[winner] || 0) + 1;
-        });
-    });
-
-    const pvpPlayersSummary = pvpPlayers.map(player => {
-        const games = pvpLogs.filter(log => log.scores && Object.prototype.hasOwnProperty.call(log.scores,player)).length;
-        const wins = pvpPlayerWins[player] || 0;
-        return {
-            player, games, wins,
-            losses: Math.max(0,games-wins),
-            rate: games ? wins/games*100 : 0
-        };
-    }).sort((a,b) => b.wins-a.wins || b.rate-a.rate || a.player.localeCompare(b.player,'bg'));
-
-    html += `
-        <div class="game-stats-box">
-            <h3>⚔️ PvP обобщение по играчи</h3>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Играч</th><th>Партии</th><th>Победи</th><th>Загуби</th><th>Win rate</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${pvpPlayersSummary.length ? pvpPlayersSummary.map(x => `
-                            <tr>
-                                <td><b>${esc(x.player)}</b></td>
-                                <td>${x.games}</td>
-                                <td><b>${x.wins}</b></td>
-                                <td>${x.losses}</td>
-                                <td>${winRateBar(x.rate)}</td>
-                            </tr>
-                        `).join('') : `<tr><td colspan="5" class="empty">Няма PvP данни.</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-
-    /* =========================================================
-       Co-op overview
-       ========================================================= */
-
-    const coopWins = coopLogs.filter(log => log.coopResult === 'win').length;
-    const coopLosses = coopLogs.length - coopWins;
-    const coopSuccessRate = coopLogs.length ? coopWins/coopLogs.length*100 : 0;
-
-    const coopGameCounts = {};
-    coopLogs.forEach(log => coopGameCounts[log.game] = (coopGameCounts[log.game] || 0) + 1);
-    const mostPlayedCoop = Object.entries(coopGameCounts)
-        .sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0],'bg'))[0] || null;
-
-    let totalTeamSize = 0;
-    coopLogs.forEach(log => totalTeamSize += Array.isArray(log.participants) ? log.participants.length : 0);
-    const avgCoopTeam = coopLogs.length ? totalTeamSize/coopLogs.length : 0;
-
-    html += `
-        <div class="game-stats-box">
-            <h3>🤝 Co-op статистика</h3>
-            <div class="dashboard">
-                ${statCard(coopLogs.length,'Общо опити')}
-                ${statCard(coopWins,'Успешни')}
-                ${statCard(coopLosses,'Неуспешни')}
-                ${statCard(formatPercent(coopSuccessRate),'Success rate')}
-            </div>
-
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:15px;">
-                <div class="stat-card" style="text-align:left;">
-                    <div class="small">🎲 Различни Co-op игри</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">
-                        ${new Set(coopLogs.map(log => log.game)).size}
-                    </div>
-                </div>
-                <div class="stat-card" style="text-align:left;">
-                    <div class="small">👥 Среден размер на отбора</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">${formatNumber(avgCoopTeam)}</div>
-                </div>
-                <div class="stat-card" style="text-align:left;">
-                    <div class="small">🎲 Най-играна Co-op игра</div>
-                    <div style="font-size:18px;font-weight:bold;margin-top:5px;">${mostPlayedCoop ? esc(mostPlayedCoop[0]) : '-'}</div>
-                </div>
-            </div>
-
-            <div style="margin-top:20px;">
-                <div class="filter-title" style="margin-bottom:8px;">👥 Co-op резултати по играчи</div>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Играч</th><th>Участия</th><th>Успешни</th><th>Неуспешни</th><th>Success rate</th></tr></thead>
-                        <tbody>
-    `;
-
-    const coopPlayerMap = {};
-    coopLogs.forEach(log => {
-        (Array.isArray(log.participants) ? log.participants : []).forEach(player => {
-            if(!coopPlayerMap[player]) coopPlayerMap[player] = {attempts:0,wins:0};
-            coopPlayerMap[player].attempts++;
-            if(log.coopResult === 'win') coopPlayerMap[player].wins++;
-        });
-    });
-
-    const coopPlayers = Object.entries(coopPlayerMap)
-        .map(([player,data]) => ({
-            player, attempts:data.attempts, wins:data.wins,
-            losses:data.attempts-data.wins,
-            rate:data.attempts ? data.wins/data.attempts*100 : 0
-        }))
-        .sort((a,b) => b.wins-a.wins || b.rate-a.rate || a.player.localeCompare(b.player,'bg'));
-
-    html += coopPlayers.length ? coopPlayers.map(x => `
-        <tr>
-            <td><b>${esc(x.player)}</b></td><td>${x.attempts}</td><td>${x.wins}</td><td>${x.losses}</td><td>${winRateBar(x.rate)}</td>
-        </tr>
-    `).join('') : `<tr><td colspan="5" class="empty">Няма Co-op данни.</td></tr>`;
-
-    html += `
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    `;
-
-    out.innerHTML = html;
+    html+=`<div class="game-stats-box"><h3>🤝 Co-op</h3><div class="dashboard">
+        ${statCard(coopLogs.length,'Опити')}${statCard(coopWins,'Успешни')}${statCard(coopLosses,'Неуспешни')}${statCard(formatPercent(coopRate),'Success rate')}
+    </div><div class="stat-subgrid"><div class="stat-card"><div class="small">🎲 Различни игри</div><div class="num">${new Set(coopLogs.map(l=>l.game)).size}</div></div><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🎲 Най-играна</div><div style="font-size:16px;font-weight:800;margin-top:5px">${most?esc(most[0]):'-'}</div></div><div class="stat-card"><div class="small">👥 Участия по играчи</div><div style="font-size:16px;font-weight:800;margin-top:5px">${coopPlayers.length}</div></div></div>`;
+    if(coopPlayers.length){
+        html+=`<div class="stats-section-label">Резултати по играчи</div><div class="mobile-stat-list">`;
+        coopPlayers.sort((a,b)=>b.wins-a.wins||b.rate-a.rate).forEach(x=>html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(x.player)}</b><b>${formatPercent(x.rate)}</b></div><div class="meta"><span class="pill">🎮 ${x.attempts} опита</span><span class="pill">🏆 ${x.wins} успеха</span><span class="pill">❌ ${x.losses} неуспеха</span></div><div style="margin-top:7px">${winRateBar(x.rate)}</div></div>`);
+        html+=`</div>`;
+    }
+    html+=`</div>`;
+    out.innerHTML=html;
 }
 
 
@@ -1390,654 +1314,36 @@ function renderDetailedStats(){
    DETAILED PvP
    ========================================================= */
 
-function renderDetailedPvp(logs, out){
-
-    let scoreSum = 0;
-    let scoreCount = 0;
-
-    let winningScoreSum = 0;
-    let winningScoreCount = 0;
-
-    let highestScore = null;
-
-    const margins = [];
-
-
-    let closest = null;
-    let biggest = null;
-
-
-    logs.forEach(log => {
-
-        const scores =
-            getPvpScores(log);
-
-
-        if(!scores.length){
-            return;
-        }
-
-
-        scores.forEach(item => {
-
-            scoreSum += item.score;
-            scoreCount++;
-
-
-            if(
-                highestScore === null ||
-                item.score > highestScore.score
-            ){
-
-                highestScore = {
-
-                    player: item.player,
-                    score: item.score,
-                    game: log.game,
-                    date: log.date
-
-                };
-
-            }
-
-        });
-
-
-        winningScoreSum +=
-            scores[0].score;
-
-        winningScoreCount++;
-
-
-        if(scores.length >= 2){
-
-            const margin =
-                scores[0].score -
-                scores[1].score;
-
-
-            margins.push(margin);
-
-
-            const item = {
-
-                game: log.game,
-                date: log.date,
-                margin,
-                winner: scores[0].player,
-                result:
-                    scores
-                    .map(
-                        x =>
-                            `${x.player}: ${x.score}`
-                    )
-                    .join(', ')
-
-            };
-
-
-            if(
-                closest === null ||
-                margin < closest.margin
-            ){
-
-                closest = item;
-
-            }
-
-
-            if(
-                biggest === null ||
-                margin > biggest.margin
-            ){
-
-                biggest = item;
-
-            }
-
-        }
-
-    });
-
-
-    const avgScore =
-        scoreCount
-        ? scoreSum / scoreCount
-        : 0;
-
-
-    const avgWinningScore =
-        winningScoreCount
-        ? winningScoreSum /
-          winningScoreCount
-        : 0;
-
-
-    const avgMargin =
-        margins.length
-        ? margins.reduce(
-            (a,b) => a + b,
-            0
-          ) / margins.length
-        : 0;
-
-
-    /* -----------------------------------------
-       ПОБЕДНИ СЕРИИ
-       ----------------------------------------- */
-
-    const currentStreak = {};
-    const maxStreak = {};
-
-
-    [...logs]
-        .sort(
-            (a,b) =>
-                new Date(a.date || 0) -
-                new Date(b.date || 0)
-        )
-        .forEach(log => {
-
-            const winners =
-                getPvpWinners(log);
-
-
-            const players =
-                Object.keys(
-                    log.scores || {}
-                );
-
-
-            players.forEach(player => {
-
-                if(winners.includes(player)){
-
-                    currentStreak[player] =
-                        (currentStreak[player] || 0) + 1;
-
-
-                    maxStreak[player] =
-                        Math.max(
-                            maxStreak[player] || 0,
-                            currentStreak[player]
-                        );
-
-                }else{
-
-                    currentStreak[player] = 0;
-
-                }
-
-            });
-
-        });
-
-
-    const longestStreak =
-        Object.entries(maxStreak)
-            .sort((a,b) => b[1] - a[1])[0];
-
-
-    let html = `
-
-        <div class="game-stats-box">
-
-            <h3>
-                ⚔️ Подробна PvP статистика
-            </h3>
-
-
-            <div class="dashboard">
-
-                ${statCard(
-                    logs.length,
-                    'Партии'
-                )}
-
-                ${statCard(
-                    formatNumber(avgWinningScore),
-                    'Среден резултат на победителя'
-                )}
-
-                ${statCard(
-                    highestScore
-                    ? highestScore.score
-                    : '-',
-                    'Най-висок резултат',
-                    highestScore
-                    ? esc(highestScore.player)
-                    : ''
-                )}
-
-                ${statCard(
-                    formatNumber(avgMargin),
-                    'Средна разлика'
-                )}
-
-            </div>
-
-
-            <div
-                style="
-                    display:grid;
-                    grid-template-columns:
-                        repeat(
-                            auto-fit,
-                            minmax(220px,1fr)
-                        );
-                    gap:12px;
-                ">
-
-
-                <div class="stat-card">
-
-                    <div class="small">
-                        🎯 Среден резултат на всички играчи
-                    </div>
-
-                    <div
-                        style="
-                            font-size:20px;
-                            font-weight:bold;
-                            margin-top:5px;
-                        ">
-
-                        ${formatNumber(avgScore)}
-
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="small">
-                        🔥 Най-голяма победна разлика
-                    </div>
-
-                    <div
-                        style="
-                            font-size:20px;
-                            font-weight:bold;
-                            margin-top:5px;
-                        ">
-
-                        ${
-                            biggest
-                            ? biggest.margin
-                            : '-'
-                        }
-
-                    </div>
-
-                    ${
-                        biggest
-                        ? `
-                            <div class="small">
-                                ${esc(biggest.game)}
-                                •
-                                ${esc(biggest.winner)}
-                            </div>
-                          `
-                        : ''
-                    }
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="small">
-                        🎯 Най-близък мач
-                    </div>
-
-                    <div
-                        style="
-                            font-size:20px;
-                            font-weight:bold;
-                            margin-top:5px;
-                        ">
-
-                        ${
-                            closest
-                            ? closest.margin
-                            : '-'
-                        }
-
-                    </div>
-
-                    ${
-                        closest
-                        ? `
-                            <div class="small">
-                                ${esc(closest.game)}
-                            </div>
-                          `
-                        : ''
-                    }
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="small">
-                        🔥 Най-дълга победна серия
-                    </div>
-
-                    <div
-                        style="
-                            font-size:20px;
-                            font-weight:bold;
-                            margin-top:5px;
-                        ">
-
-                        ${
-                            longestStreak
-                            ? longestStreak[1]
-                            : 0
-                        }
-
-                    </div>
-
-                    ${
-                        longestStreak
-                        ? `
-                            <div class="small">
-                                ${esc(longestStreak[0])}
-                            </div>
-                          `
-                        : ''
-                    }
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- PvP ПО ИГРИ -->
-
-        <div class="game-stats-box">
-
-            <h3>
-                🎲 PvP статистика по игри
-            </h3>
-
-            <div class="table-responsive">
-
-                <table>
-
-                    <tr>
-                        <th>Игра</th>
-                        <th>Партии</th>
-                        <th>Среден резултат</th>
-                        <th>Среден резултат на победителя</th>
-                        <th>Средна разлика</th>
-                        <th>Най-близък мач</th>
-                    </tr>
-
-    `;
-
-
-    const gameMap = {};
-
-
-    logs.forEach(log => {
-
-        if(!gameMap[log.game]){
-
-            gameMap[log.game] = {
-
-                games: 0,
-                scoreSum: 0,
-                scoreCount: 0,
-                winnerScoreSum: 0,
-                marginSum: 0,
-                marginCount: 0,
-                closestMargin: null
-
-            };
-
-        }
-
-
-        const d =
-            gameMap[log.game];
-
-
-        const scores =
-            getPvpScores(log);
-
-
-        d.games++;
-
-
-        scores.forEach(item => {
-
-            d.scoreSum += item.score;
-            d.scoreCount++;
-
-        });
-
-
-        if(scores.length){
-
-            d.winnerScoreSum +=
-                scores[0].score;
-
-        }
-
-
-        if(scores.length >= 2){
-
-            const margin =
-                scores[0].score -
-                scores[1].score;
-
-
-            d.marginSum += margin;
-            d.marginCount++;
-
-
-            if(
-                d.closestMargin === null ||
-                margin < d.closestMargin
-            ){
-
-                d.closestMargin = margin;
-
-            }
-
-        }
-
-    });
-
-
-    Object.entries(gameMap)
-        .sort(
-            (a,b) =>
-                b[1].games -
-                a[1].games
-        )
-        .forEach(([game,d]) => {
-
-            const avg =
-                d.scoreCount
-                ? d.scoreSum /
-                  d.scoreCount
-                : 0;
-
-
-            const avgWinner =
-                d.games
-                ? d.winnerScoreSum /
-                  d.games
-                : 0;
-
-
-            const avgMargin =
-                d.marginCount
-                ? d.marginSum /
-                  d.marginCount
-                : 0;
-
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        <b>${esc(game)}</b>
-                    </td>
-
-                    <td>
-                        ${d.games}
-                    </td>
-
-                    <td>
-                        ${formatNumber(avg)}
-                    </td>
-
-                    <td>
-                        ${formatNumber(avgWinner)}
-                    </td>
-
-                    <td>
-                        ${formatNumber(avgMargin)}
-                    </td>
-
-                    <td>
-                        ${
-                            d.closestMargin === null
-                            ? '-'
-                            : d.closestMargin
-                        }
-                    </td>
-
-                </tr>
-
-            `;
-
-        });
-
-
-    html += `
-
-                </table>
-
-            </div>
-
-        </div>
-
-
-        <!-- ПОСЛЕДНИ PvP -->
-
-        <div class="game-stats-box">
-
-            <h3>
-                🕒 Последни PvP партии
-            </h3>
-
-            <div class="table-responsive">
-
-                <table>
-
-                    <tr>
-                        <th>Дата</th>
-                        <th>Игра</th>
-                        <th>Победител</th>
-                        <th>Резултат</th>
-                        <th>Разлика</th>
-                    </tr>
-
-    `;
-
-
-    [...logs]
-        .sort(
-            (a,b) =>
-                new Date(b.date || 0) -
-                new Date(a.date || 0)
-        )
-        .slice(0,10)
-        .forEach(log => {
-
-            const scores =
-                getPvpScores(log);
-
-
-            const winners =
-                getPvpWinners(log);
-
-
-            const margin =
-                scores.length >= 2
-                ? scores[0].score -
-                  scores[1].score
-                : null;
-
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        ${formatDate(log.date)}
-                    </td>
-
-                    <td>
-                        <b>${esc(log.game)}</b>
-                    </td>
-
-                    <td>
-                        🏆
-                        ${
-                            winners.length
-                            ? esc(winners[0])
-                            : '-'
-                        }
-                    </td>
-
-                    <td>
-                        ${esc(
-                            scores
-                                .map(
-                                    x =>
-                                        `${x.player}: ${x.score}`
-                                )
-                                .join(' • ')
-                        )}
-                    </td>
-
-                    <td>
-                        ${
-                            margin === null
-                            ? '-'
-                            : margin
-                        }
-                    </td>
-
-                </tr>
-
-            `;
-
-        });
-
-
-    html += `
-
-                </table>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    out.innerHTML = html;
+function renderDetailedPvp(logs,out){
+    const players=getAllPlayersList().filter(p=>logs.some(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,p)));
+    const wins={};players.forEach(p=>wins[p]=0);
+    const positions={};players.forEach(p=>positions[p]={sum:0,count:0});
+    logs.forEach(log=>{const ws=getPvpWinners(log),scores=getPvpScores(log);ws.forEach(w=>wins[w]=(wins[w]||0)+1);scores.forEach((x,i)=>{if(!positions[x.player])positions[x.player]={sum:0,count:0};positions[x.player].sum+=i+1;positions[x.player].count++});});
+    const h2hLogs=logs.filter(l=>Object.keys(l.scores||{}).length===2), h2hWins={};h2hLogs.forEach(l=>getPvpWinners(l).forEach(w=>h2hWins[w]=(h2hWins[w]||0)+1));
+    let html=`<div class="game-stats-box"><h3>⚔️ Подробна PvP статистика</h3>`;
+
+    if(detailScope==='all'){
+        html+=`<div class="dashboard">${statCard(logs.length,'Партии')}${statCard(new Set(logs.map(l=>l.game)).size,'Различни игри')}`;
+        players.slice(0,2).forEach(p=>{const g=logs.filter(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,p)).length,r=g?wins[p]/g*100:0;html+=statCard(formatPercent(r),esc(p)+' Win rate')});
+        html+=`</div><div class="stats-note small">Тук нарочно не усредняваме точки или разлики между различни игри. Техните точкови скали са различни и такава средна стойност би била подвеждаща.</div>`;
+        if(players.length>=2){const a=players[0],b=players[1],ag=h2hLogs.filter(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,a)).length,bg=h2hLogs.filter(l=>l.scores&&Object.prototype.hasOwnProperty.call(l.scores,b)).length;html+=`<div class="stats-section-label">👥 Директен двубой</div><div class="head-to-head"><div class="h2h-card"><div class="small">${esc(a)}</div><div class="num">${h2hWins[a]||0}</div><div class="small">победи</div></div><div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${h2hWins[b]||0}</div><div class="small">победи</div></div></div><div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни партии</div>`;}
+        html+=`<div class="stats-section-label">📍 Средно класиране</div><div class="mobile-stat-list">`;
+        players.slice(0,3).forEach(p=>html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(p)}</b><b>${positions[p]&&positions[p].count?formatNumber(positions[p].sum/positions[p].count):'-'}</b></div><div class="small">1.00 = първо място</div></div>`);
+        html+=`</div>`;
+    }else{
+        let scoreSum=0,scoreCount=0,winningSum=0,winnerCount=0;let highest=null;const margins=[];let closest=null,biggest=null;
+        logs.forEach(log=>{const scores=getPvpScores(log);if(!scores.length)return;scores.forEach(x=>{scoreSum+=x.score;scoreCount++;if(highest===null||x.score>highest.score)highest={player:x.player,score:x.score,game:log.game,date:log.date}});winningSum+=scores[0].score;winnerCount++;if(scores.length>=2){const m=scores[0].score-scores[1].score;margins.push(m);const item={game:log.game,margin:m,winner:scores[0].player};if(closest===null||m<closest.margin)closest=item;if(biggest===null||m>biggest.margin)biggest=item;}});
+        const avg=scoreCount?scoreSum/scoreCount:0,avgW=winnerCount?winningSum/winnerCount:0,avgM=margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0;
+        html+=`<div class="dashboard">${statCard(logs.length,'Партии')}${statCard(formatNumber(avgW),'Среден победен резултат')}${statCard(highest?highest.score:'-','Най-висок резултат',highest?esc(highest.player):'')}${statCard(formatNumber(avgM),'Средна разлика')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">🎯 Среден резултат</div><div class="num">${formatNumber(avg)}</div></div><div class="stat-card"><div class="small">🔥 Най-голяма победа</div><div class="num">${biggest?biggest.margin:'-'}</div><div class="small">${biggest?esc(biggest.game)+' • '+esc(biggest.winner):''}</div></div><div class="stat-card"><div class="small">🎯 Най-близък мач</div><div class="num">${closest?closest.margin:'-'}</div><div class="small">${closest?esc(closest.game):''}</div></div></div>`;
+    }
+    html+=`</div>`;
+
+    const gm={};logs.forEach(log=>{if(!gm[log.game])gm[log.game]={games:0,scoreSum:0,count:0,winnerSum:0,marginSum:0,marginCount:0,closest:null};const d=gm[log.game],scores=getPvpScores(log);d.games++;scores.forEach(x=>{d.scoreSum+=x.score;d.count++});if(scores.length)d.winnerSum+=scores[0].score;if(scores.length>=2){const m=scores[0].score-scores[1].score;d.marginSum+=m;d.marginCount++;if(d.closest===null||m<d.closest)d.closest=m}});
+    html+=`<div class="game-stats-box"><h3>🎲 По игри</h3><div class="mobile-stat-list">`;
+    Object.entries(gm).sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0],'bg')).forEach(([game,d])=>{const avg=d.count?d.scoreSum/d.count:0,w=d.games?d.winnerSum/d.games:0,m=d.marginCount?d.marginSum/d.marginCount:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><span class="pill">🎮 ${d.games} партии</span></div><div class="meta"><span class="pill">📊 ср. резултат ${formatNumber(avg)}</span><span class="pill">🏆 ср. победител ${formatNumber(w)}</span><span class="pill">↔️ ср. разлика ${formatNumber(m)}</span><span class="pill">🎯 най-близка ${d.closest===null?'-':d.closest}</span></div></div>`});
+    html+=`</div></div><div class="game-stats-box"><h3>🕒 Последни PvP партии</h3><div class="mobile-stat-list">`;
+    [...logs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,10).forEach(log=>{const scores=getPvpScores(log),w=getPvpWinners(log),margin=scores.length>=2?scores[0].score-scores[1].score:null;html+=`<div class="recent-result"><div class="date">${formatDate(log.date)}</div><div><div class="game">${esc(log.game)}</div><div class="score">${esc(scores.map(x=>`${x.player}: ${x.score}`).join(' • '))}</div></div><div>🏆 ${w.length?esc(w[0]):'-'}<br><span class="small">+${margin===null?'-':margin}</span></div></div>`});
+    html+=`</div></div>`;out.innerHTML=html;
 }
 
 
@@ -2045,390 +1351,15 @@ function renderDetailedPvp(logs, out){
    DETAILED CO-OP
    ========================================================= */
 
-function renderDetailedCoop(logs, out){
-
-    const attempts =
-        logs.length;
-
-
-    const wins =
-        logs.filter(
-            log => log.coopResult === 'win'
-        ).length;
-
-
-    const losses =
-        attempts - wins;
-
-
-    const successRate =
-        attempts
-        ? wins / attempts * 100
-        : 0;
-
-
-    let teamSizeSum = 0;
-
-
-    logs.forEach(log => {
-
-        teamSizeSum +=
-            Array.isArray(log.participants)
-            ? log.participants.length
-            : 0;
-
-    });
-
-
-    const avgTeam =
-        attempts
-        ? teamSizeSum / attempts
-        : 0;
-
-
-    /* -----------------------------------------
-       ПОБЕДНА СЕРИЯ
-       ----------------------------------------- */
-
-    let currentStreak = 0;
-    let longestStreak = 0;
-
-
-    [...logs]
-        .sort(
-            (a,b) =>
-                new Date(a.date || 0) -
-                new Date(b.date || 0)
-        )
-        .forEach(log => {
-
-            if(log.coopResult === 'win'){
-
-                currentStreak++;
-
-                longestStreak =
-                    Math.max(
-                        longestStreak,
-                        currentStreak
-                    );
-
-            }else{
-
-                currentStreak = 0;
-
-            }
-
-        });
-
-
-    let html = `
-
-        <div class="game-stats-box">
-
-            <h3>
-                🤝 Подробна Co-op статистика
-            </h3>
-
-
-            <div class="dashboard">
-
-                ${statCard(
-                    attempts,
-                    'Опити'
-                )}
-
-                ${statCard(
-                    wins,
-                    'Успешни'
-                )}
-
-                ${statCard(
-                    losses,
-                    'Неуспешни'
-                )}
-
-                ${statCard(
-                    formatPercent(successRate),
-                    'Success rate'
-                )}
-
-            </div>
-
-
-            <div
-                style="
-                    display:grid;
-                    grid-template-columns:
-                        repeat(
-                            auto-fit,
-                            minmax(220px,1fr)
-                        );
-                    gap:12px;
-                ">
-
-
-                <div class="stat-card">
-
-                    <div class="small">
-                        👥 Среден размер на отбора
-                    </div>
-
-                    <div
-                        style="
-                            font-size:20px;
-                            font-weight:bold;
-                            margin-top:5px;
-                        ">
-
-                        ${formatNumber(avgTeam)}
-
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="small">
-                        🔥 Най-дълга успешна серия
-                    </div>
-
-                    <div
-                        style="
-                            font-size:20px;
-                            font-weight:bold;
-                            margin-top:5px;
-                        ">
-
-                        ${longestStreak}
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- CO-OP ПО ИГРИ -->
-
-        <div class="game-stats-box">
-
-            <h3>
-                🎲 Co-op статистика по игри
-            </h3>
-
-            <div class="table-responsive">
-
-                <table>
-
-                    <tr>
-                        <th>Игра</th>
-                        <th>Опити</th>
-                        <th>Успешни</th>
-                        <th>Неуспешни</th>
-                        <th>Success rate</th>
-                        <th>Среден отбор</th>
-                    </tr>
-
-    `;
-
-
-    const gameMap = {};
-
-
-    logs.forEach(log => {
-
-        if(!gameMap[log.game]){
-
-            gameMap[log.game] = {
-
-                attempts: 0,
-                wins: 0,
-                teamSizeSum: 0
-
-            };
-
-        }
-
-
-        const d =
-            gameMap[log.game];
-
-
-        d.attempts++;
-
-
-        if(log.coopResult === 'win'){
-
-            d.wins++;
-
-        }
-
-
-        d.teamSizeSum +=
-            Array.isArray(log.participants)
-            ? log.participants.length
-            : 0;
-
-    });
-
-
-    Object.entries(gameMap)
-        .sort(
-            (a,b) =>
-                b[1].attempts -
-                a[1].attempts
-        )
-        .forEach(([game,d]) => {
-
-            const losses =
-                d.attempts - d.wins;
-
-
-            const rate =
-                d.attempts
-                ? d.wins /
-                  d.attempts * 100
-                : 0;
-
-
-            const avgTeam =
-                d.attempts
-                ? d.teamSizeSum /
-                  d.attempts
-                : 0;
-
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        <b>${esc(game)}</b>
-                    </td>
-
-                    <td>
-                        ${d.attempts}
-                    </td>
-
-                    <td>
-                        ${d.wins}
-                    </td>
-
-                    <td>
-                        ${losses}
-                    </td>
-
-                    <td>
-                        ${winRateBar(rate)}
-                    </td>
-
-                    <td>
-                        ${formatNumber(avgTeam)}
-                    </td>
-
-                </tr>
-
-            `;
-
-        });
-
-
-    html += `
-
-                </table>
-
-            </div>
-
-        </div>
-
-
-        <!-- ПОСЛЕДНИ CO-OP -->
-
-        <div class="game-stats-box">
-
-            <h3>
-                🕒 Последни Co-op опити
-            </h3>
-
-            <div class="table-responsive">
-
-                <table>
-
-                    <tr>
-                        <th>Дата</th>
-                        <th>Игра</th>
-                        <th>Резултат</th>
-                        <th>Участници</th>
-                    </tr>
-
-    `;
-
-
-    [...logs]
-        .sort(
-            (a,b) =>
-                new Date(b.date || 0) -
-                new Date(a.date || 0)
-        )
-        .slice(0,10)
-        .forEach(log => {
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        ${formatDate(log.date)}
-                    </td>
-
-                    <td>
-                        <b>${esc(log.game)}</b>
-                    </td>
-
-                    <td
-                        class="${
-                            log.coopResult === 'win'
-                            ? 'coop-win'
-                            : 'coop-lose'
-                        }">
-
-                        ${
-                            log.coopResult === 'win'
-                            ? '🏆 Успех'
-                            : '❌ Неуспех'
-                        }
-
-                    </td>
-
-                    <td>
-                        ${esc(
-                            (log.participants || [])
-                                .join(', ')
-                        )}
-                    </td>
-
-                </tr>
-
-            `;
-
-        });
-
-
-    html += `
-
-                </table>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    out.innerHTML = html;
+function renderDetailedCoop(logs,out){
+    const attempts=logs.length,wins=logs.filter(l=>l.coopResult==='win').length,losses=attempts-wins,rate=attempts?wins/attempts*100:0;let team=0;logs.forEach(l=>team+=Array.isArray(l.participants)?l.participants.length:0);const avgTeam=attempts?team/attempts:0;let streak=0,maxStreak=0;[...logs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(l=>{if(l.coopResult==='win'){streak++;maxStreak=Math.max(maxStreak,streak)}else streak=0});
+    let html=`<div class="game-stats-box"><h3>🤝 Подробна Co-op статистика</h3><div class="dashboard">${statCard(attempts,'Опити')}${statCard(wins,'Успешни')}${statCard(losses,'Неуспешни')}${statCard(formatPercent(rate),'Success rate')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${maxStreak}</div><div class="small">успеха</div></div></div></div>`;
+    const gm={};logs.forEach(l=>{if(!gm[l.game])gm[l.game]={attempts:0,wins:0,team:0};const d=gm[l.game];d.attempts++;if(l.coopResult==='win')d.wins++;d.team+=Array.isArray(l.participants)?l.participants.length:0});
+    html+=`<div class="game-stats-box"><h3>🎲 Co-op по игри</h3><div class="mobile-stat-list">`;
+    Object.entries(gm).sort((a,b)=>b[1].attempts-a[1].attempts||a[0].localeCompare(b[0],'bg')).forEach(([game,d])=>{const r=d.attempts?d.wins/d.attempts*100:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.attempts} опита</span><span class="pill">🏆 ${d.wins} успеха</span><span class="pill">❌ ${d.attempts-d.wins} неуспеха</span><span class="pill">👥 ${formatNumber(d.team/d.attempts)} среден отбор</span></div></div>`});
+    html+=`</div></div><div class="game-stats-box"><h3>🕒 Последни Co-op опити</h3><div class="mobile-stat-list">`;
+    [...logs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,10).forEach(l=>html+=`<div class="recent-result"><div class="date">${formatDate(l.date)}</div><div><div class="game">${esc(l.game)}</div><div class="score">${esc((l.participants||[]).join(', '))}</div></div><div class="${l.coopResult==='win'?'success':'error'}">${l.coopResult==='win'?'🏆 Успех':'❌ Неуспех'}</div></div>`);
+    html+=`</div></div>`;out.innerHTML=html;
 }
 
 
@@ -2537,264 +1468,53 @@ function setStatPlayer(player){
    ========================================================= */
 
 function renderPlayerStats(){
-
-    const out = document.getElementById('statsPlayerOutput');
+    const out=document.getElementById('statsPlayerOutput');
     if(!out) return;
+    const player=selectedStatPlayer;
+    if(!player){out.innerHTML='<div class="empty">Избери играч.</div>';return;}
 
-    const players = getAllPlayersList();
-    if(!players.length){
-        out.innerHTML = '<div class="empty">Все още няма добавени играчи.</div>';
-        return;
-    }
-
-    if(!selectedStatPlayer || !players.includes(selectedStatPlayer)){
-        selectedStatPlayer = players[0];
-    }
-
-    const player = selectedStatPlayer;
-
-    /* =========================================================
-       PvP profile
-       ВАЖНО: абсолютните точки не се осредняват между различни игри.
-       Вместо това използваме:
-       1) Win rate
-       2) Средно класиране
-       ========================================================= */
-
-    const pvpLogs = getModeLogs('pvp').filter(log =>
-        log.scores && Object.prototype.hasOwnProperty.call(log.scores,player)
-    );
-
-    let pvpWins = 0;
-    let positionSum = 0;
-    let highestScore = null;
-    let highestScoreGame = null;
-    let highestScoreDate = null;
-
-    const pvpGameMap = {};
-
-    pvpLogs.forEach(log => {
-        const score = Number(log.scores[player]);
-        const safeScore = Number.isFinite(score) ? score : 0;
-        const scores = getPvpScores(log);
-        const winners = getPvpWinners(log);
-
-        if(winners.includes(player)) pvpWins++;
-
-        if(scores.length){
-            const position = scores.findIndex(x => x.player === player) + 1;
-            positionSum += position || scores.length;
-
-            if(highestScore === null || safeScore > highestScore){
-                highestScore = safeScore;
-                highestScoreGame = log.game || null;
-                highestScoreDate = log.date || null;
-            }
-
-            if(!pvpGameMap[log.game]){
-                pvpGameMap[log.game] = {
-                    games:0,wins:0,positionSum:0,highestScore:null
-                };
-            }
-
-            const data = pvpGameMap[log.game];
-            data.games++;
-            if(winners.includes(player)) data.wins++;
-            data.positionSum += position || scores.length;
-            data.highestScore = data.highestScore === null
-                ? safeScore
-                : Math.max(data.highestScore,safeScore);
-        }
+    const pvpLogs=getModeLogs('pvp').filter(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,player));
+    let wins=0,positionSum=0,highest=null;
+    const gameMap={};
+    pvpLogs.forEach(log=>{
+        const scores=getPvpScores(log), winners=getPvpWinners(log), score=Number(log.scores[player]);
+        if(winners.includes(player))wins++;
+        const pos=scores.findIndex(x=>x.player===player)+1; positionSum+=pos||scores.length;
+        if(Number.isFinite(score)&&(highest===null||score>highest.score))highest={score,game:log.game,date:log.date};
+        if(!gameMap[log.game])gameMap[log.game]={games:0,wins:0,positionSum:0,highest:null};
+        const d=gameMap[log.game]; d.games++; if(winners.includes(player))d.wins++; d.positionSum+=pos||scores.length; d.highest=d.highest===null?score:Math.max(d.highest,score);
     });
+    const losses=pvpLogs.length-wins, rate=pvpLogs.length?wins/pvpLogs.length*100:0, avgPos=pvpLogs.length?positionSum/pvpLogs.length:0;
+    let streak=0,maxStreak=0;
+    [...pvpLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(log=>{if(getPvpWinners(log).includes(player)){streak++;maxStreak=Math.max(maxStreak,streak)}else streak=0});
+    const most=Object.entries(pvpLogs.reduce((m,l)=>(m[l.game]=(m[l.game]||0)+1,m),{})).sort((a,b)=>b[1]-a[1])[0]||null;
 
-    const pvpLosses = pvpLogs.length - pvpWins;
-    const pvpRate = pvpLogs.length ? pvpWins/pvpLogs.length*100 : 0;
-    const avgPosition = pvpLogs.length ? positionSum/pvpLogs.length : 0;
+    let html=`<div class="game-stats-box"><h3>⚔️ ${esc(player)}</h3><div class="dashboard">
+        ${statCard(pvpLogs.length,'PvP партии')}${statCard(wins,'Победи')}${statCard(losses,'Загуби')}${statCard(formatPercent(rate),'Win rate')}
+    </div><div class="stat-subgrid">
+        <div class="stat-card"><div class="small">🥇 Средно място</div><div class="num">${pvpLogs.length?formatNumber(avgPos):'-'}</div><div class="small">1.00 = първо място</div></div>
+        <div class="stat-card"><div class="small">🚀 Най-висок резултат</div><div class="num">${highest?highest.score:'-'}</div>${highest?`<div class="small">🎲 ${esc(highest.game)}${highest.date?' • '+new Date(highest.date).toLocaleDateString('bg-BG'):''}</div>`:''}</div>
+        <div class="stat-card"><div class="small">🎲 Най-играна игра</div><div style="font-size:16px;font-weight:800;margin-top:5px">${most?esc(most[0]):'-'}</div><div class="small">${most?most[1]+' '+(most[1]===1?'партия':'партии'):''}</div></div>
+        <div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${maxStreak}</div><div class="small">победи</div></div>
+    </div><div class="stats-note small">Абсолютните точки не се сравняват между различни игри. Тук използваме само показатели, които имат смисъл независимо от скалата на резултата.</div></div>`;
 
-    let longestPvpStreak = 0, currentPvpStreak = 0;
-    [...pvpLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(log=>{
-        if(getPvpWinners(log).includes(player)){
-            currentPvpStreak++;
-            longestPvpStreak=Math.max(longestPvpStreak,currentPvpStreak);
-        }else{
-            currentPvpStreak=0;
-        }
-    });
+    html+=`<div class="game-stats-box"><h3>🎲 ${esc(player)} • PvP по игри</h3><div class="mobile-stat-list">`;
+    const entries=Object.entries(gameMap).sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0],'bg'));
+    if(!entries.length) html+=`<div class="empty">Няма PvP партии за този играч.</div>`;
+    else entries.forEach(([game,d])=>{const r=d.games?d.wins/d.games*100:0, pos=d.games?d.positionSum/d.games:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.games} партии</span><span class="pill">🏆 ${d.wins} победи</span><span class="pill">❌ ${d.games-d.wins} загуби</span><span class="pill">🥇 ${formatNumber(pos)} средно място</span>${d.highest!==null?`<span class="pill">🚀 ${d.highest} най-висок</span>`:''}</div></div>`});
+    html+=`</div></div>`;
 
-    const mostPlayedPlayerGame = Object.entries(
-        pvpLogs.reduce((map,log)=>{
-            const game=log.game||'Неизвестна игра';
-            map[game]=(map[game]||0)+1;
-            return map;
-        },{})
-    ).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0],'bg'))[0] || null;
-
-    let html = `
-        <div class="game-stats-box">
-            <h3>⚔️ ${esc(player)} • PvP профил</h3>
-
-            <div class="dashboard">
-                ${statCard(pvpLogs.length,'Партии')}
-                ${statCard(pvpWins,'Победи')}
-                ${statCard(pvpLosses,'Загуби')}
-                ${statCard(winRateBar(pvpRate),'Win rate')}
-            </div>
-
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:-8px;">
-                <div class="stat-card">
-                    <div class="small">🥇 Средно класиране</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">${formatNumber(avgPosition)}</div>
-                    <div class="small">1.00 = първо място</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="small">🚀 Най-висок резултат</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">${highestScore === null ? '-' : highestScore}</div>
-                    ${highestScoreGame ? `<div class="small" style="margin-top:5px;font-weight:600;">🎲 ${esc(highestScoreGame)}</div>` : ''}
-                    ${highestScoreDate ? `<div class="small">${new Date(highestScoreDate).toLocaleDateString('bg-BG')}</div>` : ''}
-                </div>
-
-                <div class="stat-card">
-                    <div class="small">🎲 Най-играна игра</div>
-                    <div style="font-size:18px;font-weight:bold;margin-top:5px;">${mostPlayedPlayerGame ? esc(mostPlayedPlayerGame[0]) : '-'}</div>
-                    <div class="small">${mostPlayedPlayerGame ? `${mostPlayedPlayerGame[1]} ${mostPlayedPlayerGame[1]===1?'партия':'партии'}` : ''}</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="small">🔥 Най-дълга победна серия</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">${longestPvpStreak}</div>
-                </div>
-            </div>
-
-            <div class="small" style="margin-top:14px;padding:10px;background:#f8f9fa;border-radius:8px;">
-                💡 Абсолютните точки не се сравняват между различни игри. Например 12 точки в една игра и 180 в друга не правят смислено общо „средно“. Затова тук са оставени Win rate, средно класиране и най-висок резултат, които дават по-смислена картина.
-            </div>
-        </div>
-
-        <div class="game-stats-box">
-            <h3>🎲 ${esc(player)} • PvP по игри</h3>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Игра</th><th>Партии</th><th>Победи</th><th>Загуби</th>
-                            <th>Win rate</th><th>Средно място</th><th>Най-висок резултат</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    `;
-
-    const gameEntries = Object.entries(pvpGameMap).sort((a,b)=>b[1].games-a[1].games || a[0].localeCompare(b[0],'bg'));
-
-    if(!gameEntries.length){
-        html += `<tr><td colspan="7" class="empty">Няма PvP партии за този играч.</td></tr>`;
-    } else {
-        gameEntries.forEach(([game,data])=>{
-            const losses=data.games-data.wins;
-            const rate=data.games?data.wins/data.games*100:0;
-            const position=data.games?data.positionSum/data.games:0;
-
-            html += `
-                <tr>
-                    <td style="text-align:left;"><b>${esc(game)}</b></td>
-                    <td>${data.games}</td>
-                    <td>${data.wins}</td>
-                    <td>${losses}</td>
-                    <td>${winRateBar(rate)}</td>
-                    <td>${formatNumber(position)}</td>
-                    <td><b>${data.highestScore === null ? '-' : data.highestScore}</b></td>
-                </tr>
-            `;
-        });
-    }
-
-    html += `</tbody></table></div></div>`;
-
-    /* =========================================================
-       Co-op profile
-       ========================================================= */
-
-    const coopLogs = getModeLogs('coop').filter(log =>
-        Array.isArray(log.participants) && log.participants.includes(player)
-    );
-
-    const coopWins = coopLogs.filter(log=>log.coopResult==='win').length;
-    const coopLosses = coopLogs.length-coopWins;
-    const coopRate = coopLogs.length ? coopWins/coopLogs.length*100 : 0;
-
-    let coopTeamSum=0;
-    coopLogs.forEach(log=>coopTeamSum += Array.isArray(log.participants)?log.participants.length:0);
-    const avgCoopTeam=coopLogs.length?coopTeamSum/coopLogs.length:0;
-
-    let longestCoopStreak=0,currentCoopStreak=0;
-    [...coopLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(log=>{
-        if(log.coopResult==='win'){
-            currentCoopStreak++;
-            longestCoopStreak=Math.max(longestCoopStreak,currentCoopStreak);
-        }else{
-            currentCoopStreak=0;
-        }
-    });
-
-    const coopGameMap={};
-    coopLogs.forEach(log=>{
-        if(!coopGameMap[log.game]) coopGameMap[log.game]={attempts:0,wins:0,teamSum:0};
-        const data=coopGameMap[log.game];
-        data.attempts++;
-        if(log.coopResult==='win') data.wins++;
-        data.teamSum += Array.isArray(log.participants)?log.participants.length:0;
-    });
-
-    html += `
-        <div class="game-stats-box">
-            <h3>🤝 ${esc(player)} • Co-op профил</h3>
-            <div class="dashboard">
-                ${statCard(coopLogs.length,'Опити')}
-                ${statCard(coopWins,'Успешни')}
-                ${statCard(coopLosses,'Неуспешни')}
-                ${statCard(winRateBar(coopRate),'Success rate')}
-            </div>
-
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-                <div class="stat-card">
-                    <div class="small">👥 Среден размер на отбора</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">${formatNumber(avgCoopTeam)}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="small">🔥 Най-дълга успешна серия</div>
-                    <div style="font-size:20px;font-weight:bold;margin-top:5px;">${longestCoopStreak}</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="game-stats-box">
-            <h3>🎲 ${esc(player)} • Co-op по игри</h3>
-            <div class="table-responsive">
-                <table>
-                    <thead><tr><th>Игра</th><th>Опити</th><th>Успешни</th><th>Неуспешни</th><th>Success rate</th><th>Среден отбор</th></tr></thead>
-                    <tbody>
-    `;
-
-    const coopEntries=Object.entries(coopGameMap).sort((a,b)=>b[1].attempts-a[1].attempts || a[0].localeCompare(b[0],'bg'));
-
-    if(!coopEntries.length){
-        html += `<tr><td colspan="6" class="empty">Няма Co-op опити за този играч.</td></tr>`;
-    } else {
-        coopEntries.forEach(([game,data])=>{
-            const losses=data.attempts-data.wins;
-            const rate=data.attempts?data.wins/data.attempts*100:0;
-            const avgTeam=data.attempts?data.teamSum/data.attempts:0;
-            html += `
-                <tr>
-                    <td style="text-align:left;"><b>${esc(game)}</b></td>
-                    <td>${data.attempts}</td><td>${data.wins}</td><td>${losses}</td>
-                    <td>${winRateBar(rate)}</td><td>${formatNumber(avgTeam)}</td>
-                </tr>
-            `;
-        });
-    }
-
-    html += `</tbody></table></div></div>`;
+    const coopLogs=getModeLogs('coop').filter(log=>Array.isArray(log.participants)&&log.participants.includes(player));
+    const coopWins=coopLogs.filter(l=>l.coopResult==='win').length, coopLosses=coopLogs.length-coopWins, coopRate=coopLogs.length?coopWins/coopLogs.length*100:0;
+    let team=0;coopLogs.forEach(l=>team+=l.participants.length);const avgTeam=coopLogs.length?team/coopLogs.length:0;
+    let cStreak=0,cMax=0;[...coopLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(l=>{if(l.coopResult==='win'){cStreak++;cMax=Math.max(cMax,cStreak)}else cStreak=0});
+    const cMap={};coopLogs.forEach(l=>{if(!cMap[l.game])cMap[l.game]={attempts:0,wins:0,team:0};cMap[l.game].attempts++;if(l.coopResult==='win')cMap[l.game].wins++;cMap[l.game].team+=l.participants.length});
+    html+=`<div class="game-stats-box"><h3>🤝 ${esc(player)} • Co-op</h3><div class="dashboard">${statCard(coopLogs.length,'Опити')}${statCard(coopWins,'Успешни')}${statCard(coopLosses,'Неуспешни')}${statCard(formatPercent(coopRate),'Success rate')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${cMax}</div><div class="small">успеха</div></div></div></div>`;
+    html+=`<div class="game-stats-box"><h3>🎲 ${esc(player)} • Co-op по игри</h3><div class="mobile-stat-list">`;
+    const cEntries=Object.entries(cMap).sort((a,b)=>b[1].attempts-a[1].attempts||a[0].localeCompare(b[0],'bg'));
+    if(!cEntries.length)html+=`<div class="empty">Няма Co-op опити за този играч.</div>`;
+    else cEntries.forEach(([game,d])=>{const r=d.attempts?d.wins/d.attempts*100:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.attempts} опита</span><span class="pill">🏆 ${d.wins} успеха</span><span class="pill">❌ ${d.attempts-d.wins} неуспеха</span><span class="pill">👥 ${formatNumber(d.team/d.attempts)} среден отбор</span></div></div>`});
+    html+=`</div></div>`;
     out.innerHTML=html;
 }
 
@@ -2901,51 +1621,7 @@ function showStatsPanel(panel){
    REFRESH
    ========================================================= */
 
-function refreshStats(){
 
-    showStats();
-
-
-    const detailPanel =
-        document.getElementById(
-            'statsDetailPanel'
-        );
-
-
-    const playerPanel =
-        document.getElementById(
-            'statsPlayerPanel'
-        );
-
-
-    if(
-        detailPanel &&
-        detailPanel.classList.contains(
-            'active'
-        )
-    ){
-
-        setupStatsControls();
-
-        renderDetailedStats();
-
-    }
-
-
-    if(
-        playerPanel &&
-        playerPanel.classList.contains(
-            'active'
-        )
-    ){
-
-        populatePlayerSelector();
-
-        renderPlayerStats();
-
-    }
-
-}
 function exportData(){
     const data={myGamesObj,myPlayers,gameLogs};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
