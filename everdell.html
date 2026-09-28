@@ -11,10 +11,10 @@
       theme: {
         extend: {
           colors: {
-            darkbg: '#0a0f1d',
-            surface: '#151c2f',
-            surfaceContainer: '#222d44',
-            forestGreen: '#15803d',
+            darkbg: '#0a120e',
+            surface: '#121c16',
+            surfaceContainer: '#1c2e22',
+            forestGreen: '#16a34a',
             amberWood: '#d97706'
           }
         }
@@ -24,14 +24,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background:
+        radial-gradient(1000px 500px at 12% -8%, rgba(22,163,74,.16), transparent 50%),
+        radial-gradient(800px 400px at 100% 5%, rgba(217,119,6,.1), transparent 45%),
+        #0a120e !important;
+    }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0a0f1d; }
-    ::-webkit-scrollbar-thumb { background: #222d44; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #0a120e; }
+    ::-webkit-scrollbar-thumb { background: #1c2e22; border-radius: 3px; }
     .glass-card {
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+      background: linear-gradient(135deg, rgba(28, 46, 34, 0.75) 0%, rgba(18, 28, 22, 0.85) 100%);
       backdrop-filter: blur(12px);
     }
+    header { backdrop-filter: blur(12px); }
+    .animate-fade-in { animation: fadeIn .22s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
 <body class="bg-darkbg text-slate-100 min-h-screen flex flex-col items-center justify-start selection:bg-emerald-500 selection:text-slate-900 p-0 sm:py-6">
@@ -409,7 +418,7 @@
     }
 
     function goToTracker() {
-      window.location.href = 'https://georgiev4910.github.io/Board_Game_Tracker/';
+      window.location.href = './index.html';
     }
 
     function calculatePlayerTotal(p) {
