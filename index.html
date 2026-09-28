@@ -421,6 +421,9 @@ function onManualGameSelected(){
 
 function getCompanionButtonHtml(gameName) {
     const key = (gameName || '').trim().toLowerCase();
+    if (key === 'everdell') {
+        return '<div style="margin-top:15px;"><a href="./everdell_3.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;background:#15803d;">🌲 Everdell Companion</a></div>';
+    }
     if (key === 'heat') {
         return '<div style="margin-top:15px;"><a href="./Heat.html" target="_blank" class="btn-blue" style="display:inline-block;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;color:white;">🏎‍🟀 Heat: Companion app</a></div>';
     }
@@ -3255,7 +3258,7 @@ function renderPlayerStats(){
                         ${mostPlayedPlayerGame ? esc(mostPlayedPlayerGame[0]) : '-'}
                     </div>
                     <div class="small">
-                        ${mostPlayedPlayerGame ? `${mostPlayedPlayerGame[1]} ${mostPlayedPlayerGame[1] === 1 ? 'партия' : 'партии'}` : ''}
+                        ${mostPlayedPlayerGame ? `${mostPlayedPlayerGame[1]}${mostPlayedPlayerGame[1] === 1 ? 'партия' : 'партии'}` : ''}
                     </div>
                 </div>
 
@@ -4076,7 +4079,7 @@ function importCsvData(){
                         }else{
                             const scores={};
                             partsOrScores.split(';').forEach(item=>{
-                                const parts=item.split(':');
+                                theParts=item.split(':');
                                 if(parts.length===2){
                                     const p=parts[0].trim(),s=Number(parts[1].trim());
                                     if(p&&!isNaN(s)){scores[p]=s;if(!myPlayers.includes(p))myPlayers.push(p);}
@@ -4113,3 +4116,4 @@ updateUI();
 </script>
 </body>
 </html>
+
