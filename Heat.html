@@ -42,9 +42,11 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
-<body class="bg-darkbg text-gray-100 min-h-screen flex flex-col selection:bg-red-500 selection:text-white">
+<body class="bg-darkbg text-gray-100 min-h-screen flex flex-col items-center justify-start selection:bg-red-500 selection:text-white p-0 sm:py-6">
 
-  <header id="app-header" class="bg-surface border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
+  <div class="app-shell w-full sm:max-w-xl bg-darkbg sm:bg-surface/90 sm:border sm:border-red-500/20 sm:rounded-3xl sm:shadow-2xl h-[100dvh] sm:h-[min(92vh,920px)] max-h-[100dvh] flex flex-col relative overflow-hidden">
+
+  <header id="app-header" class="bg-surface/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-lg shrink-0">
     <div class="flex items-center space-x-3">
       <!-- Статични бутони в горната лента -->
       <div class="flex items-center space-x-1.5 mr-2 border-r border-gray-700 pr-3">
@@ -73,7 +75,9 @@
     <div id="header-actions" class="flex items-center space-x-2"></div>
   </header>
 
-  <main id="app-container" class="flex-1 max-w-xl w-full mx-auto p-4 sm:p-5 pb-24"></main>
+  <main id="app-container" class="flex-1 w-full overflow-y-auto overscroll-contain p-4 sm:p-5 pb-28"></main>
+
+  </div><!-- /.app-shell -->
 
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
@@ -741,7 +745,7 @@
             `).join('')}
           </div>
 
-          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-xl mx-auto flex items-center justify-between z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-gray-800 p-4 flex items-center justify-between z-40">
             <div class="text-xs text-gray-400">
               Available Tracks: <span class="text-white font-bold">${ownedTracksCount}</span>
             </div>
@@ -820,7 +824,7 @@
             `).join('')}
           </div>
 
-          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-xl mx-auto flex items-center space-x-3 z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-gray-800 p-4 flex items-center space-x-3 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
               Back
             </button>
@@ -1194,7 +1198,7 @@
             </div>
           </div>
 
-          <div class="fixed bottom-0 left-0 right-0 bg-darkbg/90 backdrop-blur-md border-t border-gray-800 p-4 max-w-xl mx-auto flex items-center space-x-3 z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-gray-800 p-4 flex items-center space-x-3 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-gray-300 font-semibold py-3 px-4 rounded-xl border border-gray-700 transition">
               Back
             </button>
