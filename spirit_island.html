@@ -45,10 +45,10 @@
 <body class="bg-darkbg text-slate-100 min-h-screen flex flex-col items-center justify-start selection:bg-sky-400 selection:text-slate-900 p-0 sm:py-4">
 
   <!-- Главен контейнер -->
-  <div class="w-full sm:max-w-md bg-darkbg sm:bg-surface/70 sm:border sm:border-slate-700/60 sm:rounded-2xl sm:shadow-2xl min-h-screen sm:min-h-[85vh] flex flex-col relative overflow-hidden">
+  <div class="w-full sm:max-w-xl bg-darkbg sm:bg-surface/90 sm:border sm:border-sky-500/20 sm:rounded-3xl sm:shadow-2xl h-[100dvh] sm:h-[min(92vh,920px)] max-h-[100dvh] flex flex-col relative overflow-hidden">
 
     <!-- Хедър -->
-    <header class="bg-surface/90 backdrop-blur-md border-b border-slate-700/60 px-3 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-md">
+    <header class="bg-surface/90 backdrop-blur-md border-b border-slate-700/60 px-3 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-md shrink-0">
       <div class="flex items-center space-x-2 w-full justify-between">
         <div class="flex items-center space-x-2">
           <div class="flex items-center space-x-1 border-r border-slate-700/80 pr-2">
@@ -75,7 +75,7 @@
     </header>
 
     <!-- Основно съдържание -->
-    <main id="app-container" class="flex-1 w-full p-3 sm:p-4 pb-24"></main>
+    <main id="app-container" class="flex-1 w-full overflow-y-auto overscroll-contain p-3 sm:p-4 pb-28"></main>
 
     <!-- Тост съобщения -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
@@ -427,7 +427,7 @@
             }).join('')}
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center justify-between z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center justify-between z-40">
             <button onclick="goBackStep()" class="bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-5 rounded-xl border border-slate-700 text-xs transition">Назад</button>
             <button onclick="navigateTo('PlayersSetupScreen')" class="bg-sky-700 hover:bg-sky-600 border border-sky-400/30 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg text-xs transition">Продължи</button>
           </div>
@@ -476,7 +476,7 @@
             `).join('')}
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-3 rounded-xl border border-slate-700 text-xs transition">Назад</button>
             <button onclick="navigateTo('SpiritSelectionScreen')" class="flex-1 bg-sky-700 hover:bg-sky-600 border border-sky-400/30 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg text-xs transition">Към духовете</button>
           </div>
@@ -650,7 +650,7 @@
             `).join('')}
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-3 rounded-xl border border-slate-700 text-xs transition">Назад</button>
             <button onclick="navigateTo('ExtraSetupScreen')" class="flex-1 bg-sky-700 hover:bg-sky-600 border border-sky-400/30 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg text-xs transition">Продължи</button>
           </div>
@@ -882,7 +882,7 @@
             `}
           </div>
 
-          <div class="absolute bottom-0 left-0 right-0 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
+          <div class="absolute bottom-0 left-0 right-0 z-40 bg-darkbg/95 backdrop-blur-md border-t border-slate-800 p-3 flex items-center space-x-2 z-40">
             <button onclick="goBackStep()" class="flex-1 bg-surface hover:bg-surfaceContainer text-slate-300 font-semibold py-2.5 px-3 rounded-xl border border-slate-700 text-xs transition">Назад</button>
             <button onclick="showToast('Партията е напълно конфигурирана! Успех!')" class="flex-1 bg-sky-700 hover:bg-sky-600 border border-sky-400/30 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg text-xs transition">Готово!</button>
           </div>
