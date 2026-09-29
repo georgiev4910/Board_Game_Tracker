@@ -299,86 +299,101 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 
     const EVERDELL_DATA = {
       expansions: [
-        { id: "base", name: "Everdell (Основна игра)", isOwned: true, noteBg: "Задължителна база от правила и карти", noteEn: "Mandatory base game rules and cards" },
-        { id: "pearlbrook", name: "Pearlbrook", isOwned: false, noteBg: "Добавя речен свят, бисери и велики чудеса", noteEn: "Introduces river world, pearls, and grand wonders" },
-        { id: "spirecrest", name: "Spirecrest", isOwned: false, noteBg: "Планински експедиции, време и големи мийпъли", noteEn: "Mountain expeditions, weather events, and big critters" },
-        { id: "bellfaire", name: "Bellfaire", isOwned: false, noteBg: "Поддръжка до 6 играча и пазарни плочки", noteEn: "Support for up to 6 players and market tiles" },
-        { id: "mistwood", name: "Mistwood", isOwned: false, noteBg: "Легендарни карти и паякоподобни същества", noteEn: "Legendary cards and spider characters" },
-        { id: "newleaf", name: "New Leaf", isOwned: false, noteBg: "Централна гара, влакове и нови обитатели", noteEn: "Central station, trains, and new station residents" }
+        { id:"base", name:"Everdell (Основна игра)", isOwned:true, noteBg:"Основната игра", noteEn:"Base game" },
+        { id:"pearlbrook", name:"Pearlbrook", isOwned:false, noteBg:"Река, бисери, Адорнменти и Чудеса", noteEn:"River, pearls, Adornments and Wonders" },
+        { id:"spirecrest", name:"Spirecrest", isOwned:false, noteBg:"Планини, време, открития и експедиция", noteEn:"Mountains, weather, discoveries and expedition" },
+        { id:"bellfaire", name:"Bellfaire", isOwned:false, noteBg:"Модули, Market, Garland Awards и 5–6 играчи", noteEn:"Modules, Market, Garland Awards and 5–6 players" },
+        { id:"mistwood", name:"Mistwood", isOwned:false, noteBg:"Nightweave, Player Powers и допълнителни модули", noteEn:"Nightweave, Player Powers and additional modules" },
+        { id:"newleaf", name:"Newleaf", isOwned:false, noteBg:"Station, Visitors, Trains, Tickets и Reservations", noteEn:"Station, Visitors, Trains, Tickets and Reservations" }
       ],
       crittersByExp: {
-        base: ["Мишки (Mice)", "Таралежи (Hedgehogs)", "Костенурки (Turtles)", "Катерици (Squirrels)"],
-        pearlbrook: ["Аксолотли (Axolotls)", "Витри (Otters)", "Жаби (Frogs)", "Морски звезди (Starfish / Starlings)"],
-        spirecrest: ["Мечки (Bears)", "Стоати (Stoats)", "Гущери (Lizards)", "Бухове (Owls)"],
-        bellfaire: ["Кардинали (Cardinals)", "Тоди (Toads)", "Плъхове (Rats)"],
-        mistwood: ["Паяци (Spiders)", "Пеперуди (Butterflies)"],
-        newleaf: ["Къртици (Moles)", "Котки (Cats)"]
+        base:["Мишки (Mice)","Таралежи (Hedgehogs)","Катерици (Squirrels)","Костенурки (Turtles)","Плъхове (Rats)"],
+        pearlbrook:["Платипуси (Platypuses)","Аксолотли (Axolotls)","Видри (Otters)","Старлинги (Starlings)"],
+        spirecrest:["Лисици (Foxes)","Къртици (Moles)","Гущери (Lizards)","Бухали (Owls)"],
+        bellfaire:["Кардинали (Cardinals)","Крастави жаби (Toads)"],
+        mistwood:["Пеперуди (Butterflies)","Прасета (Pigs)","Стоати (Stoats)","Паяци (Spiders)"],
+        newleaf:["Котки (Cats)","Прилепи (Bats)","Охлюви (Snails)","Медоносни пчели (Honeybees)"]
       },
-      bigCritters: ["Гигантски мечок", "Планински елен", "Гигантски орел", "Вълк навигатор", "Голяма костенурка", "Планинска коза"],
-
-      forestLocations: [
-        { id: 1, exp: "base", nameBg: "3 Клончета", nameEn: "3 Twigs", effectBg: "Получавате точно 3 клончета от запаса.", effectEn: "Take 3 twigs from the supply." },
-        { id: 2, exp: "base", nameBg: "2 Смоли", nameEn: "2 Resins", effectBg: "Получавате точно 2 смоли от запаса.", effectEn: "Take 2 resins from the supply." },
-        { id: 3, exp: "base", nameBg: "2 Камъка", nameEn: "2 Pebbles", effectBg: "Получавате точно 2 камъка от запаса.", effectEn: "Take 2 pebbles from the supply." },
-        { id: 4, exp: "base", nameBg: "2 Боровинки & 1 Карта", nameEn: "2 Berries & 1 Card", effectBg: "Взимате 2 боровинки и теглите 1 карта.", effectEn: "Take 2 berries and draw 1 card." },
-        { id: 5, exp: "base", nameBg: "3 Карти & 1 Ресурс", nameEn: "3 Cards & 1 Resource", effectBg: "Теглите 3 карти и взимате 1 ресурс по ваш избор.", effectEn: "Draw 3 cards and take 1 resource of choice." },
-        { id: 6, exp: "base", nameBg: "Копиране на производствена сграда", nameEn: "Copy Green Building", effectBg: "Активирате отново 1 зелена сграда от вашето селище.", effectEn: "Activate 1 green production building from your city." },
-        { id: 7, exp: "base", nameBg: "Размяна в поляната", nameEn: "Meadow Refresh", effectBg: "Изхвърляте и подменяте до 2 карти от общата поляна.", effectEn: "Discard and replace up to 2 cards from the meadow." },
-        { id: 8, exp: "base", nameBg: "Размяна на карти за ресурси", nameEn: "Discard for Resources", effectBg: "Изхвърляте до 3 карти от ръка за равен брой ресурси.", effectEn: "Discard up to 3 cards for an equal number of resources." },
-        { id: 9, exp: "base", nameBg: "2 Точки & 2 Карти", nameEn: "2 Points & 2 Cards", effectBg: "Получавате 2 точки за победа и теглите 2 карти.", effectEn: "Take 2 victory points and draw 2 cards." },
-        { id: 10, exp: "base", nameBg: "Строителна отстъпка", nameEn: "Building Discount", effectBg: "Плащате с 1 ресурс по-малко за следващата сграда.", effectEn: "Pay 1 fewer resource for your next building." },
-        { id: 11, exp: "pearlbrook", nameBg: "Подводна търговия", nameEn: "Underwater Trade", effectBg: "Плащате 2 смоли -> взимате 1 бисер и 1 карта.", effectEn: "Pay 2 resins -> take 1 pearl and 1 card." },
-        { id: 12, exp: "pearlbrook", nameBg: "Речен поток", nameEn: "River Flow", effectBg: "Взимате 1 ценен бисер и теглите 2 карти.", effectEn: "Take 1 pearl and draw 2 cards." },
-        { id: 13, exp: "spirecrest", nameBg: "Планинска пътека", nameEn: "Mountain Trail", effectBg: "Теглите карта и напредвате в планинския маршрут.", effectEn: "Draw a card and advance on your mountain route." },
-        { id: 14, exp: "newleaf", nameBg: "Централна гара", nameEn: "Central Station", effectBg: "Разменяте карта от ръка с карта от влаковата линия.", effectEn: "Swap a card from hand with one from the train line." }
+      /* Big Critters are Discovery cards, not starting player assignments. */
+      bigCritters:["Stubblehoof","Honeypaw","King Rhun","Whisper","Windlore","Truffle","Corliander","Firebeak"],
+      forestLocations:[
+        {id:1,exp:"base",nameBg:"Горска локация 1",nameEn:"Forest 1",effectBg:"Копирайте Basic локация и изтеглете 1 карта от тестето.",effectEn:"Copy any Basic location and draw 1 card."},
+        {id:2,exp:"base",nameBg:"Горска локация 2",nameEn:"Forest 2",effectBg:"Изтеглете 2 карти от Meadow; можете да изиграете 1 с 1 по-малко ресурс.",effectEn:"Draw 2 Meadow cards; you may play 1 for 1 less of any resource."},
+        {id:3,exp:"base",nameBg:"3 боровинки",nameEn:"3 berries",effectBg:"Вземете 3 боровинки.",effectEn:"Gain 3 berries."},
+        {id:4,exp:"base",nameBg:"Изхвърлете до 3 карти",nameEn:"Discard up to 3 cards",effectBg:"За всяка изхвърлена карта вземете 1 ресурс по избор.",effectEn:"Discard up to 3 cards; gain 1 resource of your choice for each."},
+        {id:5,exp:"base",nameBg:"2 карти + 1 ресурс",nameEn:"2 cards + 1 any",effectBg:"Изтеглете 2 карти от тестето и вземете 1 ресурс по избор.",effectEn:"Draw 2 cards from the deck and gain 1 resource of your choice."},
+        {id:6,exp:"base",nameBg:"2 ресурса по избор",nameEn:"2 any",effectBg:"Вземете 2 ресурса по избор.",effectEn:"Gain 2 resources of your choice."},
+        {id:7,exp:"base",nameBg:"2 боровинки + 1 карта",nameEn:"2 berries + 1 card",effectBg:"Вземете 2 боровинки и изтеглете 1 карта.",effectEn:"Gain 2 berries and draw 1 card."},
+        {id:8,exp:"base",nameBg:"Изхвърлете карти",nameEn:"Discard cards",effectBg:"Изхвърлете 1 или повече карти; изтеглете 2 карти за всяка изхвърлена.",effectEn:"Discard 1 or more cards; draw 2 cards for each discarded."},
+        {id:9,exp:"base",nameBg:"1 клонче + 1 смола + 1 боровинка",nameEn:"1 twig + 1 resin + 1 berry",effectBg:"Вземете посочените ресурси.",effectEn:"Gain 1 twig, 1 resin and 1 berry."},
+        {id:10,exp:"base",nameBg:"2 смоли + 1 клонче",nameEn:"2 resin + 1 twig",effectBg:"Вземете посочените ресурси.",effectEn:"Gain 2 resin and 1 twig."},
+        {id:11,exp:"base",nameBg:"3 карти + 1 камък",nameEn:"3 cards + 1 pebble",effectBg:"Изтеглете 3 карти от тестето и вземете 1 камък.",effectEn:"Draw 3 cards from the deck and gain 1 pebble."},
+        {id:12,exp:"bellfaire",nameBg:"2 смоли или 2 боровинки",nameEn:"2 resin or 2 berries",effectBg:"Изберете 2 смоли или 2 боровинки.",effectEn:"Gain either 2 resin or 2 berries."},
+        {id:13,exp:"bellfaire",nameBg:"3 смоли",nameEn:"3 resin",effectBg:"Вземете 3 смоли.",effectEn:"Gain 3 resin."},
+        {id:14,exp:"bellfaire",nameBg:"Платете 3 клончета",nameEn:"Pay 3 twigs",effectBg:"Платете 3 клончета и вземете 3 ресурса по избор.",effectEn:"Pay 3 twigs, then gain any 3 resources."},
+        {id:15,exp:"bellfaire",nameBg:"Активирайте 2 зелени карти",nameEn:"Activate 2 Production cards",effectBg:"Активирайте 2 зелени Production карти в града, без Legendary.",effectEn:"Activate any 2 green Production cards in your city except Legendary cards."},
+        {id:16,exp:"pearlbrook",nameBg:"1 боровинка + 1 камък + 1 карта",nameEn:"1 berry + 1 pebble + 1 card",effectBg:"Вземете 1 боровинка, 1 камък и изтеглете 1 карта.",effectEn:"Gain 1 berry and 1 pebble and draw 1 card."},
+        {id:17,exp:"pearlbrook",nameBg:"2 камъка + 1 карта",nameEn:"2 pebbles + 1 card",effectBg:"Вземете 2 камъка и изтеглете 1 карта.",effectEn:"Gain 2 pebbles and draw 1 card."},
+        {id:18,exp:"pearlbrook",nameBg:"1 смола + 1 камък или 4 карти",nameEn:"1 resin + 1 pebble or 4 cards",effectBg:"Вземете 1 смола и 1 камък или изтеглете 4 карти.",effectEn:"Gain 1 resin and 1 pebble, or draw 4 cards."},
+        {id:19,exp:"pearlbrook",nameBg:"Обновяване на Meadow",nameEn:"Meadow refresh",effectBg:"Изхвърлете 2 Meadow карти, допълнете Meadow, изтеглете 2 Meadow карти и вземете 1 ресурс по избор.",effectEn:"Discard 2 Meadow cards, replenish, draw 2 Meadow cards and gain 1 resource of your choice."},
+        {id:20,exp:"newleaf",nameBg:"4 клончета",nameEn:"4 twigs",effectBg:"Вземете 4 клончета.",effectEn:"Gain 4 twigs."},
+        {id:21,exp:"newleaf",nameBg:"2 клончета + 1 смола",nameEn:"2 twigs + 1 resin",effectBg:"Вземете 2 клончета и 1 смола.",effectEn:"Gain 2 twigs and 1 resin."},
+        {id:22,exp:"newleaf",nameBg:"Копирайте друга Forest локация",nameEn:"Copy any Forest Location",effectBg:"Копирайте друга Forest локация на основното поле, дори ако е заета.",effectEn:"Copy any other Forest location on the main board, even if occupied."}
       ],
-
-      basicEvents: [
-        { nameBg: "Голяма обиколка на долината", nameEn: "Grand Tour", reqBg: "3 Дестинации (червени карти в града)", reqEn: "3 Destination cards", reward: "3 т." },
-        { nameBg: "Фестивал на горската реколта", nameEn: "Harvest Festival", reqBg: "4 Производствени (зелени карти в града)", reqEn: "4 Production cards", reward: "3 т." },
-        { nameBg: "Градски исторически паметник", nameEn: "City Monument", reqBg: "3 Просперитет (лилави карти в града)", reqEn: "3 Prosperity cards", reward: "3 т." },
-        { nameBg: "Картографска експедиция", nameEn: "Cartographer's Expedition", reqBg: "3 Управленски (сини карти в града)", reqEn: "3 Governance cards", reward: "3 т." }
+      basicEvents:[
+        {nameBg:"Голяма обиколка",nameEn:"Grand Tour",reqBg:"Поне 3 червени Destination карти",reqEn:"At least 3 red Destination cards",reward:"5 VP"},
+        {nameBg:"Фестивал на реколтата",nameEn:"Harvest Festival",reqBg:"Поне 4 зелени Production карти",reqEn:"At least 4 green Production cards",reward:"5 VP"},
+        {nameBg:"Градски паметник",nameEn:"City Monument",reqBg:"Поне 3 сини Governance карти",reqEn:"At least 3 blue Governance cards",reward:"5 VP"},
+        {nameBg:"Картографска експедиция",nameEn:"Cartographers' Expedition",reqBg:"Поне 3 кафяви Traveler карти",reqEn:"At least 3 tan Traveler cards",reward:"5 VP"},
+        {nameBg:"Flower Festival",nameEn:"Flower Festival",reqBg:"Поне 1 карта от всеки от 5-те цвята",reqEn:"At least 1 card of each of the 5 colors",reward:"4 VP"},
+        {nameBg:"Big City",nameEn:"Big City",reqBg:"Поне 15 карти в града",reqEn:"At least 15 cards in your city",reward:"5 VP"},
+        {nameBg:"Scenic Flight",nameEn:"Scenic Flight",reqBg:"Поне 3 лилави Prosperity карти",reqEn:"At least 3 purple Prosperity cards",reward:"5 VP"}
       ],
-
-      specialEvents: [
-        { id: 1, exp: "base", nameBg: "Ято горски пратеници", nameEn: "A Flock of Messengers", reqBg: "Поща + Пощальон", reqEn: "Post Office + Mail Carrier", rewardBg: "3 т. + 1 допълнителна точка за всяка Поща в селището", rewardEn: "3 VP + 1 VP per Post Office in city" },
-        { id: 2, exp: "base", nameBg: "Съвет на древния учен", nameEn: "Ancient Scholar", reqBg: "Учител + Училище", reqEn: "Teacher + School", rewardBg: "3 т. + 1 точка за всяка историческа карта в града", rewardEn: "3 VP + 1 VP per history/book card" },
-        { id: 3, exp: "base", nameBg: "Архитектурна гилдия", nameEn: "Architect's Guild", reqBg: "Кран + Стъкларница или Хан", reqEn: "Crane + Inn", rewardBg: "3 т. + 1 точка за всяка уникална построена сграда", rewardEn: "3 VP + 1 VP per unique Building" },
-        { id: 4, exp: "base", nameBg: "Алианс на горските лекари", nameEn: "Flying Doctor's Alliance", reqBg: "Лекар + Манастир", reqEn: "Doctor + Monastery", rewardBg: "3 т. + 1 точка за всеки съпруг/съпруга или лекар", rewardEn: "3 VP + 1 VP per Husband/Wife or Doctor" },
-        { id: 5, exp: "base", nameBg: "Голямо годишно тържество", nameEn: "Grand Celebration", reqBg: "3 Различни зелени производствени сгради", reqEn: "3 Different Green Buildings", rewardBg: "3 т. + 1 точка за всяко друго постигнато събитие", rewardEn: "3 VP + 1 VP per other achieved Event" },
-        { id: 6, exp: "base", nameBg: "Трупа на странстващите артисти", nameEn: "Performer's Troupe", reqBg: "Бард + Театър", reqEn: "Bard + Theater", rewardBg: "3 т. + 1 точка за всеки изпълнител в града ви", rewardEn: "3 VP + 1 VP per performer in city" },
-        { id: 7, exp: "pearlbrook", nameBg: "Голям речен панаир", nameEn: "River Fair Festival", reqBg: "2 Бисера + 1 Подводна сграда", reqEn: "2 Pearls + Underwater Building", rewardBg: "6 точки за победа в края на играта", rewardEn: "6 VP at end of game" },
-        { id: 8, exp: "spirecrest", nameBg: "Върхова планинска експедиция", nameEn: "Peak Expedition", reqBg: "3 Завършени планински маршрутни карти", reqEn: "3 Completed Mountain Cards", rewardBg: "5 точки за победа в края на играта", rewardEn: "5 VP at end of game" }
+      specialEvents:[
+        {id:1,exp:"base",nameBg:"Architectural Renaissance",nameEn:"Architectural Renaissance",reqBg:"4 Unique Constructions",reqEn:"4 Unique Constructions",rewardBg:"5 VP в края.",rewardEn:"5 VP at game end."},
+        {id:2,exp:"base",nameBg:"Arts & Music Festival",nameEn:"Arts & Music Festival",reqBg:"4 red Destination карти + 2 смоли",reqEn:"4 red Destination cards + 2 resin",rewardBg:"6 VP в края.",rewardEn:"6 VP at game end."},
+        {id:3,exp:"base",nameBg:"Bed and Breakfast Guild",nameEn:"Bed and Breakfast Guild",reqBg:"5 Common Constructions",reqEn:"5 Common Constructions",rewardBg:"5 VP в края.",rewardEn:"5 VP at game end."},
+        {id:4,exp:"base",nameBg:"Capture of the Acorn Thieves",nameEn:"Capture of the Acorn Thieves",reqBg:"Courthouse + Ranger",reqEn:"Courthouse + Ranger",rewardBg:"До 2 Critters под събитието; 2 VP за всеки в края.",rewardEn:"Place up to 2 Critters beneath the Event; 2 VP each at game end."},
+        {id:5,exp:"base",nameBg:"City Uprising",nameEn:"City Uprising",reqBg:"5 Common Critters",reqEn:"5 Common Critters",rewardBg:"5 VP в края.",rewardEn:"5 VP at game end."},
+        {id:6,exp:"base",nameBg:"Croak Wart Cure",nameEn:"Croak Wart Cure",reqBg:"Undertaker + Barge Toad + 2 berries + discard 2 city cards",reqEn:"Undertaker + Barge Toad + 2 berries + discard 2 city cards",rewardBg:"6 VP в края.",rewardEn:"6 VP at game end."},
+        {id:7,exp:"base",nameBg:"Ever Wall Tower Constructed",nameEn:"Ever Wall Tower Constructed",reqBg:"9 Constructions",reqEn:"9 Constructions",rewardBg:"8 VP в края.",rewardEn:"8 VP at game end."},
+        {id:8,exp:"base",nameBg:"Flying Doctor Service",nameEn:"Flying Doctor Service",reqBg:"Doctor + Postal Pigeon",reqEn:"Doctor + Postal Pigeon",rewardBg:"3 VP за всяка Harvester/Gatherer двойка във всеки град.",rewardEn:"3 VP per Harvester/Gatherer pair in every city."},
+        {id:9,exp:"base",nameBg:"Gathering of Elders",nameEn:"Gathering of Elders",reqBg:"4 Unique Critters",reqEn:"4 Unique Critters",rewardBg:"5 VP в края.",rewardEn:"5 VP at game end."},
+        {id:10,exp:"base",nameBg:"Glow Light Festival",nameEn:"Glow Light Festival",reqBg:"3 green Production + 2 tan Traveler",reqEn:"3 green Production + 2 tan Traveler cards",rewardBg:"1 VP за всяка изхвърлена карта до броя на зелените; 3 VP в края.",rewardEn:"1 VP per discarded card up to the number of green Production cards; 3 VP at game end."},
+        {id:11,exp:"base",nameBg:"Graduation of Scholars",nameEn:"Graduation of Scholars",reqBg:"Teacher + University",reqEn:"Teacher + University",rewardBg:"До 3 Critters под събитието; 2 VP за всеки в края.",rewardEn:"Place up to 3 Critters beneath the Event; 2 VP each at game end."},
+        {id:12,exp:"base",nameBg:"Juniper Jig Dance Contest",nameEn:"Juniper Jig Dance Contest",reqBg:"9 Critters",reqEn:"9 Critters",rewardBg:"5 VP в края.",rewardEn:"5 VP at game end."},
+        {id:13,exp:"base",nameBg:"Magic Snow",nameEn:"Magic Snow",reqBg:"2 red Destination + 2 purple Prosperity",reqEn:"2 red Destination + 2 purple Prosperity cards",rewardBg:"1 VP за всяка изхвърлена карта до броя на red Destination; 4 VP в края.",rewardEn:"1 VP per discarded card up to the number of red Destination cards; 4 VP at game end."},
+        {id:14,exp:"base",nameBg:"Masquerade Invitations",nameEn:"Masquerade Invitations",reqBg:"Messenger + Fairgrounds",reqEn:"Messenger + Fairgrounds",rewardBg:"До 6 дадени карти; 1 VP за всяка.",rewardEn:"Give up to 6 cards to opponents; gain 1 VP per card."},
+        {id:15,exp:"base",nameBg:"Ministering to Miscreants",nameEn:"Ministering to Miscreants",reqBg:"Monk + Dungeon",reqEn:"Monk + Dungeon",rewardBg:"3 VP за всеки затворник в Dungeon в края.",rewardEn:"3 VP per prisoner in the Dungeon at game end."},
+        {id:16,exp:"base",nameBg:"Path of the Pilgrims",nameEn:"Path of the Pilgrims",reqBg:"Monastery + Wanderer",reqEn:"Monastery + Wanderer",rewardBg:"3 VP за всеки работник в Monastery в края.",rewardEn:"3 VP per worker in your Monastery at game end."}
       ],
-
-      wonders: [
-        { nameBg: "Великият перлен дворец", nameEn: "The Pearl Palace", cost: "3 Бисера + 3 Смоли", costEn: "3 Pearls + 3 Resins", effectBg: "Носи внушителни 15 точки в края на партията.", effectEn: "Grants 15 points at the end of the game." },
-        { nameBg: "Коралова цитадела", nameEn: "Coral Citadel", cost: "3 Бисера + 3 Камъка", costEn: "3 Pearls + 3 Pebbles", effectBg: "Носи 14 точки и позволява съхранение на карти.", effectEn: "Grants 14 points and card storage." },
-        { nameBg: "Потънал древен кораб", nameEn: "Sunken Shipwreck", cost: "3 Бисера + 3 Клончета", costEn: "3 Pearls + 3 Twigs", effectBg: "Носи 13 точки и дава бонус ресурс при строеж.", effectEn: "Grants 13 points and extra resource." },
-        { nameBg: "Абисален паметник", nameEn: "Abyssal Monument", cost: "4 Ценни бисера", costEn: "4 Pearls", effectBg: "Носи 16 точки в крайното класиране.", effectEn: "Grants 16 points." }
+      wonders:[
+        {nameBg:"Hopewatch Gate",nameEn:"Hopewatch Gate",cost:"2 карти + 1 клонче + 1 смола + 1 камък + 2 бисера",costEn:"2 cards + 1 twig + 1 resin + 1 pebble + 2 pearls",effectBg:"10 VP в края.",effectEn:"10 VP at game end."},
+        {nameBg:"Mistrise Fountain",nameEn:"Mistrise Fountain",cost:"2 карти + 2 клончета + 2 смоли + 2 камъка + 2 бисера",costEn:"2 cards + 2 twigs + 2 resin + 2 pebbles + 2 pearls",effectBg:"15 VP в края.",effectEn:"15 VP at game end."},
+        {nameBg:"Starfall's Flame",nameEn:"Starfall's Flame",cost:"3 карти + 3 клончета + 3 смоли + 3 камъка + 3 бисера",costEn:"3 cards + 3 twigs + 3 resin + 3 pebbles + 3 pearls",effectBg:"25 VP в края.",effectEn:"25 VP at game end."},
+        {nameBg:"Sunblaze Bridge",nameEn:"Sunblaze Bridge",cost:"3 карти + 2 клончета + 2 смоли + 2 камъка + 3 бисера",costEn:"3 cards + 2 twigs + 2 resin + 2 pebbles + 3 pearls",effectBg:"20 VP в края.",effectEn:"20 VP at game end."}
       ],
-
-      weatherCards: [
-        { seasonBg: "Пролет", seasonEn: "Spring", nameBg: "Гъста сутрешна мъгла", nameEn: "Dense Fog", effectBg: "Работниците изискват 1 допълнителна боровинка за хранене през сезона.", effectEn: "Workers require 1 additional berry for feeding." },
-        { seasonBg: "Лято", seasonEn: "Summer", nameBg: "Продължителен проливен дъжд", nameEn: "Heavy Rain", effectBg: "Нямате право да теглите нови карти от тестето при подготовка.", effectEn: "No drawing cards from deck during preparation." },
-        { seasonBg: "Есен", seasonEn: "Autumn", nameBg: "Рано паднал дълбок сняг", nameEn: "Early Snow", effectBg: "Всички карти в ръката ви струват 1 допълнителен ресурс за изграждане.", effectEn: "All cards in hand cost 1 additional resource." }
+      weatherCards:[
+        {seasonBg:"Winter",seasonEn:"Winter",nameBg:"Blizzard",nameEn:"Blizzard",effectBg:"При Forest Location получавате 1 ресурс по-малко.",effectEn:"Gain 1 fewer resource from Forest Locations."},
+        {seasonBg:"Winter",seasonEn:"Winter",nameBg:"Dense Fog",nameEn:"Dense Fog",effectBg:"Картите от ръка струват +1 ресурс; безплатните карти остават безплатни.",effectEn:"Cards played from hand cost +1 resource; free cards remain free."},
+        {seasonBg:"Winter",seasonEn:"Winter",nameBg:"Freezing Rain",nameEn:"Freezing Rain",effectBg:"Не можете да посещавате Forest Locations.",effectEn:"You may not visit Forest Locations."},
+        {seasonBg:"Spring",seasonEn:"Spring",nameBg:"Heavy Rain",nameEn:"Heavy Rain",effectBg:"При Basic Location получавате 1 ресурс или карта по-малко според ефекта.",effectEn:"Gain 1 fewer resource/card from a Basic Location."},
+        {seasonBg:"Spring",seasonEn:"Spring",nameBg:"Lightning Storms",nameEn:"Lightning Storms",effectBg:"Construction картите струват +1 ресурс.",effectEn:"Constructions cost +1 resource."},
+        {seasonBg:"Spring",seasonEn:"Spring",nameBg:"Severe Wind",nameEn:"Severe Wind",effectBg:"След като изиграете карта, ако можете, изхвърлете 1 карта.",effectEn:"After playing a card, discard 1 card if able."},
+        {seasonBg:"Summer",seasonEn:"Summer",nameBg:"Drought",nameEn:"Drought",effectBg:"Green Production картите не активират Production при изиграване.",effectEn:"Green Production cards do not activate when played."},
+        {seasonBg:"Summer",seasonEn:"Summer",nameBg:"Heat Wave",nameEn:"Heat Wave",effectBg:"Всеки Critter струва +1 боровинка.",effectEn:"Each Critter costs +1 berry."},
+        {seasonBg:"Summer",seasonEn:"Summer",nameBg:"Tornado",nameEn:"Tornado",effectBg:"Не можете да играете карти директно от Meadow.",effectEn:"You may not play cards directly from the Meadow."},
+        {seasonBg:"Autumn",seasonEn:"Autumn",nameBg:"Autumn Flooding",nameEn:"Autumn Flooding",effectBg:"Всяка карта в Meadow струва +1 ресурс.",effectEn:"Each Meadow card costs +1 resource."},
+        {seasonBg:"Autumn",seasonEn:"Autumn",nameBg:"Wild Fire",nameEn:"Wild Fire",effectBg:"При подготовка за Autumn поставяте 1 работник постоянно върху Weather картата.",effectEn:"When preparing for Autumn, permanently place 1 worker on this card."},
       ],
-
-      discoveryCards: [
-        { seasonBg: "Пролет", seasonEn: "Spring", nameBg: "Загубен горски път", nameEn: "Lost Path", effectBg: "Платете 2 клончета или ще загубите 2 точки в края.", effectEn: "Pay 2 twigs or lose 2 points at the end." },
-        { seasonBg: "Лято", seasonEn: "Summer", nameBg: "Скрита планинска пещера", nameEn: "Hidden Cave", effectBg: "Взимате 2 случайна ресурса и 1 допълнителна карта.", effectEn: "Take 2 random resources and 1 card." },
-        { seasonBg: "Есен", seasonEn: "Autumn", nameBg: "Върхов планински преход", nameEn: "Peak Crossing", effectBg: "Изисква голям мийпъл за финално експедиционно пътуване.", effectEn: "Requires big critter for final journey." }
-      ],
-
-      marketTiles: [
-        { nameBg: "Обявен горски пазар", nameEn: "Forest Market", effectBg: "Разменяте 2 клончета за 1 камък или смола по избор.", effectEn: "Exchange 2 twigs for 1 pebble or resin." },
-        { nameBg: "Селищен бартер", nameEn: "Village Trade", effectBg: "Изхвърляте 1 карта от ръка в замяна на 2 боровинки.", effectEn: "Discard 1 card from hand for 2 berries." }
-      ],
-
-      stationTiles: [
-        { nameBg: "Бърза експресна линия", nameEn: "Express Line", effectBg: "Позволява бързо придвижване на мийпъл към централната гара.", effectEn: "Allows fast worker movement to the station." },
-        { nameBg: "Резервация за пътуване", nameEn: "Travel Reservation", effectBg: "Запазвате специална карта в гарата с отстъпка.", effectEn: "Reserve a special card with a discount." }
-      ]
+      discoveryCards:[], marketTiles:[], stationTiles:[],
+      moduleCounts:{
+        pearlbrook:{riverDestinations:12,adornments:12,wonders:4,pearls:"Pearl resource",frogAmbassador:true},
+        spirecrest:{discoveries:42,weather:12,everdellMaps:6,expeditionMaps:24,bigCritters:8},
+        bellfaire:{playerPowers:15,forestLocations:4,specialEvents:9,garlandAwards:7,marketTokens:4,flowerFestival:true},
+        newleaf:{visitors:32,forestLocations:3,specialEvents:9,basicEvents:2,tickets:6,reservations:6,trainCars:18,goldenOccupied:18},
+        mistwood:{playerPowers:4,activityCards:20,scoringCards:5,personalities:8,plots:33,plans:13,webTokens:14}
+      }
     };
 
     let store = {
@@ -774,7 +789,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 
     function sanitizePlayerCritters() {
       const available = getAvailableCritters();
-      const availableBigs = [...EVERDELL_DATA.bigCritters];
+      const availableBigs = [];
       const usedCritters = new Set();
       const usedBigs = new Set();
 
@@ -855,11 +870,8 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
                     </div>
 
                     ${isSpirecrestActive ? `
-                      <div>
-                        <label class="text-[10px] font-extrabold text-amber-400 block mb-1 uppercase tracking-wider" data-i18n="bigCritter">Голямо животно (Spirecrest):</label>
-                        <select onchange="changePlayerBigCritter(${idx}, this.value)" class="w-full bg-surfaceContainer border border-amber-600/60 rounded-xl px-3 py-1.5 text-amber-200 text-xs font-medium">
-                          ${selectableBigs.map(bc => `<option value="${bc}" ${p.bigCritter === bc ? 'selected' : ''}>${bc}</option>`).join('')}
-                        </select>
+                      <div class="bg-amber-950/30 border border-amber-700/40 rounded-xl px-3 py-2 text-[10px] text-amber-200">
+                        Big Critters не се разпределят на играч при setup. Те се получават чрез Discovery картите на Spirecrest.
                       </div>
                     ` : ''}
                   </div>
@@ -892,7 +904,6 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 
       store.participants.forEach((p, idx) => {
         p.critter = critters[idx % critters.length];
-        p.bigCritter = bigs[idx % bigs.length];
       });
       renderApp();
       showToast(t('toastCritters'));
@@ -919,54 +930,77 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
     function generateSetup() {
       const activeExpIds = new Set(EVERDELL_DATA.expansions.filter(e => e.isOwned).map(e => e.id));
       const pCount = store.participants.length;
-      
-      const neededForestCards = pCount <= 3 ? 3 : 4;
-
-      const availForest = EVERDELL_DATA.forestLocations.filter(f => activeExpIds.has(f.exp));
-      const shuffledForest = [...availForest].sort(() => Math.random() - 0.5);
-      store.setup.selectedForestLocations = shuffledForest.slice(0, neededForestCards);
-
-      const availEvents = EVERDELL_DATA.specialEvents.filter(e => activeExpIds.has(e.exp));
-      const shuffledEvents = [...availEvents].sort(() => Math.random() - 0.5);
-      store.setup.selectedEvents = shuffledEvents.slice(0, 4);
-
       const isPearlbrookActive = activeExpIds.has("pearlbrook");
-      if (store.advancedModule.enabled && !isPearlbrookActive) {
-        const count = store.advancedModule.randomBasicEventsCount || 2;
-        const shuffledBasic = [...EVERDELL_DATA.basicEvents].sort(() => Math.random() - 0.5);
-        store.setup.selectedBasicEvents = shuffledBasic.slice(0, count);
+      const isBellfaireActive = activeExpIds.has("bellfaire");
+      const isNewleafActive = activeExpIds.has("newleaf");
+
+      // Official Forest setup: 3 locations for 1-3 players, 4 for 4+ players.
+      const neededForestLocations = pCount <= 3 ? 3 : 4;
+      const forestPool = EVERDELL_DATA.forestLocations.filter(f => activeExpIds.has(f.exp));
+      store.setup.selectedForestLocations = [...forestPool].sort(() => Math.random() - 0.5).slice(0, neededForestLocations);
+
+      // Special Events: four in 1-4 player games, five with 5 players, six with 6 players.
+      // Pearlbrook requires at least one Pearlbrook Special Event. Because the complete Pearlbrook
+      // event deck is not encoded here, do not substitute invented data: flag this for manual setup.
+      const hasExpansionEventPool = activeExpIds.has("pearlbrook") || activeExpIds.has("bellfaire") || activeExpIds.has("newleaf");
+      if (hasExpansionEventPool) {
+        store.setup.selectedEvents = [];
       } else {
+        const eventCount = pCount >= 6 ? 6 : (pCount === 5 ? 5 : 4);
+        store.setup.selectedEvents = [...EVERDELL_DATA.specialEvents].sort(() => Math.random() - 0.5).slice(0, eventCount);
+      }
+
+      // Basic Events are not a random pool. Pearlbrook replaces them with Wonders.
+      if (isPearlbrookActive) {
         store.setup.selectedBasicEvents = [];
+      } else {
+        const basic = EVERDELL_DATA.basicEvents.slice(0, 4);
+        if (isBellfaireActive) basic.push(EVERDELL_DATA.basicEvents[4]);
+        if (isNewleafActive) basic.push(EVERDELL_DATA.basicEvents[5], EVERDELL_DATA.basicEvents[6]);
+        store.setup.selectedBasicEvents = basic;
       }
 
-      if (activeExpIds.has("pearlbrook")) {
-        store.setup.selectedWonders = [...EVERDELL_DATA.wonders].sort(() => Math.random() - 0.5).slice(0, 4);
-      } else {
-        store.setup.selectedWonders = [];
-      }
+      // Pearlbrook uses two of the four Wonders on the Wonder board.
+      store.setup.selectedWonders = isPearlbrookActive
+        ? [...EVERDELL_DATA.wonders].sort(() => Math.random() - 0.5).slice(0, 2)
+        : [];
 
-      if (activeExpIds.has("spirecrest")) {
-        store.setup.selectedWeather = [...EVERDELL_DATA.weatherCards].sort(() => Math.random() - 0.5);
-        store.setup.selectedDiscoveries = [...EVERDELL_DATA.discoveryCards].sort(() => Math.random() - 0.5);
-      } else {
-        store.setup.selectedWeather = [];
-        store.setup.selectedDiscoveries = [];
-      }
+      // Spirecrest: one Weather card per season is used. The full 42 Discovery cards are
+      // kept in their three decks and are not randomly pre-selected here.
+      store.setup.selectedWeather = isSpirecrestActive()
+        ? [...EVERDELL_DATA.weatherCards].sort(() => Math.random() - 0.5)
+        : [];
+      store.setup.selectedDiscoveries = [];
 
-      if (activeExpIds.has("bellfaire")) {
-        store.setup.selectedMarkets = [...EVERDELL_DATA.marketTiles].sort(() => Math.random() - 0.5);
-      } else {
-        store.setup.selectedMarkets = [];
-      }
+      // Bellfaire Market is a four-token module, not a set of random market tiles.
+      store.setup.selectedMarkets = isBellfaireActive ? [{nameBg:"4 Market tokens",nameEn:"4 Market tokens",effectBg:"Поставете 4-те Market tokens на Gain страната.",effectEn:"Set up the 4 Market tokens on their Gain side."}] : [];
 
-      if (activeExpIds.has("newleaf")) {
-        store.setup.selectedStations = [...EVERDELL_DATA.stationTiles].sort(() => Math.random() - 0.5);
-      } else {
-        store.setup.selectedStations = [];
-      }
+      // Newleaf uses a Station board, 3 Train Cars at setup, Visitors and Golden Occupied tokens.
+      store.setup.selectedStations = isNewleafActive ? [{nameBg:"Newleaf Station",nameEn:"Newleaf Station",effectBg:"Поставете Station board, 3 Train Cars, Visitor deck и 3 Golden Occupied tokens на играч.",effectEn:"Set up the Station board, 3 Train Cars, Visitor deck and 3 Golden Occupied tokens per player."}] : [];
+
+      store.setup.notes = [];
+      if (isPearlbrookActive) store.setup.notes.push(currentLang === 'bg'
+        ? "Pearlbrook: Basic Events не се използват. Използвайте 2 Wonders и поне 1 Pearlbrook Special Event от физическото тесте."
+        : "Pearlbrook: Basic Events are not used. Use 2 Wonders and at least 1 Pearlbrook Special Event from the physical deck.");
+      if (isBellfaireActive || isNewleafActive) store.setup.notes.push(currentLang === 'bg'
+        ? "Special Events от Bellfaire/Newleaf не се заместват с измислени карти. За тяхното точно случайно разпределение използвайте физическото тесте."
+        : "Bellfaire/Newleaf Special Events are not replaced with invented cards. Use the physical deck for their exact random selection.");
+      if (activeExpIds.has("spirecrest")) store.setup.notes.push(currentLang === 'bg'
+        ? "Spirecrest: Discovery картите остават в трите си тестета (Foothills, Peaks, Ridge); след Prepare for Season се изпълнява Explore."
+        : "Spirecrest: Discovery cards remain in the three decks (Foothills, Peaks, Ridge); Explore follows Prepare for Season.");
+      if (activeExpIds.has("mistwood")) store.setup.notes.push(currentLang === 'bg'
+        ? "Mistwood: Nightweave модулите се настройват според избрания режим; Plot и Plan не се комбинират."
+        : "Mistwood: Set up Nightweave modules according to the chosen mode; Plot and Plan are not combined.");
+      if (isNewleafActive) store.setup.notes.push(currentLang === 'bg'
+        ? "Newleaf: 32 Visitor карти, 18 Train Cars, 6 Tickets, 6 Reservations и 18 Golden Occupied tokens са модулни компоненти, не случайни Station tiles."
+        : "Newleaf: 32 Visitor cards, 18 Train Cars, 6 Tickets, 6 Reservations and 18 Golden Occupied tokens are module components, not random Station tiles.");
 
       navigateTo('SetupResultScreen');
       showToast(t('toastGen'));
+    }
+
+    function isSpirecrestActive() {
+      return EVERDELL_DATA.expansions.find(e => e.id === 'spirecrest')?.isOwned === true;
     }
 
     function renderSetupResultScreen() {
@@ -1000,7 +1034,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700/80 flex items-center justify-between shadow-sm">
                   <div>
                     <div class="font-extrabold text-slate-100 text-xs">${p.name}</div>
-                    ${isSpirecrestActive ? `<div class="text-[10px] text-amber-400 font-semibold mt-1">${t('bigCritterLabel')} ${p.bigCritter}</div>` : ''}
+                    
                   </div>
                   <div>${getCritterBadgeHtml(p.critter)}</div>
                 </div>
@@ -1082,7 +1116,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
           ` : ''}
 
           <!-- Advanced Basic Events -->
-          ${store.advancedModule.enabled && !isPearlbrookActive && store.setup.selectedBasicEvents.length > 0 ? `
+          ${!isPearlbrookActive && store.setup.selectedBasicEvents.length > 0 ? `
             <div class="glass-card rounded-2xl border border-amber-500/40 p-4 space-y-3 shadow-lg">
               <span class="font-extrabold text-xs text-amber-300 flex items-center space-x-2 uppercase tracking-wide">
                 <i class="fa-solid fa-sliders text-amber-400"></i>
@@ -1091,11 +1125,18 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 ${store.setup.selectedBasicEvents.map(b => `
                   <div class="bg-slate-900/90 p-3 rounded-xl border border-amber-800/40 text-xs space-y-1">
-                    <div class="font-extrabold text-amber-200">${currentLang === 'bg' ? b.nameBg : b.name} <span class="text-emerald-400">(${b.reward})</span></div>
-                    <div class="text-slate-300 text-[11px]"><span class="text-slate-400 font-semibold">${t('req')}</span> ${currentLang === 'bg' ? b.reqBg : b.req}</div>
+                    <div class="font-extrabold text-amber-200">${currentLang === 'bg' ? b.nameBg : b.nameEn} <span class="text-emerald-400">(${b.reward})</span></div>
+                    <div class="text-slate-300 text-[11px]"><span class="text-slate-400 font-semibold">${t('req')}</span> ${currentLang === 'bg' ? b.reqBg : b.reqEn}</div>
                   </div>
                 `).join('')}
               </div>
+            </div>
+          ` : ''}
+
+          ${store.setup.notes?.length ? `
+            <div class="glass-card rounded-2xl border border-rose-500/30 p-4 space-y-2 shadow-lg">
+              <span class="font-extrabold text-xs text-rose-300 flex items-center space-x-2 uppercase tracking-wide"><i class="fa-solid fa-circle-info"></i><span>Правила и предупреждения</span></span>
+              ${store.setup.notes.map(n => `<div class="text-[11px] text-slate-300 bg-slate-900/70 rounded-xl p-2.5 border border-slate-700/70">${n}</div>`).join('')}
             </div>
           ` : ''}
 
@@ -1125,10 +1166,11 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
             <div class="flex items-center justify-between border-b border-slate-700/80 pb-2.5">
               <span class="font-extrabold text-xs text-amber-400 flex items-center space-x-2 uppercase tracking-wide">
                 <i class="fa-solid fa-star text-amber-400"></i>
-                <span data-i18n="specEvents">Специални събития</span> (4)
+                <span data-i18n="specEvents">Специални събития</span> (${store.setup.selectedEvents.length})
               </span>
             </div>
             <div class="grid grid-cols-1 gap-2.5">
+              ${store.setup.selectedEvents.length === 0 ? `<div class="bg-rose-950/40 border border-rose-500/30 rounded-xl p-3 text-[11px] text-rose-200">${isPearlbrookActive ? (currentLang === 'bg' ? 'Pearlbrook изисква поне 1 Pearlbrook Special Event. Този модул не е подменен с измислена карта. Изтеглете картите от физическото тесте.' : 'Pearlbrook requires at least 1 Pearlbrook Special Event. No invented card was substituted. Draw it from the physical deck.') : ''}</div>` : ''}
               ${store.setup.selectedEvents.map(e => `
                 <div class="bg-slate-900/80 p-3.5 rounded-xl border border-amber-800/40 space-y-2 shadow-sm">
                   <div class="flex items-center justify-between">
