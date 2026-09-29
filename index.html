@@ -1828,6 +1828,21 @@ html[data-theme="light"] .profile-pick-btn.mine { color: #15803d; }
   font-weight: 600;
 }
 
+
+.home-hero .home-you {
+  margin-top: 0;
+  margin-bottom: 12px;
+  background: linear-gradient(160deg, rgba(34,197,94,.14), rgba(96,165,250,.1));
+}
+.home-hero .home-you .hy-hello {
+  font-size: 17px;
+}
+.home-hero .home-you .hy-line {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -1965,6 +1980,10 @@ window.saveDataToFirebase = async function () {
     <!-- HOME -->
     <div id="home" class="tab-content active">
         <div class="home-hero">
+            <div class="home-you" id="homeYouBox" style="display:none">
+                <div class="hy-hello" id="homeYouHello">Здравей!</div>
+                <div class="hy-line" id="homeYouLine"></div>
+            </div>
             <div class="hero-stage" id="heroStage" onclick="playHeroShow()" title="Докосни!">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
@@ -1977,10 +1996,6 @@ window.saveDataToFirebase = async function () {
             </div>
             <h2>Board Game Suite</h2>
             <p>Записвай партии, следи статистики и ползвай companion apps за любимите игри.</p>
-            <div class="home-you" id="homeYouBox" style="display:none">
-                <div class="hy-hello" id="homeYouHello">Здравей!</div>
-                <div class="hy-line" id="homeYouLine"></div>
-            </div>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
@@ -2389,18 +2404,10 @@ function refreshHomeStats(){
     const youBox = document.getElementById('homeYouBox');
     const hello = document.getElementById('homeYouHello');
     const line = document.getElementById('homeYouLine');
-    const tips = [
-      'готов ли си за партия?',
-      'време за игра!',
-      'зарчетата чакат.',
-      'коя игра ще е днес?',
-      'успех на масата!',
-      'да разбъркаме нещо ново?'
-    ];
     if(me && youBox){
       youBox.style.display = 'block';
       if(hello) hello.textContent = 'Здравей, ' + me + '!';
-      if(line) line.textContent = tips[Math.floor(Math.random() * tips.length)];
+      if(line) line.textContent = pickGreetingLine(me);
     } else if(youBox){
       youBox.style.display = 'none';
     }
@@ -2623,6 +2630,54 @@ function soleLeader(wins){
 
 
 /* ===== Active player profile ===== */
+
+function guessPlayerGender(name){
+  if(!name) return 'm';
+  try {
+    const map = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}');
+    if(map[name] === 'f' || map[name] === 'm') return map[name];
+  } catch(e){}
+  const n = String(name).trim().toLowerCase();
+  /* явни мъжки умалителни на -о/-ьо и т.н. */
+  if(/(ко|чо|ньо|йко|ен|ан|ин|ър|ов|ев)$/.test(n) && !/(ина|ена|ана)$/.test(n)){
+    if(/(митко|иван|георги|петър|стоян|тодор|асен|боян|кирил|никола|дмитри|дмитрий)$/.test(n) || /(ко|чо)$/.test(n))
+      return 'm';
+  }
+  /* женски окончания */
+  if(/[ая]$/.test(n)) return 'f';
+  return 'm';
+}
+function setPlayerGender(name, gender){
+  if(!name) return;
+  try {
+    const map = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}');
+    map[name] = gender;
+    localStorage.setItem('bgPlayerGender', JSON.stringify(map));
+  } catch(e){}
+  refreshHomeStats();
+}
+function pickGreetingLine(name){
+  const f = guessPlayerGender(name) === 'f';
+  const tips = f ? [
+    'готова ли си за партия?',
+    'време за игра!',
+    'зарчетата чакат.',
+    'коя игра ще е днес?',
+    'успех на масата!',
+    'да разбъркаме нещо ново?',
+    'готова за нова победа?'
+  ] : [
+    'готов ли си за партия?',
+    'време за игра!',
+    'зарчетата чакат.',
+    'коя игра ще е днес?',
+    'успех на масата!',
+    'да разбъркаме нещо ново?',
+    'готов за нова победа?'
+  ];
+  return tips[Math.floor(Math.random() * tips.length)];
+}
+
 function getActivePlayer(){
   try { return localStorage.getItem('bgActivePlayer') || ''; } catch(e){ return ''; }
 }
@@ -2657,14 +2712,26 @@ function renderManageProfileList(){
   }
   list.innerHTML = players.map(p => {
     const active = p === cur;
-    return '<button type="button" class="profile-pick-btn'+(active?' mine':'')+'" data-player="'+
-      String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+
-      (active?'✓ ':'')+(typeof esc==='function'?esc(p):p)+'</button>';
+    const g = guessPlayerGender(p);
+    const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return '<div style="display:flex;gap:6px;align-items:stretch;grid-column:span 1">'+
+      '<button type="button" class="profile-pick-btn'+(active?' mine':'')+'" data-player="'+safe+'" style="flex:1;margin:0">'+
+      (active?'✓ ':'')+(typeof esc==='function'?esc(p):p)+'</button>'+
+      '<button type="button" class="profile-pick-btn'+(g==='f'?' mine':'')+'" title="Женски род" data-gender-for="'+safe+'" data-gender="f" style="width:44px;margin:0;padding:8px;flex-shrink:0">♀</button>'+
+      '<button type="button" class="profile-pick-btn'+(g==='m'?' mine':'')+'" title="Мъжки род" data-gender-for="'+safe+'" data-gender="m" style="width:44px;margin:0;padding:8px;flex-shrink:0">♂</button>'+
+      '</div>';
   }).join('') +
   '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="grid-column:1/-1">'+
   (cur?'':'✓ ')+'👀 Общ екран (без профил)</button>';
   list.querySelectorAll('[data-player]').forEach(btn => {
     btn.onclick = () => setActivePlayer(btn.getAttribute('data-player') || '');
+  });
+  list.querySelectorAll('[data-gender-for]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      setPlayerGender(btn.getAttribute('data-gender-for'), btn.getAttribute('data-gender'));
+      showToast(btn.getAttribute('data-gender')==='f' ? '♀ Женски род' : '♂ Мъжки род', 'info');
+    };
   });
 }
 function goToMyPlayerStats(){
