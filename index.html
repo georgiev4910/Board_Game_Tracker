@@ -2291,6 +2291,81 @@ html[data-theme="light"] .h2h-card .num.lead {
   -webkit-text-fill-color: #16a34a !important;
   color: #16a34a !important;
 }
+
+/* Expandable stat cards */
+.stat-card.stat-exp {
+  cursor: pointer;
+  position: relative;
+  transition: border-color .15s, box-shadow .15s, transform .12s;
+  user-select: none;
+}
+.stat-card.stat-exp:hover {
+  border-color: color-mix(in srgb, var(--player-accent, #60a5fa) 40%, var(--border));
+  box-shadow: 0 4px 14px rgba(0,0,0,.12);
+}
+.stat-card.stat-exp:active { transform: scale(.98); }
+.stat-card.stat-exp.open {
+  border-color: color-mix(in srgb, var(--player-accent, #22c55e) 50%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--player-accent, #22c55e) 25%, transparent);
+}
+.stat-card.stat-exp .exp-hint {
+  position: absolute;
+  top: 8px; right: 10px;
+  font-size: 11px;
+  opacity: .45;
+  font-weight: 700;
+}
+.stat-card.stat-exp.open .exp-hint { opacity: .85; }
+.stat-detail-slot {
+  display: none;
+  margin: 10px 0 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  animation: fadeIn .2s ease;
+}
+.stat-detail-slot.show { display: block; }
+.stat-detail-slot .sd-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 8px;
+}
+.stat-detail-slot .sd-list { display: grid; gap: 8px; max-height: 280px; overflow-y: auto; }
+.stat-detail-slot .sd-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+.stat-detail-slot .sd-row .sd-game { font-weight: 800; }
+.stat-detail-slot .sd-row .sd-meta { color: var(--muted); font-size: 12px; font-weight: 600; }
+.stat-detail-slot .sd-row .sd-win { color: #4ade80; font-weight: 800; }
+.stat-detail-slot .sd-row .sd-lose { color: #f87171; font-weight: 800; }
+.stat-detail-slot .sd-scores {
+  display: flex; flex-wrap: wrap; gap: 6px; width: 100%; margin-top: 4px;
+}
+.stat-detail-slot .sd-chip {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.05);
+  font-size: 12px;
+  font-weight: 700;
+}
+.stat-detail-slot .sd-chip.winner {
+  background: rgba(34,197,94,.15);
+  color: #86efac;
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -3993,33 +4068,91 @@ function getAllPlayersList(){
    ========================================================= */
 
 function statCard(number, label, extra = ''){
-
     return `
         <div class="stat-card">
-
-            <div class="num">
-                ${number}
-            </div>
-
-            <div class="label">
-                ${label}
-            </div>
-
-            ${
-                extra
-                ? `
-                    <div
-                        class="small"
-                        style="margin-top:5px;">
-                        ${extra}
-                    </div>
-                  `
-                : ''
-            }
-
+            <div class="num">${number}</div>
+            <div class="label">${label}</div>
+            ${extra ? `<div class="small" style="margin-top:5px;">${extra}</div>` : ''}
         </div>
     `;
 }
+
+/* ===== Expandable stats ===== */
+window._statExpand = window._statExpand || {};
+let _statExpSeq = 0;
+let _openStatId = null;
+
+function formatLogDetailRow(log){
+  if(!log) return '';
+  const date = formatDate(log.date);
+  if(log.type === 'coop' || log.coopResult){
+    const ok = log.coopResult === 'win';
+    const team = (log.participants || []).join(', ');
+    return `<div class="sd-row">
+      <div><div class="sd-game">${esc(log.game)}</div>
+      <div class="sd-meta">${date}${team ? ' · ' + esc(team) : ''}</div></div>
+      <div class="${ok?'sd-win':'sd-lose'}">${ok?'🏆 Успех':'❌ Неуспех'}</div>
+    </div>`;
+  }
+  const scores = (typeof getPvpScores === 'function') ? getPvpScores(log) : Object.entries(log.scores||{}).map(([player,score])=>({player,score:Number(score)})).sort((a,b)=>b.score-a.score);
+  const winners = (typeof getPvpWinners === 'function') ? getPvpWinners(log) : (log.winners || (log.winner?[log.winner]:[]));
+  const chips = scores.map(x =>
+    `<span class="sd-chip ${winners.includes(x.player)?'winner':''}">${esc(x.player)}: <b>${x.score}</b>${winners.includes(x.player)?' 🏆':''}</span>`
+  ).join('');
+  const winLabel = winners.length ? winners.join(' & ') : '—';
+  return `<div class="sd-row">
+    <div><div class="sd-game">${esc(log.game)}</div>
+    <div class="sd-meta">${date} · победител: <span class="sd-win">${esc(winLabel)}</span></div></div>
+    <div class="sd-scores">${chips}</div>
+  </div>`;
+}
+
+function logsDetailHtml(title, logs, emptyMsg){
+  const list = (logs || []).slice();
+  if(!list.length) return `<div class="sd-title">${esc(title)}</div><div class="empty">${emptyMsg || 'Няма записи.'}</div>`;
+  const rows = list.map(formatLogDetailRow).join('');
+  return `<div class="sd-title">${esc(title)} (${list.length})</div><div class="sd-list">${rows}</div>`;
+}
+
+function expandableStat(number, label, detailHtml, extra = ''){
+  const id = 'sx' + (++_statExpSeq);
+  window._statExpand[id] = detailHtml;
+  return `<div class="stat-card stat-exp" data-sx="${id}" onclick="toggleStatExpand('${id}', this)">
+    <span class="exp-hint">▸</span>
+    <div class="num">${number}</div>
+    <div class="label">${label}</div>
+    ${extra ? `<div class="small" style="margin-top:5px;">${extra}</div>` : ''}
+  </div>`;
+}
+
+function toggleStatExpand(id, el){
+  const slot = el && el.closest('.dashboard, .stat-subgrid, .game-stats-box')
+    ? (el.closest('.game-stats-box') || el.parentElement.parentElement)
+    : null;
+  // find or create slot after the dashboard containing this card
+  let host = el.closest('.dashboard') || el.closest('.stat-subgrid');
+  if(!host) return;
+  let panel = host.nextElementSibling;
+  if(!panel || !panel.classList.contains('stat-detail-slot')){
+    panel = document.createElement('div');
+    panel.className = 'stat-detail-slot';
+    host.parentNode.insertBefore(panel, host.nextSibling);
+  }
+  const opening = _openStatId !== id;
+  // close others in same area
+  host.querySelectorAll('.stat-card.stat-exp.open').forEach(c => c.classList.remove('open'));
+  if(!opening){
+    _openStatId = null;
+    panel.classList.remove('show');
+    panel.innerHTML = '';
+    return;
+  }
+  _openStatId = id;
+  el.classList.add('open');
+  panel.innerHTML = window._statExpand[id] || '';
+  panel.classList.add('show');
+}
+
 
 
 /* =========================================================
@@ -4046,11 +4179,21 @@ function showStats(){
     const allPlayers=getAllPlayersList();
     const pvpPlayers=allPlayers.filter(p=>pvpLogs.some(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,p)));
 
-    let html=`<div class="dashboard">
-        ${statCard(gameLogs.length,'Общо партии')}
-        ${statCard(pvpLogs.length,'PvP партии')}
-        ${statCard(coopLogs.length,'Co-op опити')}
-        ${statCard(uniqueGames,'Различни игри')}
+    const recentAll = [...scoped].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
+    const recentPvp = [...pvpLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
+    const recentCoop = [...coopLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
+    const gameCounts = {};
+    scoped.forEach(l => { if(l.game) gameCounts[l.game]=(gameCounts[l.game]||0)+1; });
+    const gamesListHtml = Object.entries(gameCounts).sort((a,b)=>b[1]-a[1]).map(([g,n]) =>
+      `<div class="sd-row"><div class="sd-game">${esc(g)}</div><div class="sd-meta">${n} ${n===1?'партия':'партии'}</div></div>`
+    ).join('');
+
+    let html=`<div class="small" style="margin-bottom:8px;color:var(--muted)">💡 Тапни върху карта за детайли</div>
+    <div class="dashboard">
+        ${expandableStat(scoped.length,'Общо партии', logsDetailHtml('Последни партии', recentAll))}
+        ${expandableStat(pvpLogs.length,'PvP партии', logsDetailHtml('Последни PvP', recentPvp))}
+        ${expandableStat(coopLogs.length,'Co-op опити', logsDetailHtml('Последни Co-op', recentCoop))}
+        ${expandableStat(uniqueGames,'Различни игри', `<div class="sd-title">Игри (${uniqueGames})</div><div class="sd-list">${gamesListHtml||'<div class="empty">Няма</div>'}</div>`)}
     </div>`;
 
     /* PvP overview */
@@ -4122,9 +4265,20 @@ function showStats(){
     coopLogs.forEach(l=>(l.participants||[]).forEach(p=>{if(!coopMap[p])coopMap[p]={attempts:0,wins:0};coopMap[p].attempts++;if(l.coopResult==='win')coopMap[p].wins++;}));
     const coopPlayers=Object.entries(coopMap).map(([player,d])=>({player,...d,losses:d.attempts-d.wins,rate:d.attempts?d.wins/d.attempts*100:0}));
 
+    const coopWinLogs = coopLogs.filter(l=>l.coopResult==='win');
+    const coopLoseLogs = coopLogs.filter(l=>l.coopResult!=='win');
+    const mostLogs = most ? coopLogs.filter(l=>l.game===most[0]) : [];
     html+=`<div class="game-stats-box"><h3>🤝 Co-op</h3><div class="dashboard">
-        ${statCard(coopLogs.length,'Опити')}${statCard(coopWins,'Успешни')}${statCard(coopLosses,'Неуспешни')}${statCard(formatPercent(coopRate),'Success rate')}
-    </div><div class="stat-subgrid"><div class="stat-card"><div class="small">🎲 Различни игри</div><div class="num">${new Set(coopLogs.map(l=>l.game)).size}</div></div><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🎲 Най-играна</div><div style="font-size:16px;font-weight:800;margin-top:5px">${most?esc(most[0]):'-'}</div></div><div class="stat-card"><div class="small">👥 Участия по играчи</div><div style="font-size:16px;font-weight:800;margin-top:5px">${coopPlayers.length}</div></div></div>`;
+        ${expandableStat(coopLogs.length,'Опити', logsDetailHtml('Всички Co-op опити', [...coopLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,20)))}
+        ${expandableStat(coopWins,'Успешни', logsDetailHtml('Успешни Co-op', [...coopWinLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))))}
+        ${expandableStat(coopLosses,'Неуспешни', logsDetailHtml('Неуспешни Co-op', [...coopLoseLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))))}
+        ${expandableStat(formatPercent(coopRate),'Success rate', logsDetailHtml('Успешни (за rate)', coopWinLogs))}
+    </div><div class="stat-subgrid">
+        ${expandableStat(new Set(coopLogs.map(l=>l.game)).size,'Различни игри', `<div class="sd-title">Co-op игри</div><div class="sd-list">${Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([g,n])=>`<div class="sd-row"><div class="sd-game">${esc(g)}</div><div class="sd-meta">${n}</div></div>`).join('')}</div>`)}
+        ${statCard(formatNumber(avgTeam),'Среден отбор')}
+        ${expandableStat(most?esc(most[0]):'-','Най-играна', logsDetailHtml(most?most[0]:'—', mostLogs), most?most[1]+' опита':'')}
+        ${statCard(coopPlayers.length,'Участия по играчи')}
+    </div>`;
     if(coopPlayers.length){
         html+=`<div class="stats-section-label">Резултати по играчи</div><div class="mobile-stat-list">`;
         coopPlayers.sort((a,b)=>b.wins-a.wins||b.rate-a.rate).forEach(x=>html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(x.player)}</b><b>${formatPercent(x.rate)}</b></div><div class="meta"><span class="pill">🎮 ${x.attempts} опита</span><span class="pill">🏆 ${x.wins} успеха</span><span class="pill">❌ ${x.losses} неуспеха</span></div><div style="margin-top:7px">${winRateBar(x.rate)}</div></div>`);
@@ -4577,26 +4731,26 @@ function renderDetailedPvp(logs,out){
         let scoreSum=0,scoreCount=0,winningSum=0,winnerCount=0;let highest=null;const margins=[];let closest=null,biggest=null;
         logs.forEach(log=>{
             const scores=getPvpScores(log); if(!scores.length)return;
-            scores.forEach(x=>{scoreSum+=x.score;scoreCount++;if(highest===null||x.score>highest.score)highest={player:x.player,score:x.score,date:log.date}});
+            scores.forEach(x=>{scoreSum+=x.score;scoreCount++;if(highest===null||x.score>highest.score)highest={player:x.player,score:x.score,date:log.date,log:log}});
             winningSum+=scores[0].score; winnerCount++;
             if(scores.length>=2){
                 const m=scores[0].score-scores[1].score; margins.push(m);
-                const item={margin:m,winner:scores[0].player};
+                const item={margin:m,winner:scores[0].player,log:log};
                 if(closest===null||m<closest.margin)closest=item;
                 if(biggest===null||m>biggest.margin)biggest=item;
             }
         });
         const avg=scoreCount?scoreSum/scoreCount:0, avgW=winnerCount?winningSum/winnerCount:0, avgM=margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:0;
-        html+=`<div class="stats-section-label">📊 Точки (само за тази игра)</div>
+        html+=`<div class="stats-section-label">📊 Точки (само за тази игра) · тапни за детайл</div>
         <div class="dashboard">
             ${statCard(formatNumber(avgW),'Ср. победен рез.')}
-            ${statCard(highest?highest.score:'-','Рекорд',highest?esc(highest.player):'')}
+            ${highest ? expandableStat(highest.score,'Рекорд', logsDetailHtml('Партия с рекорд', [highest.log]), esc(highest.player)) : statCard('-','Рекорд')}
             ${statCard(formatNumber(avg),'Ср. резултат')}
             ${statCard(formatNumber(avgM),'Ср. разлика')}
         </div>
         <div class="stat-subgrid">
-            <div class="stat-card"><div class="small">🔥 Най-голяма победа</div><div class="num">${biggest?biggest.margin:'-'}</div><div class="small">${biggest?esc(biggest.winner):''}</div></div>
-            <div class="stat-card"><div class="small">🎯 Най-близък мач</div><div class="num">${closest?closest.margin:'-'}</div></div>
+            ${biggest ? expandableStat(biggest.margin,'Най-голяма победа', logsDetailHtml('Най-голяма победа', [biggest.log]), esc(biggest.winner)) : '<div class="stat-card"><div class="small">🔥 Най-голяма победа</div><div class="num">-</div></div>'}
+            ${closest ? expandableStat(closest.margin,'Най-близък мач', logsDetailHtml('Най-близък мач', [closest.log])) : '<div class="stat-card"><div class="small">🎯 Най-близък мач</div><div class="num">-</div></div>'}
         </div>`;
     } else if(detailScope==='all'){
         html+=`<div class="stats-note small" style="margin-top:12px">Точките не се усредняват между различни игри — скалите са различни.</div>`;
@@ -4666,7 +4820,9 @@ function renderDetailedPvp(logs,out){
 
 function renderDetailedCoop(logs,out){
     const attempts=logs.length,wins=logs.filter(l=>l.coopResult==='win').length,losses=attempts-wins,rate=attempts?wins/attempts*100:0;let team=0;logs.forEach(l=>team+=Array.isArray(l.participants)?l.participants.length:0);const avgTeam=attempts?team/attempts:0;let streak=0,maxStreak=0;[...logs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(l=>{if(l.coopResult==='win'){streak++;maxStreak=Math.max(maxStreak,streak)}else streak=0});
-    let html=`<div class="game-stats-box"><h3>🤝 Подробна Co-op статистика</h3><div class="dashboard">${statCard(attempts,'Опити')}${statCard(wins,'Успешни')}${statCard(losses,'Неуспешни')}${statCard(formatPercent(rate),'Success rate')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${maxStreak}</div><div class="small">успеха</div></div></div></div>`;
+    const winLogs=logs.filter(l=>l.coopResult==='win');
+    const loseLogs=logs.filter(l=>l.coopResult!=='win');
+    let html=`<div class="game-stats-box"><h3>🤝 Подробна Co-op статистика</h3><div class="small" style="margin-bottom:8px;color:var(--muted)">💡 Тапни карта за списък</div><div class="dashboard">${expandableStat(attempts,'Опити',logsDetailHtml('Опити',[...logs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))))}${expandableStat(wins,'Успешни',logsDetailHtml('Успешни',winLogs))}${expandableStat(losses,'Неуспешни',logsDetailHtml('Неуспешни',loseLogs))}${expandableStat(formatPercent(rate),'Success rate',logsDetailHtml('Успешни',winLogs))}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${maxStreak}</div><div class="small">успеха</div></div></div></div>`;
     const gm={};logs.forEach(l=>{if(!gm[l.game])gm[l.game]={attempts:0,wins:0,team:0};const d=gm[l.game];d.attempts++;if(l.coopResult==='win')d.wins++;d.team+=Array.isArray(l.participants)?l.participants.length:0});
     html+=`<div class="game-stats-box"><h3>🎲 Co-op по игри</h3><div class="mobile-stat-list">`;
     Object.entries(gm).sort((a,b)=>b[1].attempts-a[1].attempts||a[0].localeCompare(b[0],'bg')).forEach(([game,d])=>{const r=d.attempts?d.wins/d.attempts*100:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.attempts} опита</span><span class="pill">🏆 ${d.wins} успеха</span><span class="pill">❌ ${d.attempts-d.wins} неуспеха</span><span class="pill">👥 ${formatNumber(d.team/d.attempts)} среден отбор</span></div></div>`});
@@ -4802,7 +4958,7 @@ function renderPlayerStats(){
         const scores=getPvpScores(log), winners=getPvpWinners(log), score=Number(log.scores[player]);
         if(winners.includes(player))wins++;
         const pos=scores.findIndex(x=>x.player===player)+1; positionSum+=pos||scores.length;
-        if(Number.isFinite(score)&&(highest===null||score>highest.score))highest={score,game:log.game,date:log.date};
+        if(Number.isFinite(score)&&(highest===null||score>highest.score))highest={score,game:log.game,date:log.date,log:log};
         if(!gameMap[log.game])gameMap[log.game]={games:0,wins:0,positionSum:0,highest:null};
         const d=gameMap[log.game]; d.games++; if(winners.includes(player))d.wins++; d.positionSum+=pos||scores.length; d.highest=d.highest===null?score:Math.max(d.highest,score);
     });
@@ -4815,7 +4971,7 @@ function renderPlayerStats(){
         ${statCard(pvpLogs.length,'PvP партии')}${statCard(wins,'Победи')}${statCard(losses,'Загуби')}${statCard(formatPercent(rate),'Win rate')}
     </div><div class="stat-subgrid">
         <div class="stat-card"><div class="small">🥇 Средно място</div><div class="num">${pvpLogs.length?formatNumber(avgPos):'-'}</div><div class="small">1.00 = първо място</div></div>
-        <div class="stat-card"><div class="small">🚀 Най-висок резултат</div><div class="num">${highest?highest.score:'-'}</div>${highest?`<div class="small">🎲 ${esc(highest.game)}${highest.date?' • '+new Date(highest.date).toLocaleDateString('bg-BG'):''}</div>`:''}</div>
+        ${highest ? expandableStat(highest.score,'Най-висок резултат', logsDetailHtml('Партия с рекорд', [highest.log]), esc(highest.game)+(highest.date?' · '+new Date(highest.date).toLocaleDateString('bg-BG'):'')) : '<div class="stat-card"><div class="small">🚀 Най-висок резултат</div><div class="num">-</div></div>'}
         <div class="stat-card"><div class="small">🎲 Най-играна игра</div><div style="font-size:16px;font-weight:800;margin-top:5px">${most?esc(most[0]):'-'}</div><div class="small">${most?most[1]+' '+(most[1]===1?'партия':'партии'):''}</div></div>
         <div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${maxStreak}</div><div class="small">победи</div></div>
     </div><div class="stats-note small">Абсолютните точки не се сравняват между различни игри. Тук използваме само показатели, които имат смисъл независимо от скалата на резултата.</div></div>`;
