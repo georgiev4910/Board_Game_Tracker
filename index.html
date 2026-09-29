@@ -2154,6 +2154,97 @@ html[data-has-player="1"] .menu-btn.open-state {
 /* remove old badge look */
 .qm-badge { display: none !important; }
 
+
+/* Manage accordion */
+.manage-accordion { display: flex; flex-direction: column; gap: 8px; }
+.mg-section {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+.mg-section.open {
+  border-color: color-mix(in srgb, var(--player-accent, #60a5fa) 30%, var(--border));
+}
+.mg-head {
+  width: 100%;
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: transparent !important;
+  color: var(--text) !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  text-align: left !important;
+}
+.mg-head:hover { background: rgba(255,255,255,.04) !important; filter: none !important; transform: none !important; }
+.mg-head .mg-chevron {
+  font-size: 12px;
+  color: var(--muted);
+  transition: transform .2s ease;
+}
+.mg-section.open .mg-head .mg-chevron { transform: rotate(180deg); }
+.mg-body {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
+}
+.mg-section.open .mg-body { display: block; padding-top: 12px; }
+.mg-body .small { margin-bottom: 10px; }
+.mg-section.danger-sec.open { border-color: rgba(248,113,113,.35); }
+
+/* Player stats accent (subtle) */
+#statsPlayerOutput.has-accent {
+  --sa: var(--stats-accent, #60a5fa);
+}
+#statsPlayerOutput.has-accent .game-stats-box {
+  border-color: color-mix(in srgb, var(--sa) 28%, var(--border));
+}
+#statsPlayerOutput.has-accent .game-stats-box > h3 {
+  border-left: 3px solid var(--sa);
+  padding-left: 10px;
+}
+#statsPlayerOutput.has-accent .stat-card .num {
+  color: var(--sa);
+  background: none;
+  -webkit-text-fill-color: var(--sa);
+}
+#statsPlayerOutput.has-accent .winrate-fill {
+  background: linear-gradient(90deg, var(--sa), color-mix(in srgb, var(--sa) 60%, #60a5fa)) !important;
+}
+#statsPlayerOutput.has-accent .mobile-stat-item .top b:last-child {
+  color: var(--sa);
+}
+#stats .player-filter-btn.active {
+  border-color: color-mix(in srgb, var(--player-accent, #22c55e) 55%, var(--border));
+  background: color-mix(in srgb, var(--player-accent, #22c55e) 14%, var(--card-2));
+  color: var(--text);
+}
+#statsPlayerOutput.has-accent .pill {
+  border-color: color-mix(in srgb, var(--sa) 25%, transparent);
+}
+
+/* Randomizer log shortcut */
+.rand-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.rand-actions a, .rand-actions button {
+  width: auto;
+  margin: 0;
+  padding: 12px 18px;
+  text-decoration: none;
+  display: inline-block;
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2469,59 +2560,78 @@ window.saveDataToFirebase = async function () {
 
     <!-- ТАБ: УПРАВЛЕНИЕ -->
     <div id="manage" class="tab-content">
-        <h2>⚙️ Управление</h2>
-        <div class="manage-grid">
-            <div class="manage-card">
-                <div class="manage-card-title">🎲 Игри</div>
-                <div class="small">Добавяй нови игри и избирай дали са PvP или Co-op.</div>
-                <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
-                <select id="gameTypeInput"><option value="pvp">⚔️ PvP</option><option value="coop">🤝 Co-op</option></select>
-                <button onclick="addGame()">Добави игра</button>
-            </div>
+        <h2>⚙️ Настройки</h2>
+        <p class="small" style="margin:-6px 0 14px">Отвори само секцията, която ти трябва.</p>
+        <div class="manage-accordion">
 
-            <div class="manage-card">
-                <div class="manage-card-title">👥 Играчи</div>
-                <div class="small">Добавяй играчи. Обичайният режим е за двама.</div>
-                <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
-                <button onclick="addPlayer()">Добави играч</button>
-                <div id="managePlayersList"></div>
-            </div>
-
-            <div class="manage-card">
-                <div class="manage-card-title">👤 Профил</div>
-                <div class="small">Избери кой си, род за поздрава и акцент-цвят. Малкият кръг горе вдясно води към твоята статистика.</div>
-                <div id="manageProfileList" class="player-pref-list"></div>
-            </div>
-
-            <div class="manage-card">
-                <div class="manage-card-title">🎨 Изглед</div>
-                <div class="small">Светъл, тъмен или според телефона (системна настройка).</div>
-                <div class="theme-toggle-row">
-                    <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
-                    <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
-                    <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+            <div class="mg-section" id="mgGames">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgGames')">
+                    <span>🎲 Управление на игри</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Добавяй нови игри и избирай дали са PvP или Co-op.</div>
+                    <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
+                    <select id="gameTypeInput"><option value="pvp">⚔️ PvP</option><option value="coop">🤝 Co-op</option></select>
+                    <button onclick="addGame()">Добави игра</button>
                 </div>
             </div>
 
-            <div class="manage-card">
-                <div class="manage-card-title">💾 Данни</div>
-                <div class="small">CSV е удобен за историята, а JSON пази целия тракер.</div>
-                <input type="file" id="csvFileInput" accept=".csv,.txt">
-                <div class="manage-actions">
-                    <button class="btn-info" onclick="importCsvData()">📤 Зареди CSV</button>
-                    <button class="btn-info" onclick="exportCsvData()">📥 Изтегли CSV</button>
-                    <button class="btn-info" onclick="exportData()">💾 Архивирай JSON</button>
-                    <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
-                    <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">📥 Възстанови JSON</button>
+            <div class="mg-section" id="mgPlayers">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgPlayers')">
+                    <span>👥 Управление на играчи</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Добавяй или премахвай играчи.</div>
+                    <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
+                    <button onclick="addPlayer()">Добави играч</button>
+                    <div id="managePlayersList"></div>
                 </div>
             </div>
 
-            <div class="manage-card danger-card">
-                <div class="manage-card-title">⚠️ Опасни действия</div>
-                <div class="small">Тези действия могат да променят или изтрият данни.</div>
-                <button class="btn-secondary" onclick="resetToDefaultGames()">Върни стандартните игри</button>
-                <button class="btn-danger" onclick="clearAllLogs()">Изтрий цялата история</button>
+            <div class="mg-section" id="mgProfile">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgProfile')">
+                    <span>👤 Лични настройки</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Профил, род за поздрава и акцент-цвят. Аватарът горе води към твоята статистика.</div>
+                    <div id="manageProfileList" class="player-pref-list"></div>
+                </div>
             </div>
+
+            <div class="mg-section" id="mgSystem">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgSystem')">
+                    <span>⚙️ Системни настройки</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Светъл, тъмен или според телефона.</div>
+                    <div class="theme-toggle-row">
+                        <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
+                        <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
+                        <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+                    </div>
+                    <div class="small" style="margin-top:14px">Импорт / експорт на данни</div>
+                    <input type="file" id="csvFileInput" accept=".csv,.txt">
+                    <div class="manage-actions">
+                        <button class="btn-info" onclick="importCsvData()">📤 Зареди CSV</button>
+                        <button class="btn-info" onclick="exportCsvData()">📥 Изтегли CSV</button>
+                        <button class="btn-info" onclick="exportData()">💾 Архивирай JSON</button>
+                        <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
+                        <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">📥 Възстанови JSON</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mg-section danger-sec" id="mgDanger">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgDanger')">
+                    <span>⚠️ Опасни действия</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Тези действия могат да променят или изтрият данни.</div>
+                    <button class="btn-secondary" onclick="resetToDefaultGames()">Върни стандартните игри</button>
+                    <button class="btn-danger" onclick="clearAllLogs()">Изтрий цялата история</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -3101,6 +3211,15 @@ function updateProfileUI(){
   renderManageProfileList();
 }
 
+function toggleMgSection(id){
+  const sec = document.getElementById(id);
+  if(!sec) return;
+  const willOpen = !sec.classList.contains('open');
+  document.querySelectorAll('.mg-section.open').forEach(s => {
+    if(s.id !== id) s.classList.remove('open');
+  });
+  sec.classList.toggle('open', willOpen);
+}
 function toggleQmSection(id){
   const sec = document.getElementById(id);
   if(!sec) return;
@@ -3346,6 +3465,44 @@ function toggleManualPick(){
     const container = document.getElementById('manualPickContainer');
     container.style.display = container.style.display === 'none' ? 'block' : 'none';
 }
+
+function getLogShortcutHtml(gameName){
+  const safe = String(gameName || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  return '<div class="rand-actions">' +
+    '<button type="button" class="btn-blue" onclick="goLogWithGame(\'' + safe + '\')">📝 Запиши точки</button>' +
+    '</div>';
+}
+function goLogWithGame(gameName){
+  if(!gameName || !myGamesObj[gameName]){
+    showToast('Играта не е намерена', 'info');
+    return;
+  }
+  const type = myGamesObj[gameName] === 'coop' ? 'coop' : 'pvp';
+  goTo('log');
+  setTimeout(function(){
+    try {
+      if(typeof setLogFilter === 'function') setLogFilter(type);
+      const sel = document.getElementById('gameSelect');
+      if(sel){
+        // ensure option exists
+        let found = false;
+        for(let i=0;i<sel.options.length;i++){
+          if(sel.options[i].value === gameName){ found = true; break; }
+        }
+        if(!found){
+          const opt = document.createElement('option');
+          opt.value = gameName;
+          opt.textContent = gameName;
+          sel.appendChild(opt);
+        }
+        sel.value = gameName;
+        if(typeof onGameSelected === 'function') onGameSelected();
+      }
+      showToast('📝 ' + gameName + ' — въведи точки', 'info');
+    } catch(e){ console.warn(e); }
+  }, 60);
+}
+
 function pickRandomGame(){
     const games = Object.keys(myGamesObj).filter(g => currentRandFilter === 'all' || myGamesObj[g] === currentRandFilter);
     const out = document.getElementById('randomizerOutput');
@@ -3359,7 +3516,7 @@ function pickRandomGame(){
     
     let extraBtnHtml = getCompanionButtonHtml(randomGame);
 
-    out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">🎲 Избраната игра за днес е:<br><br><span style="color:var(--blue);font-size:24px;">${esc(randomGame)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}</div>`;
+    out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">🎲 Избраната игра за днес е:<br><br><span style="color:var(--blue);font-size:24px;">${esc(randomGame)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}${getLogShortcutHtml(randomGame)}</div>`;
 }
 
 function onManualGameSelected(){
@@ -3372,7 +3529,7 @@ function onManualGameSelected(){
     
     let extraBtnHtml = getCompanionButtonHtml(game);
 
-    out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">📋 Избрахте ръчно:<br><br><span style="color:var(--green-dark);font-size:24px;">${esc(game)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}</div>`;
+    out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">📋 Избрахте ръчно:<br><br><span style="color:var(--green-dark);font-size:24px;">${esc(game)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}${getLogShortcutHtml(game)}</div>`;
 }
 
 function getCompanionButtonHtml(gameName) {
@@ -4579,7 +4736,16 @@ function renderPlayerStats(){
     const out=document.getElementById('statsPlayerOutput');
     if(!out) return;
     const player=selectedStatPlayer;
-    if(!player){out.innerHTML='<div class="empty">Избери играч.</div>';return;}
+    if(!player){out.innerHTML='<div class="empty">Избери играч.</div>';out.classList.remove('has-accent');return;}
+
+    if(typeof getPlayerAccentHex === 'function'){
+      const hex = getPlayerAccentHex(player);
+      out.style.setProperty('--stats-accent', hex);
+      out.classList.add('has-accent');
+      /* also tint active filter chip if matches */
+      const bar = document.getElementById('playerSelectorBar');
+      if(bar) bar.style.setProperty('--player-accent', hex);
+    }
 
     const pvpLogs=getModeLogs('pvp').filter(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,player));
     let wins=0,positionSum=0,highest=null;
