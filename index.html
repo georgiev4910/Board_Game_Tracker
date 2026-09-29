@@ -702,9 +702,39 @@ td.coop-lose { background: rgba(248,113,113,.12); color: #fca5a5; font-weight: 7
   box-shadow: none;
 }
 .player-filter-btn.active {
-  background: var(--green-soft);
-  border-color: rgba(34,197,94,.45);
-  color: #86efac;
+  background: color-mix(in srgb, var(--player-color, #22c55e) 18%, var(--card-2));
+  border-color: color-mix(in srgb, var(--player-color, #22c55e) 70%, transparent);
+  color: var(--player-color, #86efac);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--player-color, #22c55e) 10%, transparent),
+              0 0 18px color-mix(in srgb, var(--player-color, #22c55e) 12%, transparent);
+}
+
+.player-stats-theme .game-stats-box {
+  border-color: color-mix(in srgb, var(--player-color) 32%, var(--border));
+}
+.player-stats-theme .stat-card {
+  border-color: color-mix(in srgb, var(--player-color) 30%, var(--border));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--player-color) 8%, transparent), rgba(255,255,255,.02));
+}
+.player-stats-theme .stat-card .num {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--player-color);
+}
+.player-stats-theme .mobile-stat-item {
+  border-left: 3px solid color-mix(in srgb, var(--player-color) 72%, transparent);
+  background: color-mix(in srgb, var(--player-color) 5%, transparent);
+}
+.player-stats-theme .winrate-text { color: var(--player-color); }
+.player-stats-theme .h2h-card {
+  border-color: color-mix(in srgb, var(--player-color) 28%, var(--border));
+}
+.player-colored {
+  color: var(--player-color) !important;
+}
+.player-name-accent {
+  color: var(--player-color);
 }
 
 .winrate-bar-container {
@@ -4380,7 +4410,8 @@ function populatePlayerSelector(){
                             : ''
                         }
                     "
-                    data-player="${esc(player)}">
+                    data-player="${esc(player)}"
+                    style="--player-color:${getPlayerAccentHex(player)}">
 
                     ${esc(player)}
 
@@ -4432,6 +4463,7 @@ function renderPlayerStats(){
     if(!out) return;
     const player=selectedStatPlayer;
     if(!player){out.innerHTML='<div class="empty">Избери играч.</div>';return;}
+    const playerColor = getPlayerAccentHex(player);
 
     const pvpLogs=getModeLogs('pvp').filter(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,player));
     let wins=0,positionSum=0,highest=null;
@@ -4449,7 +4481,7 @@ function renderPlayerStats(){
     [...pvpLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(log=>{if(getPvpWinners(log).includes(player)){streak++;maxStreak=Math.max(maxStreak,streak)}else streak=0});
     const most=Object.entries(pvpLogs.reduce((m,l)=>(m[l.game]=(m[l.game]||0)+1,m),{})).sort((a,b)=>b[1]-a[1])[0]||null;
 
-    let html=`<div class="game-stats-box"><h3>⚔️ ${esc(player)}</h3><div class="dashboard">
+    let html=`<div class="player-stats-theme" style="--player-color:${playerColor}"><div class="game-stats-box"><h3 class="player-name-accent">⚔️ ${esc(player)}</h3><div class="dashboard">
         ${statCard(pvpLogs.length,'PvP партии')}${statCard(wins,'Победи')}${statCard(losses,'Загуби')}${statCard(formatPercent(rate),'Win rate')}
     </div><div class="stat-subgrid">
         <div class="stat-card"><div class="small">🥇 Средно място</div><div class="num">${pvpLogs.length?formatNumber(avgPos):'-'}</div><div class="small">1.00 = първо място</div></div>
@@ -4458,7 +4490,7 @@ function renderPlayerStats(){
         <div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${maxStreak}</div><div class="small">победи</div></div>
     </div><div class="stats-note small">Абсолютните точки не се сравняват между различни игри. Тук използваме само показатели, които имат смисъл независимо от скалата на резултата.</div></div>`;
 
-    html+=`<div class="game-stats-box"><h3>🎲 ${esc(player)} • PvP по игри</h3><div class="mobile-stat-list">`;
+    html+=`<div class="game-stats-box"><h3 class="player-name-accent">🎲 ${esc(player)} • PvP по игри</h3><div class="mobile-stat-list">`;
     const entries=Object.entries(gameMap).sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0],'bg'));
     if(!entries.length) html+=`<div class="empty">Няма PvP партии за този играч.</div>`;
     else entries.forEach(([game,d])=>{const r=d.games?d.wins/d.games*100:0, pos=d.games?d.positionSum/d.games:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.games} партии</span><span class="pill">🏆 ${d.wins} победи</span><span class="pill">❌ ${d.games-d.wins} загуби</span><span class="pill">🥇 ${formatNumber(pos)} средно място</span>${d.highest!==null?`<span class="pill">🚀 ${d.highest} най-висок</span>`:''}</div></div>`});
@@ -4469,12 +4501,13 @@ function renderPlayerStats(){
     let team=0;coopLogs.forEach(l=>team+=l.participants.length);const avgTeam=coopLogs.length?team/coopLogs.length:0;
     let cStreak=0,cMax=0;[...coopLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(l=>{if(l.coopResult==='win'){cStreak++;cMax=Math.max(cMax,cStreak)}else cStreak=0});
     const cMap={};coopLogs.forEach(l=>{if(!cMap[l.game])cMap[l.game]={attempts:0,wins:0,team:0};cMap[l.game].attempts++;if(l.coopResult==='win')cMap[l.game].wins++;cMap[l.game].team+=l.participants.length});
-    html+=`<div class="game-stats-box"><h3>🤝 ${esc(player)} • Co-op</h3><div class="dashboard">${statCard(coopLogs.length,'Опити')}${statCard(coopWins,'Успешни')}${statCard(coopLosses,'Неуспешни')}${statCard(formatPercent(coopRate),'Success rate')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${cMax}</div><div class="small">успеха</div></div></div></div>`;
-    html+=`<div class="game-stats-box"><h3>🎲 ${esc(player)} • Co-op по игри</h3><div class="mobile-stat-list">`;
+    html+=`<div class="game-stats-box"><h3 class="player-name-accent">🤝 ${esc(player)} • Co-op</h3><div class="dashboard">${statCard(coopLogs.length,'Опити')}${statCard(coopWins,'Успешни')}${statCard(coopLosses,'Неуспешни')}${statCard(formatPercent(coopRate),'Success rate')}</div><div class="stat-subgrid"><div class="stat-card"><div class="small">👥 Среден отбор</div><div class="num">${formatNumber(avgTeam)}</div></div><div class="stat-card"><div class="small">🔥 Най-дълга серия</div><div class="num">${cMax}</div><div class="small">успеха</div></div></div></div>`;
+    html+=`<div class="game-stats-box"><h3 class="player-name-accent">🎲 ${esc(player)} • Co-op по игри</h3><div class="mobile-stat-list">`;
     const cEntries=Object.entries(cMap).sort((a,b)=>b[1].attempts-a[1].attempts||a[0].localeCompare(b[0],'bg'));
     if(!cEntries.length)html+=`<div class="empty">Няма Co-op опити за този играч.</div>`;
     else cEntries.forEach(([game,d])=>{const r=d.attempts?d.wins/d.attempts*100:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.attempts} опита</span><span class="pill">🏆 ${d.wins} успеха</span><span class="pill">❌ ${d.attempts-d.wins} неуспеха</span><span class="pill">👥 ${formatNumber(d.team/d.attempts)} среден отбор</span></div></div>`});
     html+=`</div></div>`;
+    html+=`</div>`;
     out.innerHTML=html;
 }
 
