@@ -78,7 +78,25 @@ html[data-theme="light"] .home-hero h2 {
   background-clip: text;
 }
 html[data-theme="light"] .stat-card .num,
-html[data-theme="light"] .h2h-card .num {
+html[data-theme="light"] 
+.h2h-card .num.lead {
+  background: none;
+  -webkit-text-fill-color: #4ade80;
+  color: #4ade80;
+}
+html[data-theme="light"] .h2h-card .num.lead {
+  color: #16a34a;
+  -webkit-text-fill-color: #16a34a;
+}
+.h2h-card.is-lead {
+  border-color: rgba(74,222,128,.4);
+  background: linear-gradient(160deg, rgba(34,197,94,.14), rgba(255,255,255,.03));
+}
+.h2h-card .num:not(.lead) {
+  /* keep default gradient for non-leader or both on tie */
+}
+
+.h2h-card .num {
   background: linear-gradient(135deg, #16a34a, #2563eb);
   -webkit-background-clip: text;
   background-clip: text;
@@ -276,7 +294,7 @@ body {
 .app-logo {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
   font-size: 22px;
@@ -1188,15 +1206,28 @@ body.section-mode .top-chrome .chrome-brand { display: none !important; }
   min-width: 0;
 }
 .chrome-brand .app-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
-  font-size: 20px;
+  font-size: 32px;
+  line-height: 1;
+  padding: 0;
   background: linear-gradient(135deg, #22c55e, #60a5fa);
   box-shadow: 0 6px 16px rgba(34,197,94,.3);
   flex-shrink: 0;
+  overflow: visible;
+}
+/* Unicode faces ⚀-⚅ are smaller than emoji — scale them up */
+.chrome-brand .app-logo.face-result {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0;
+  transform: scale(1.12);
+}
+.chrome-brand .app-logo.rolling {
+  font-size: 34px;
 }
 .chrome-brand .app-title {
   margin: 0;
@@ -1458,7 +1489,9 @@ body.section-mode .tabs { display: none !important; }
 /* Clearer dice result in logo */
 .app-logo.dice-result {
   box-shadow: 0 0 0 3px rgba(251,191,36,.55), 0 8px 20px rgba(34,197,94,.35) !important;
-  transform: scale(1.08);
+}
+.chrome-brand .app-logo.dice-result.face-result {
+  transform: scale(1.15);
 }
 
 .home-hero h2 {
@@ -2245,6 +2278,19 @@ html[data-has-player="1"] .menu-btn.open-state {
   display: inline-block;
 }
 
+
+/* h2h lead force */
+.h2h-card .num.lead {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: #4ade80 !important;
+  color: #4ade80 !important;
+}
+html[data-theme="light"] .h2h-card .num.lead {
+  -webkit-text-fill-color: #16a34a !important;
+  color: #16a34a !important;
+}
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -3362,6 +3408,7 @@ function rollDiceLogo(){
   const el = document.getElementById('diceLogo');
   if(!el || el.classList.contains('rolling')) return;
   el.classList.add('rolling');
+  el.classList.add('face-result');
   el.classList.remove('dice-result');
   let n = 0;
   const iv = setInterval(() => {
@@ -3373,8 +3420,14 @@ function rollDiceLogo(){
       el.textContent = DICE_FACES[num];
       el.classList.remove('rolling');
       el.classList.add('dice-result');
+      el.classList.add('face-result');
       showToast('🎲  Падна се:  ' + num + '  (' + DICE_WORDS[num] + ')  ' + DICE_FACES[num], 'info');
-      setTimeout(() => el.classList.remove('dice-result'), 1800);
+      setTimeout(() => {
+        el.classList.remove('dice-result');
+        /* keep face visible a bit larger until next interaction; soft return to emoji optional */
+        el.textContent = '🎲';
+        el.classList.remove('face-result');
+      }, 2200);
     }
   }, 55);
 }
@@ -4050,14 +4103,9 @@ function showStats(){
         const wa=h2hWins[a]||0, wb=h2hWins[b]||0;
         html+=`<div class="stats-section-label">👥 Директен двубой</div>
         <div class="small">Само партии с точно ${esc(a)} и ${esc(b)}.</div>
-        <div class="h2h-scoreline">
-          <span class="big ${wa>wb?'lead':''}">${wa}</span>
-          <span class="sep">—</span>
-          <span class="big ${wb>wa?'lead':''}">${wb}</span>
-        </div>
         <div class="head-to-head">
-            <div class="h2h-card"><div class="small">${esc(a)}</div><div class="num ${wa>wb?'':''}">${wa}</div><div class="small">победи</div></div>
-            <div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${wb}</div><div class="small">победи</div></div>
+            <div class="h2h-card ${wa>wb?'is-lead':''}"><div class="small">${esc(a)}</div><div class="num ${wa>wb?'lead':''}">${wa}</div><div class="small">победи</div></div>
+            <div class="h2h-card ${wb>wa?'is-lead':''}"><div class="small">${esc(b)}</div><div class="num ${wb>wa?'lead':''}">${wb}</div><div class="small">победи</div></div>
         </div>
         <div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни · ${wa===wb?'равенство':'води '+(wa>wb?esc(a):esc(b))}</div>`;
     }
@@ -4518,8 +4566,8 @@ function renderDetailedPvp(logs,out){
         html+=`<div class="stats-section-label">👥 Директен двубой</div>
         <div class="small">Само партии с точно тези двама.</div>
         <div class="head-to-head">
-            <div class="h2h-card"><div class="small">${esc(a)}</div><div class="num">${h2hWins[a]||0}</div><div class="small">победи</div></div>
-            <div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${h2hWins[b]||0}</div><div class="small">победи</div></div>
+            <div class="h2h-card ${(h2hWins[a]||0)>(h2hWins[b]||0)?'is-lead':''}"><div class="small">${esc(a)}</div><div class="num ${(h2hWins[a]||0)>(h2hWins[b]||0)?'lead':''}">${h2hWins[a]||0}</div><div class="small">победи</div></div>
+            <div class="h2h-card ${(h2hWins[b]||0)>(h2hWins[a]||0)?'is-lead':''}"><div class="small">${esc(b)}</div><div class="num ${(h2hWins[b]||0)>(h2hWins[a]||0)?'lead':''}">${h2hWins[b]||0}</div><div class="small">победи</div></div>
         </div>
         <div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни партии</div>`;
     }
