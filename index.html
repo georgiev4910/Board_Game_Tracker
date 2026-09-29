@@ -1741,6 +1741,93 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 }
 @keyframes spinBtn { to { transform: rotate(360deg); } }
 
+
+/* Active player profile */
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  cursor: pointer;
+  max-width: 140px;
+}
+.profile-chip:hover { filter: brightness(1.08); }
+.profile-chip .pc-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-gate {
+  text-align: center;
+  padding: 12px 8px 8px;
+}
+.profile-gate h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 900;
+}
+.profile-gate p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.profile-pick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 360px;
+  margin: 0 auto 12px;
+}
+.profile-pick-btn {
+  margin: 0;
+  padding: 16px 12px;
+  font-size: 15px;
+  font-weight: 800;
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  border-radius: 14px;
+}
+.profile-pick-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.profile-pick-btn.mine {
+  background: var(--green-soft);
+  border-color: rgba(34,197,94,.4);
+  color: #86efac;
+}
+html[data-theme="light"] .profile-pick-btn.mine { color: #15803d; }
+.home-you {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(34,197,94,.12), rgba(96,165,250,.08));
+  border: 1px solid rgba(34,197,94,.25);
+  text-align: center;
+}
+.home-you .hy-hello {
+  font-size: 15px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+.home-you .hy-line {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+}
+.home-you .hy-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -1857,6 +1944,9 @@ window.saveDataToFirebase = async function () {
                 <p class="app-sub">Записвай · играй · побеждавай</p>
             </div>
         </div>
+        <button type="button" class="profile-chip" id="profileChip" onclick="openProfilePicker()" title="Смени профил" style="display:none">
+            <span>👤</span><span class="pc-name" id="profileChipName">—</span>
+        </button>
         <div class="menu-wrap">
             <button type="button" class="menu-btn" id="menuBtn" onclick="toggleQuickMenu()" title="Меню" aria-label="Меню">☰</button>
             <div class="quick-menu" id="quickMenu">
@@ -1868,6 +1958,8 @@ window.saveDataToFirebase = async function () {
                 <button type="button" data-nav="companions" onclick="goTo('companions')">🎮 Companion apps</button>
                 <hr>
                 <button type="button" data-nav="manage" onclick="goTo('manage')">⚙️ Настройки</button>
+                <hr>
+                <button type="button" onclick="openProfilePicker()">👤 Смени играч</button>
             </div>
         </div>
     </div>
@@ -1887,6 +1979,16 @@ window.saveDataToFirebase = async function () {
             </div>
             <h2>Board Game Suite</h2>
             <p>Записвай партии, следи статистики и ползвай companion apps за любимите игри.</p>
+            <div class="home-you" id="homeYouBox" style="display:none">
+                <div class="hy-hello" id="homeYouHello">Здравей!</div>
+                <div class="hy-line" id="homeYouLine"></div>
+                <div class="hy-sub" id="homeYouSub"></div>
+            </div>
+            <div class="profile-gate" id="profileGate" style="display:none">
+                <h3>Кой играе?</h3>
+                <p>Избери своя профил — home екранът ще показва твоите резултати.</p>
+                <div class="profile-pick-grid" id="profilePickGrid"></div>
+            </div>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
@@ -2040,6 +2142,13 @@ window.saveDataToFirebase = async function () {
                 <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
                 <button onclick="addPlayer()">Добави играч</button>
                 <div id="managePlayersList"></div>
+            </div>
+
+            <div class="manage-card">
+                <div class="manage-card-title">👤 Активен играч</div>
+                <div class="small">Персонализира началния екран. Всеки вижда основно своите резултати.</div>
+                <div id="manageProfileNow" class="stats-note small" style="margin-bottom:8px">Не е избран</div>
+                <button type="button" class="btn-secondary" onclick="openProfilePicker()" style="margin:0">Смени играч</button>
             </div>
 
             <div class="manage-card">
@@ -2258,41 +2367,94 @@ function goTo(tabName){
 
   if(tabName === 'stats'){ showStats(); populateDetailGameSelect(); }
   else if(tabName === 'randomizer'){ renderRandomizer(); }
-  else if(tabName === 'home'){ refreshHomeStats(); }
+  else if(tabName === 'home'){
+    refreshHomeStats();
+    if(!getActivePlayer() && (myPlayers||[]).length && !sessionStorage.getItem('bgProfileSkip')){
+      /* optional prompt - user opens via chip */
+    }
+  }
   else if(tabName === 'manage'){ applyTheme(getStoredTheme()); }
   else { updateUI(); }
 }
 
 function refreshHomeStats(){
   try {
+    updateProfileUI();
+    const me = getActivePlayer();
+    const allLogs = gameLogs || [];
+    const myLogs = me ? allLogs.filter(l => playerInLog(l, me)) : allLogs;
+
     const g = Object.keys(myGamesObj || {}).length;
-    const l = (gameLogs || []).length;
+    const l = me ? myLogs.length : allLogs.length;
     const p = (myPlayers || []).length;
     const el = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
     el('homeGamesCount', g);
     el('homeLogsCount', l);
     el('homePlayersCount', p);
+    // relabel parties when personalized
+    const logsLabel = document.querySelector('#homeQuickStats .home-stat:nth-child(2) .hs-label');
+    if(logsLabel) logsLabel.textContent = me ? 'Мои партии' : 'Партии';
+
+    const youBox = document.getElementById('homeYouBox');
+    const gate = document.getElementById('profileGate');
+    if(!me){
+      if(youBox) youBox.style.display = 'none';
+      // show gate only if no player chosen and we have players - soft prompt once area
+      if(gate && (myPlayers||[]).length && gate.dataset.forced !== '1'){
+        // don't auto-show every time - only via picker
+      }
+    } else if(youBox){
+      if(gate) gate.style.display = 'none';
+      youBox.style.display = 'block';
+      const hello = document.getElementById('homeYouHello');
+      const line = document.getElementById('homeYouLine');
+      const sub = document.getElementById('homeYouSub');
+      if(hello) hello.textContent = 'Здравей, ' + me + '!';
+      const pvpMine = myLogs.filter(x => x.type !== 'coop');
+      let wins = 0, losses = 0;
+      pvpMine.forEach(log => { if(playerWonLog(log, me)) wins++; else losses++; });
+      const rate = pvpMine.length ? Math.round(wins / pvpMine.length * 100) : 0;
+      const coopMine = myLogs.filter(x => x.type === 'coop');
+      const coopW = coopMine.filter(x => x.coopResult === 'win').length;
+      if(line){
+        if(pvpMine.length) line.textContent = 'PvP: ' + wins + 'П – ' + losses + 'З · ' + rate + '% win rate';
+        else line.textContent = 'Все още нямаш PvP партии';
+      }
+      if(sub){
+        if(coopMine.length) sub.textContent = 'Co-op: ' + coopW + '/' + coopMine.length + ' успеха';
+        else sub.textContent = 'Избираш се от 👤 горе или от менюто';
+      }
+    }
 
     const box = document.getElementById('homeLastSession');
     const gEl = document.getElementById('homeLastGame');
     const mEl = document.getElementById('homeLastMeta');
+    const scopeLogs = me ? myLogs : allLogs;
     if(gEl){
-      if(!gameLogs || !gameLogs.length){
+      if(!scopeLogs.length){
         if(box) box.classList.add('empty');
-        gEl.textContent = 'Все още няма записи';
+        gEl.textContent = me ? 'Няма твои записи' : 'Все още няма записи';
         if(mEl) mEl.textContent = '';
       } else {
         if(box) box.classList.remove('empty');
-        const last = [...gameLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
+        const last = [...scopeLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
         gEl.textContent = last.game || '—';
         let meta = '';
         if(last.type === 'coop'){
           const res = last.coopResult === 'win' ? '🏆 Успех' : '❌ Неуспех';
-          const team = (last.participants || []).join(', ');
-          meta = res + (team ? ' · ' + team : '');
+          if(me) meta = res + (last.coopResult === 'win' ? ' за отбора' : '');
+          else {
+            const team = (last.participants || []).join(', ');
+            meta = res + (team ? ' · ' + team : '');
+          }
         } else {
-          const winners = last.winners || (last.winner ? [last.winner] : []);
-          meta = winners.length ? ('🏆 ' + winners.join(' & ')) : '';
+          const winners = (typeof getPvpWinners === 'function') ? getPvpWinners(last) : (last.winners || (last.winner ? [last.winner] : []));
+          if(me){
+            meta = winners.includes(me) ? '🏆 Ти победи' : '😔 Загуба';
+            if(last.scores && last.scores[me] !== undefined) meta += ' · ' + last.scores[me] + ' т.';
+          } else {
+            meta = winners.length ? ('🏆 ' + winners.join(' & ')) : '';
+          }
         }
         if(last.date){
           try {
@@ -2304,17 +2466,29 @@ function refreshHomeStats(){
       }
     }
 
-    /* Weekly */
+    /* Weekly — scoped */
     const weekEl = document.getElementById('homeWeekText');
     if(weekEl){
       const now = Date.now();
       const weekMs = 7 * 24 * 60 * 60 * 1000;
-      const weekLogs = (gameLogs || []).filter(x => {
+      const weekLogs = scopeLogs.filter(x => {
         const t = new Date(x.date || 0).getTime();
         return !isNaN(t) && (now - t) <= weekMs;
       });
       if(!weekLogs.length){
-        weekEl.textContent = 'Няма партии последните 7 дни';
+        weekEl.textContent = me ? 'Тази седмица нямаш партии' : 'Няма партии последните 7 дни';
+      } else if(me){
+        const pvpW = weekLogs.filter(x => x.type !== 'coop');
+        let w = 0, l2 = 0;
+        pvpW.forEach(log => { if(playerWonLog(log, me)) w++; else l2++; });
+        const coopW = weekLogs.filter(x => x.type === 'coop' && x.coopResult === 'win').length;
+        const coopN = weekLogs.filter(x => x.type === 'coop').length;
+        let t = weekLogs.length + (weekLogs.length === 1 ? ' партия' : ' партии');
+        if(pvpW.length) t += ' · ' + w + 'П–' + l2 + 'З';
+        if(coopN) t += ' · co-op ' + coopW + '/' + coopN;
+        if(pvpW.length && w > l2) t += ' · добра седмица!';
+        else if(pvpW.length && w < l2) t += ' · реваншът чака';
+        weekEl.textContent = t;
       } else {
         const pvpW = weekLogs.filter(x => x.type !== 'coop');
         const wins = {};
@@ -2329,42 +2503,69 @@ function refreshHomeStats(){
       }
     }
 
-    /* Home H2H for first two players */
+    /* Home H2H — if me, vs each other top opponent; else first two players */
     const h2hBox = document.getElementById('homeH2H');
     if(h2hBox && myPlayers && myPlayers.length >= 2){
-      const a = myPlayers[0], b = myPlayers[1];
-      const h2hLogs = (gameLogs || []).filter(l => {
-        if(l.type === 'coop') return false;
-        const keys = Object.keys(l.scores || {});
-        return keys.length === 2 && keys.includes(a) && keys.includes(b);
-      });
-      const wa = {a:0, b:0};
-      h2hLogs.forEach(l => {
-        const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
-        if(ws.includes(a)) wa.a++;
-        if(ws.includes(b)) wa.b++;
-      });
+      let a, b, h2hLogs, wa, wb;
+      if(me){
+        a = me;
+        // find most frequent opponent
+        const oppCount = {};
+        allLogs.forEach(l => {
+          if(l.type === 'coop' || !playerInLog(l, me)) return;
+          Object.keys(l.scores || {}).forEach(p => {
+            if(p !== me) oppCount[p] = (oppCount[p] || 0) + 1;
+          });
+        });
+        const opps = Object.entries(oppCount).sort((x,y) => y[1]-x[1]);
+        b = opps.length ? opps[0][0] : (myPlayers.find(p => p !== me) || myPlayers[1]);
+        h2hLogs = allLogs.filter(l => {
+          if(l.type === 'coop') return false;
+          const keys = Object.keys(l.scores || {});
+          return keys.length === 2 && keys.includes(a) && keys.includes(b);
+        });
+        wa = 0; wb = 0;
+        h2hLogs.forEach(l => {
+          const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
+          if(ws.includes(a)) wa++;
+          if(ws.includes(b)) wb++;
+        });
+      } else {
+        a = myPlayers[0]; b = myPlayers[1];
+        h2hLogs = allLogs.filter(l => {
+          if(l.type === 'coop') return false;
+          const keys = Object.keys(l.scores || {});
+          return keys.length === 2 && keys.includes(a) && keys.includes(b);
+        });
+        wa = 0; wb = 0;
+        h2hLogs.forEach(l => {
+          const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
+          if(ws.includes(a)) wa++;
+          if(ws.includes(b)) wb++;
+        });
+      }
       h2hBox.style.display = h2hLogs.length ? 'block' : 'none';
       const set = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
-      set('hhNameA', a); set('hhNameB', b);
-      set('hhScoreA', wa.a); set('hhScoreB', wa.b);
+      set('hhNameA', a === me ? 'Ти' : a); set('hhNameB', b);
+      set('hhScoreA', wa); set('hhScoreB', wb);
       const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
-      if(sa){ sa.classList.toggle('lead', wa.a > wa.b); }
-      if(sb){ sb.classList.toggle('lead', wa.b > wa.a); }
-      const total = wa.a + wa.b || 1;
+      if(sa){ sa.classList.toggle('lead', wa > wb); }
+      if(sb){ sb.classList.toggle('lead', wb > wa); }
+      const total = wa + wb || 1;
       const ba = document.getElementById('hhBarA'), bb = document.getElementById('hhBarB');
-      if(ba) ba.style.width = (wa.a / total * 100) + '%';
-      if(bb) bb.style.width = (wa.b / total * 100) + '%';
+      if(ba) ba.style.width = (wa / total * 100) + '%';
+      if(bb) bb.style.width = (wb / total * 100) + '%';
       const meta = document.getElementById('hhMeta');
       if(meta){
-        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
-        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa.a > wa.b ? a : b);
+        if(wa === wb) meta.textContent = h2hLogs.length + ' директни · равенство';
+        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa > wb ? (a === me ? 'ти' : a) : b);
       }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
     }
-  } catch(e){}
+  } catch(e){ console && console.warn && console.warn(e); }
 }
+
 
 function showToast(msg, type){
   const host = document.getElementById('toastHost');
@@ -2483,6 +2684,75 @@ function soleLeader(wins){
   if(max <= 0) return null;
   const leaders = entries.filter(e => e[1] === max).map(e => e[0]);
   return leaders.length === 1 ? { name: leaders[0], wins: max } : null;
+}
+
+
+
+/* ===== Active player profile ===== */
+function getActivePlayer(){
+  try { return localStorage.getItem('bgActivePlayer') || ''; } catch(e){ return ''; }
+}
+function setActivePlayer(name){
+  try {
+    if(name) localStorage.setItem('bgActivePlayer', name);
+    else localStorage.removeItem('bgActivePlayer');
+  } catch(e){}
+  closeProfilePicker();
+  refreshHomeStats();
+  updateProfileUI();
+  if(name) showToast('👤 Здравей, ' + name + '!', 'info');
+}
+function updateProfileUI(){
+  const name = getActivePlayer();
+  const chip = document.getElementById('profileChip');
+  const chipName = document.getElementById('profileChipName');
+  const manageNow = document.getElementById('manageProfileNow');
+  if(chip){
+    chip.style.display = name ? 'inline-flex' : 'none';
+    if(chipName) chipName.textContent = name || '—';
+  }
+  if(manageNow) manageNow.textContent = name ? ('Сега: ' + name) : 'Не е избран — home е общ';
+}
+function openProfilePicker(){
+  closeQuickMenu();
+  const players = (typeof myPlayers !== 'undefined' && myPlayers.length) ? myPlayers.slice() : [];
+  const grid = document.getElementById('profilePickGrid');
+  const gate = document.getElementById('profileGate');
+  const you = document.getElementById('homeYouBox');
+  if(!players.length){
+    showToast('Добави играчи в Настройки първо', 'info');
+    goTo('manage');
+    return;
+  }
+  if(grid){
+    const cur = getActivePlayer();
+    grid.innerHTML = players.map(p =>
+      '<button type="button" class="profile-pick-btn'+(p===cur?' mine':'')+'" onclick="setActivePlayer(\'' +
+      String(p).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
+      (typeof esc==='function'?esc(p):p) + '</button>'
+    ).join('') +
+    '<button type="button" class="profile-pick-btn" onclick="setActivePlayer(\'\')" style="grid-column:1/-1;opacity:.85">👀 Общ екран (без профил)</button>';
+  }
+  goTo('home');
+  if(gate) gate.style.display = 'block';
+  if(you) you.style.display = 'none';
+  const qs = document.getElementById('homeQuickStats');
+  // keep stats visible
+}
+function closeProfilePicker(){
+  const gate = document.getElementById('profileGate');
+  if(gate) gate.style.display = 'none';
+}
+function playerInLog(log, player){
+  if(!player || !log) return false;
+  if(log.type === 'coop') return Array.isArray(log.participants) && log.participants.includes(player);
+  return log.scores && Object.prototype.hasOwnProperty.call(log.scores, player);
+}
+function playerWonLog(log, player){
+  if(!playerInLog(log, player)) return false;
+  if(log.type === 'coop') return log.coopResult === 'win';
+  const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(log) : (log.winners || (log.winner ? [log.winner] : []));
+  return ws.includes(player);
 }
 
 
@@ -4052,6 +4322,7 @@ document.addEventListener('DOMContentLoaded', applyHashTab);
 
 updateUI();
 applyHashTab();
+updateProfileUI();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
   try { reg.update(); } catch(e){}
