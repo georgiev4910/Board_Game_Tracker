@@ -1935,6 +1935,117 @@ html[data-player-accent="b"] .home-you {
 html[data-theme="light"] .log-undo-bar button { color: #b91c1c; }
 .log-undo-bar .undo-timer { font-size: 12px; color: var(--muted); font-weight: 700; }
 
+
+/* Compact player avatar in header */
+.profile-chip {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+  max-width: none;
+  flex-shrink: 0;
+  border: 2px solid var(--player-accent, rgba(96,165,250,.5));
+  background: color-mix(in srgb, var(--player-accent, #60a5fa) 22%, transparent);
+  color: var(--text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--player-accent, #60a5fa) 18%, transparent);
+}
+.profile-chip .pc-name { display: none; }
+.profile-chip .pc-initial { line-height: 1; }
+
+/* Accent driven by CSS var on html */
+html[data-has-player="1"] .home-you {
+  border-color: color-mix(in srgb, var(--player-accent, #60a5fa) 40%, transparent);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--player-accent, #60a5fa) 16%, transparent),
+    rgba(34,197,94,.06));
+}
+html[data-has-player="1"] .profile-chip { display: inline-flex; }
+
+/* Settings: player rows */
+.player-pref-list { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+.player-pref-card {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+}
+.player-pref-card.active-pref {
+  border-color: color-mix(in srgb, var(--pref-color, #60a5fa) 50%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pref-color, #60a5fa) 20%, transparent);
+}
+.player-pref-top {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.player-pref-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 900; font-size: 14px;
+  border: 2px solid var(--pref-color, #60a5fa);
+  background: color-mix(in srgb, var(--pref-color, #60a5fa) 25%, transparent);
+  flex-shrink: 0;
+}
+.player-pref-name { flex: 1; font-weight: 800; font-size: 15px; }
+.player-pref-use {
+  margin: 0; padding: 8px 12px; font-size: 12px;
+  background: var(--bg-soft); color: var(--text);
+  border: 1px solid var(--border); box-shadow: none;
+}
+.player-pref-card.active-pref .player-pref-use {
+  background: color-mix(in srgb, var(--pref-color, #60a5fa) 25%, transparent);
+  border-color: color-mix(in srgb, var(--pref-color, #60a5fa) 45%, transparent);
+  font-weight: 800;
+}
+.player-pref-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 6px;
+}
+.player-pref-label {
+  font-size: 11px; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .04em;
+  width: 48px; flex-shrink: 0;
+}
+.gender-seg, .color-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.gender-seg button, .color-swatch {
+  margin: 0; padding: 8px 12px; font-size: 13px;
+  background: var(--bg-soft); color: var(--muted);
+  border: 1px solid var(--border); box-shadow: none;
+  border-radius: 10px;
+}
+.gender-seg button.on {
+  background: var(--blue-soft); color: var(--text); font-weight: 800;
+  border-color: rgba(96,165,250,.4);
+}
+.color-swatch {
+  width: 28px; height: 28px; padding: 0; border-radius: 50%;
+  border: 2px solid transparent;
+}
+.color-swatch.on {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--border);
+  transform: scale(1.08);
+}
+
+/* Header less cramped: allow title to shrink */
+.chrome-brand { min-width: 0; }
+.chrome-brand .app-title-wrap { min-width: 0; }
+.chrome-brand .app-title {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 15px;
+}
+.chrome-brand .app-sub {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 380px) {
+  .chrome-brand .app-sub { display: none; }
+  .chrome-brand .app-title { font-size: 14px; }
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2052,7 +2163,7 @@ window.saveDataToFirebase = async function () {
             </div>
         </div>
         <button type="button" class="profile-chip" id="profileChip" onclick="goToMyPlayerStats()" title="Моята статистика" style="display:none">
-            <span>👤</span><span class="pc-name" id="profileChipName">—</span>
+            <span class="pc-initial" id="profileChipInitial">?</span>
         </button>
         <div class="menu-wrap">
             <button type="button" class="menu-btn" id="menuBtn" onclick="toggleQuickMenu()" title="Меню" aria-label="Меню">☰</button>
@@ -2245,9 +2356,9 @@ window.saveDataToFirebase = async function () {
             </div>
 
             <div class="manage-card">
-                <div class="manage-card-title">👤 Активен играч</div>
-                <div class="small">Поздрав на home и филтър в статистиките (само твоите партии). Цъкни на името горе за личен преглед.</div>
-                <div id="manageProfileList" class="profile-pick-grid" style="max-width:none;margin:10px 0 0"></div>
+                <div class="manage-card-title">👤 Профил</div>
+                <div class="small">Избери кой си, род за поздрава и акцент-цвят. Малкият кръг горе вдясно води към твоята статистика.</div>
+                <div id="manageProfileList" class="player-pref-list"></div>
             </div>
 
             <div class="manage-card">
@@ -2732,6 +2843,47 @@ function soleLeader(wins){
 
 /* ===== Active player profile ===== */
 
+
+const PLAYER_COLOR_PRESETS = [
+  { id: 'blue', hex: '#60a5fa', label: 'Син' },
+  { id: 'pink', hex: '#f472b6', label: 'Розов' },
+  { id: 'green', hex: '#4ade80', label: 'Зелен' },
+  { id: 'amber', hex: '#fbbf24', label: 'Кехлибар' },
+  { id: 'purple', hex: '#a78bfa', label: 'Лилав' },
+  { id: 'cyan', hex: '#22d3ee', label: 'Циан' },
+  { id: 'rose', hex: '#fb7185', label: 'Червен' },
+  { id: 'orange', hex: '#fb923c', label: 'Оранжев' }
+];
+function getPlayerColorsMap(){
+  try { return JSON.parse(localStorage.getItem('bgPlayerColors') || '{}'); } catch(e){ return {}; }
+}
+function setPlayerColor(name, colorId){
+  if(!name) return;
+  const map = getPlayerColorsMap();
+  map[name] = colorId;
+  try { localStorage.setItem('bgPlayerColors', JSON.stringify(map)); } catch(e){}
+  updateProfileUI();
+  refreshHomeStats();
+}
+function getPlayerAccentHex(name){
+  if(!name) return '#60a5fa';
+  const map = getPlayerColorsMap();
+  const id = map[name];
+  const preset = PLAYER_COLOR_PRESETS.find(p => p.id === id);
+  if(preset) return preset.hex;
+  /* default by index for stability */
+  const players = (typeof myPlayers !== 'undefined') ? myPlayers : [];
+  const idx = Math.max(0, players.indexOf(name));
+  return PLAYER_COLOR_PRESETS[idx % PLAYER_COLOR_PRESETS.length].hex;
+}
+function getPlayerColorId(name){
+  const map = getPlayerColorsMap();
+  if(map[name]) return map[name];
+  const players = (typeof myPlayers !== 'undefined') ? myPlayers : [];
+  const idx = Math.max(0, players.indexOf(name));
+  return PLAYER_COLOR_PRESETS[idx % PLAYER_COLOR_PRESETS.length].id;
+}
+
 function guessPlayerGender(name){
   if(!name) return 'm';
   try {
@@ -2795,16 +2947,21 @@ function setActivePlayer(name){
 function updateProfileUI(){
   const name = getActivePlayer();
   const chip = document.getElementById('profileChip');
-  const chipName = document.getElementById('profileChipName');
-  if(chip){
-    chip.style.display = name ? 'inline-flex' : 'none';
-    if(chipName) chipName.textContent = name || '—';
+  const initialEl = document.getElementById('profileChipInitial');
+  if(name){
+    document.documentElement.setAttribute('data-has-player', '1');
+    const hex = getPlayerAccentHex(name);
+    document.documentElement.style.setProperty('--player-accent', hex);
+    if(chip){
+      chip.style.display = 'inline-flex';
+      chip.title = name + ' — моята статистика';
+      if(initialEl) initialEl.textContent = (name.trim().charAt(0) || '?').toUpperCase();
+    }
+  } else {
+    document.documentElement.removeAttribute('data-has-player');
+    document.documentElement.style.removeProperty('--player-accent');
+    if(chip) chip.style.display = 'none';
   }
-  /* accent by player index */
-  const players = (typeof myPlayers !== 'undefined') ? myPlayers : [];
-  const idx = name ? players.indexOf(name) : -1;
-  if(idx < 0) document.documentElement.removeAttribute('data-player-accent');
-  else document.documentElement.setAttribute('data-player-accent', idx % 2 === 0 ? 'a' : 'b');
   const myBtn = document.getElementById('menuMyStatsBtn');
   if(myBtn) myBtn.style.display = name ? '' : 'none';
   updateMenuStatsBadge();
@@ -2828,22 +2985,35 @@ function renderManageProfileList(){
   const players = (typeof myPlayers !== 'undefined' && myPlayers.length) ? myPlayers.slice() : [];
   const cur = getActivePlayer();
   if(!players.length){
-    list.innerHTML = '<div class="small">Добави играчи по-долу, после избери кой си ти.</div>';
+    list.innerHTML = '<div class="small">Добави играчи по-долу, после настрой профила.</div>';
     return;
   }
   list.innerHTML = players.map(p => {
     const active = p === cur;
     const g = guessPlayerGender(p);
+    const colorId = getPlayerColorId(p);
+    const hex = getPlayerAccentHex(p);
     const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    return '<div style="display:flex;gap:6px;align-items:stretch;grid-column:span 1">'+
-      '<button type="button" class="profile-pick-btn'+(active?' mine':'')+'" data-player="'+safe+'" style="flex:1;margin:0">'+
-      (active?'✓ ':'')+(typeof esc==='function'?esc(p):p)+'</button>'+
-      '<button type="button" class="profile-pick-btn'+(g==='f'?' mine':'')+'" title="Женски род" data-gender-for="'+safe+'" data-gender="f" style="width:44px;margin:0;padding:8px;flex-shrink:0">♀</button>'+
-      '<button type="button" class="profile-pick-btn'+(g==='m'?' mine':'')+'" title="Мъжки род" data-gender-for="'+safe+'" data-gender="m" style="width:44px;margin:0;padding:8px;flex-shrink:0">♂</button>'+
-      '</div>';
+    const initial = (p.trim().charAt(0) || '?').toUpperCase();
+    const swatches = PLAYER_COLOR_PRESETS.map(pc =>
+      '<button type="button" class="color-swatch'+(pc.id===colorId?' on':'')+'" style="background:'+pc.hex+'" title="'+pc.label+'" data-color-for="'+safe+'" data-color="'+pc.id+'"></button>'
+    ).join('');
+    return '<div class="player-pref-card'+(active?' active-pref':'')+'" style="--pref-color:'+hex+'">'+
+      '<div class="player-pref-top">'+
+        '<div class="player-pref-avatar">'+initial+'</div>'+
+        '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+'</div>'+
+        '<button type="button" class="player-pref-use" data-player="'+safe+'">'+(active?'✓ Активен':'Избери')+'</button>'+
+      '</div>'+
+      '<div class="player-pref-row"><span class="player-pref-label">Род</span><div class="gender-seg">'+
+        '<button type="button" class="'+(g==='f'?'on':'')+'" data-gender-for="'+safe+'" data-gender="f">♀ Жена</button>'+
+        '<button type="button" class="'+(g==='m'?'on':'')+'" data-gender-for="'+safe+'" data-gender="m">♂ Мъж</button>'+
+      '</div></div>'+
+      '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
+    '</div>';
   }).join('') +
-  '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="grid-column:1/-1">'+
+  '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="width:100%;margin:0">'+
   (cur?'':'✓ ')+'👀 Общ екран (без профил)</button>';
+
   list.querySelectorAll('[data-player]').forEach(btn => {
     btn.onclick = () => setActivePlayer(btn.getAttribute('data-player') || '');
   });
@@ -2852,6 +3022,13 @@ function renderManageProfileList(){
       e.stopPropagation();
       setPlayerGender(btn.getAttribute('data-gender-for'), btn.getAttribute('data-gender'));
       showToast(btn.getAttribute('data-gender')==='f' ? '♀ Женски род' : '♂ Мъжки род', 'info');
+    };
+  });
+  list.querySelectorAll('[data-color-for]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      setPlayerColor(btn.getAttribute('data-color-for'), btn.getAttribute('data-color'));
+      showToast('🎨 Цветът е сменен', 'info');
     };
   });
 }
