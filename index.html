@@ -2,7 +2,7 @@
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0f1220">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1494,6 +1494,55 @@ body.section-mode .tabs { display: none !important; }
   #subTabs .tab { font-size: 10px; padding: 9px 1px; }
 }
 
+
+/* Safe area + polish */
+body {
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+.top-chrome {
+  padding-top: max(10px, env(safe-area-inset-top)) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .hero-icons .hi, .hero-glow { animation: none !important; }
+}
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+.home-last {
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background .15s ease;
+}
+.home-last:hover, .home-last:active {
+  background: rgba(255,255,255,.04);
+}
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: .85;
+}
+.btn-loading::after {
+  content: '';
+  width: 16px; height: 16px;
+  margin-left: 8px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: -3px;
+  animation: spinBtn .6s linear infinite;
+}
+@keyframes spinBtn { to { transform: rotate(360deg); } }
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -1645,7 +1694,7 @@ window.saveDataToFirebase = async function () {
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
             </div>
-            <div class="home-last" id="homeLastSession">
+            <div class="home-last" id="homeLastSession" onclick="onLastSessionTap()" title="Към статистика">
                 <div class="hl-label">Последна партия</div>
                 <div class="hl-game" id="homeLastGame">Все още няма записи</div>
                 <div class="hl-meta" id="homeLastMeta"></div>
@@ -1689,7 +1738,7 @@ window.saveDataToFirebase = async function () {
         <label>Участващи играчи</label>
         <div id="playersCheckboxContainer" class="players-container"><span class="small">Няма добавени играчи още.</span></div>
         <div id="dynamicLogSection"></div>
-        <button class="btn-blue" onclick="logGame()" style="padding:14px;font-size:16px">Запиши резултата</button>
+        <button class="btn-blue" id="logGameBtn" onclick="logGame()" style="padding:14px;font-size:16px">Запиши резултата</button>
         <div id="logStatus" style="margin-top:10px;font-weight:bold;text-align:center"></div>
     </div>
 
@@ -2044,6 +2093,30 @@ function showToast(msg, type){
 const DICE_FACES = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'];
 const DICE_WORDS = ['','едно','две','три','четири','пет','шест'];
 
+function onLastSessionTap(){
+  if(!gameLogs || !gameLogs.length){
+    goTo('log');
+    showToast('Запиши първата партия', 'info');
+    return;
+  }
+  goTo('stats');
+}
+
+function withBtnLoading(btn, fn){
+  if(!btn) return fn();
+  btn.classList.add('btn-loading');
+  btn.disabled = true;
+  try {
+    const r = fn();
+    return r;
+  } finally {
+    setTimeout(() => {
+      btn.classList.remove('btn-loading');
+      btn.disabled = false;
+    }, 350);
+  }
+}
+
 function rollDiceLogo(){
   const el = document.getElementById('diceLogo');
   if(!el || el.classList.contains('rolling')) return;
@@ -2309,21 +2382,27 @@ function removePlayer(name){
     myPlayers=myPlayers.filter(p=>p!==name);saveAll();updateUI();
 }
 function logGame(){
-    const game=document.getElementById('gameSelect').value;if(!game)return alert('Моля, избери игра!');
+    const btn = document.getElementById('logGameBtn');
+    if(btn){ btn.classList.add('btn-loading'); btn.disabled = true; }
+    const done = () => { if(btn){ setTimeout(()=>{ btn.classList.remove('btn-loading'); btn.disabled = false; }, 320); } };
+    const game=document.getElementById('gameSelect').value;
+    if(!game){ done(); return alert('Моля, избери игра!'); }
     const checked=[...document.querySelectorAll('.player-card input[type=checkbox]:checked')];
     if(currentLogFilter==='coop'){
-        if(!checked.length)return alert('Моля, избери поне един играч за отбора!');
-        if(!selectedCoopResult)return alert('Моля, избери победа или загуба!');
+        if(!checked.length){ done(); return alert('Моля, избери поне един играч за отбора!'); }
+        if(!selectedCoopResult){ done(); return alert('Моля, избери победа или загуба!'); }
         const participants=checked.map(cb=>cb.closest('.player-card').querySelector('.player-name').textContent);
         gameLogs.push({ id: crypto.randomUUID(), game, type: 'coop', participants, coopResult: selectedCoopResult, date: new Date().toISOString() });
     }else{
-        if(checked.length<2)return alert('Моля, избери поне 2 играчи!');
-        const result=calculateWinner();if(!result)return alert('Моля, попълни точките на всички участници.');
+        if(checked.length<2){ done(); return alert('Моля, избери поне 2 играчи!'); }
+        const result=calculateWinner();
+        if(!result){ done(); return alert('Моля, попълни точките на всички участници.'); }
         const scores={};checked.forEach(cb=>{const p=cb.closest('.player-card').querySelector('.player-name').textContent;scores[p]=Number(document.getElementById('score_'+idSafe(p)).value)});
         gameLogs.push({ id: crypto.randomUUID(), game, type: 'pvp', scores, winners: result.winners, winner: result.winners[0], date: new Date().toISOString() });
     }
     saveAll();
-        showToast('✓ Партията е записана!');
+    showToast('✓ Партията е записана!');
+    done();
     const status=document.getElementById('logStatus');status.className='success';
     status.innerText=`Успешно записано: ${game} ✓`;
     setTimeout(()=>status.innerText='',4000);
@@ -3563,7 +3642,9 @@ document.addEventListener('DOMContentLoaded', applyHashTab);
 updateUI();
 applyHashTab();
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(function(){});
+  navigator.serviceWorker.register('./sw.js').then(function(reg){
+  try { reg.update(); } catch(e){}
+}).catch(function(){});
 }
 </script>
 </body>
