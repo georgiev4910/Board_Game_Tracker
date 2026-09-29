@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Sky Team - Рандомайзер</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+:root {
+  --bg: #0a1220;
+  --card: #132033;
+  --card-2: #1a2d45;
+  --border: rgba(56, 189, 248, 0.16);
+  --accent: #0ea5e9;
+  --accent-dark: #0284c7;
+  --accent-soft: rgba(14, 165, 233, 0.12);
+  --text: #f0f9ff;
+  --muted: #94a3b8;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0; padding: 0; height: 100dvh; max-height: 100dvh; overflow: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(1000px 500px at 15% -8%, rgba(14,165,233,.16), transparent 50%),
+    radial-gradient(800px 400px at 100% 0%, rgba(2,132,199,.1), transparent 45%),
+    var(--bg);
+  display: flex; flex-direction: column; align-items: center;
+}
+.top-header {
+  width: 100%; max-width: 100%;
+  background: linear-gradient(180deg, rgba(19,32,51,.98), rgba(19,32,51,.95));
+  border: none; border-bottom: 1px solid var(--border);
+  border-radius: 0; padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 0; backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 50; flex-shrink: 0; padding-top: max(10px, env(safe-area-inset-top, 0px));
+}
+.top-header .nav-btns {
+  display: flex; gap: 6px; align-items: center;
+  border-right: 1px solid var(--border); padding-right: 10px; margin-right: 4px;
+}
+.top-header .nav-btn {
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--muted); width: 36px; height: 36px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .18s; font-size: 14px; text-decoration: none; padding: 0;
+}
+.top-header .nav-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
+.top-header .nav-btn.home-btn { color: #38bdf8; }
+.top-header .nav-btn.back-btn { color: #60a5fa; }
+.top-header .nav-btn.tracker-btn { color: #22d3ee; }
+.top-header .nav-btn.log-btn { color: #f43f5e; }
+.top-header .title-area { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+.top-header .logo-icon {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;
+  box-shadow: 0 4px 14px rgba(14,165,233,.35);
+}
+.top-header .title-mini { font-size: 12px; font-weight: 800; color: #38bdf8; letter-spacing: .03em; line-height: 1.2; }
+.top-header .title-sub { font-size: 10px; color: var(--muted); font-weight: 500; }
+.container {
+  background: transparent;
+  padding: 18px 16px 32px; border-radius: 0;
+  box-shadow: none;
+  width: 100%; max-width: 480px; text-align: center;
+  border: none; margin-bottom: 0; flex: 1;
+  overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+h1 { margin: 0 0 6px; color: #38bdf8; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+p { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+.btn {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: 0;
+  padding: 13px 20px; font-size: 15px; font-weight: 700; border-radius: 12px;
+  cursor: pointer; transition: .18s; width: 100%; margin-top: 8px;
+  box-shadow: 0 6px 18px rgba(14,165,233,.28);
+}
+.btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn:active { transform: scale(.98); }
+.btn-secondary { background: linear-gradient(135deg, #475569, #334155); box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.btn-danger { background: linear-gradient(135deg, #7f1d1d, #991b1b); color: #fca5a5; box-shadow: 0 4px 12px rgba(127,29,29,.3); }
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn .22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.section-box {
+  text-align: left; margin-bottom: 16px; background: var(--card-2);
+  padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+}
+.section-box h3 {
+  margin: 0 0 10px; font-size: 12px; color: #38bdf8;
+  text-transform: uppercase; letter-spacing: .05em; font-weight: 800;
+}
+.radio-item, .checkbox-item { display: flex; align-items: center; padding: 6px 0; }
+.radio-item input, .checkbox-item input {
+  width: 18px; height: 18px; margin-right: 12px; accent-color: var(--accent); cursor: pointer;
+}
+.radio-item label, .checkbox-item label {
+  cursor: pointer; font-size: 14px; color: #e2e8f0; display: flex; align-items: center; gap: 6px;
+}
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+.dot-green { background: #22c55e; }
+.dot-yellow { background: #eab308; }
+.dot-red { background: #ef4444; }
+.dot-black { background: #000; border: 1px solid #64748b; }
+.image-container {
+  width: 100%; height: 160px; border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+  border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.image-container img { width: 100%; height: 100%; object-fit: cover; }
+.result-card {
+  background: var(--card-2); border: 1px solid var(--border);
+  padding: 16px; border-radius: 14px; text-align: left; margin-bottom: 16px;
+}
+.result-card h2 {
+  margin: 0 0 8px; color: #38bdf8; font-size: 18px; font-weight: 800;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.result-card p { margin: 8px 0; color: #cbd5e1; }
+.scenario-image {
+  width: 100%; height: 200px; object-fit: cover; border-radius: 12px;
+  margin-bottom: 12px; display: block; border: 1px solid var(--border);
+}
+.info-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.module-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px; background: var(--card);
+  border: 1px solid var(--border); font-size: 16px; margin-right: 4px;
+}
+.ability-count { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; }
+.flight-log-filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-chip {
+  background: var(--card-2); border: 1px solid var(--border); color: var(--muted);
+  padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: .18s;
+}
+.filter-chip.active {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7); border-color: transparent; color: white;
+}
+.flight-log-list {
+  max-height: 280px; overflow-y: auto; text-align: left;
+  display: flex; flex-direction: column; gap: 6px; padding-right: 4px;
+}
+.flight-log-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg); padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--border); font-size: 13px;
+}
+.flight-log-item label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e2e8f0; flex: 1;
+}
+.flight-log-item input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+@media (min-width: 520px) {
+  body { padding: 16px 0; height: 100dvh; }
+  .top-header, .container { max-width: 480px; }
+  .top-header {
+    max-width: 480px; margin-top: 0; border-radius: 18px 18px 0 0;
+    border: 1px solid var(--border); border-bottom: none;
+  }
+  .container {
+    max-width: 480px;
+    background: linear-gradient(180deg, rgba(19,32,51,.98), rgba(15,26,42,.99));
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    padding: 22px 20px 28px; margin-bottom: 24px;
+  }
+}
+
+/* UX polish: safe-area + reduced motion + focus */
+html { height: 100%; }
+body {
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+
+.toast-host {
+  position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 50%;
+  transform: translateX(-50%); z-index: 200; width: min(340px, calc(100% - 24px));
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.toast {
+  pointer-events: auto; background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff; font-weight: 800; font-size: 14px; padding: 12px 16px;
+  border-radius: 14px; text-align: center; box-shadow: 0 10px 28px rgba(0,0,0,.4);
+  animation: toastIn .25s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+</style>
+</head>
+<body>
+
+<!-- Постоянен хедър с бутони -->
+<div class="top-header">
+    <div class="nav-btns">
+        <button type="button" class="nav-btn home-btn" onclick="goHome()" title="Начало">
+            <i class="fa-solid fa-house"></i>
+        </button>
+        <button type="button" class="nav-btn back-btn" onclick="goBackStep()" title="Назад">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <button type="button" class="nav-btn log-btn" onclick="openFlightLog()" title="Flight Log (Списък писти)">
+            <i class="fa-solid fa-list-check"></i>
+        </button>
+        <a href="./index.html#companions" class="nav-btn tracker-btn" title="Към Board Game Tracker">
+            <i class="fa-solid fa-flag-checkered"></i>
+        </a>
+    </div>
+    <div class="title-area">
+        <div class="logo-icon"><i class="fa-solid fa-plane"></i></div>
+        <div>
+            <div class="title-mini">SKY TEAM</div>
+            <div class="title-sub">Рандомайзер</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Начална страница -->
+    <div id="screen-home" class="screen active">
+        <h1>Sky Team</h1>
+        <p>Кооперативна игра за двама пилоти</p>
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" alt="Самолет в небето">
+        </div>
+        <button class="btn" onclick="goToScreen('screen-expansions')">Започни</button>
+    </div>
+
+    <!-- Страница с експанжъна -->
+    <div id="screen-expansions" class="screen">
+        <h1>Компоненти</h1>
+        <p>Изберете с какво разполагате:</p>
+        
+        <div class="section-box">
+            <div class="checkbox-item">
+                <input type="checkbox" id="base" checked disabled>
+                <label for="base"><strong>Sky Team</strong> <span style="color: #94a3b8; font-size: 13px;">(Базова игра)</span></label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="turbulence" checked>
+                <label for="turbulence"><strong>Turbulence</strong> <span style="color: #94a3b8; font-size: 13px;">(Разширение)</span></label>
+            </div>
+        </div>
+
+        <button class="btn" onclick="goToScreen('screen-settings')">Напред</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-home')">Назад</button>
+    </div>
+
+    <!-- Страница с настройки -->
+    <div id="screen-settings" class="screen">
+        <h1>Настройки на пистите</h1>
+        <p>Изберете режим и трудност:</p>
+        
+        <div class="section-box">
+            <h3>Режим на пистите</h3>
+            <div class="radio-item">
+                <input type="radio" id="mode-official" name="track-mode" value="official" checked>
+                <label for="mode-official">Официални писти</label>
+            </div>
+            <div class="radio-item">
+                <input type="radio" id="mode-random" name="track-mode" value="random">
+                <label for="mode-random">Случайни писти (Random + Модули)</label>
+            </div>
+        </div>
+
+        <!-- Ново: Отделено условие за неизвършени писти извън приоритизацията -->
+        <div class="section-box">
+            <h3>Условие за статус</h3>
+            <div class="checkbox-item">
+                <input type="checkbox" id="filter-unplayed-only" name="unplayed-only">
+                <label for="filter-unplayed-only">🎯 Само неизвършени писти (Flight Log)</label>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h3>Приоритизация на трудност</h3>
+            <div class="radio-item">
+                <input type="radio" id="diff-balanced" name="difficulty" value="balanced" checked>
+                <label for="diff-balanced">⚖️ Балансирано (Всички категории)</label>
+            </div>
+            <div class="radio-item">
+                <input type="radio" id="diff-easy" name="difficulty" value="easy">
+                <label for="diff-easy">
+                    Лесни: 
+                    <span class="dot dot-green" title="Зелено (Routine)"></span>
+                    <span class="dot dot-yellow" title="Жълто (Exceptional)"></span>
+                </label>
+            </div>
+            <div class="radio-item">
+                <input type="radio" id="diff-hard" name="difficulty" value="hard">
+                <label for="diff-hard">
+                    Трудни: 
+                    <span class="dot dot-red" title="Червено (Elite)"></span>
+                    <span class="dot dot-black" title="Черно (Heroic)"></span>
+                </label>
+            </div>
+        </div>
+
+        <button class="btn" onclick="generateRandomizer()">Генерирай</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-expansions')">Назад</button>
+    </div>
+
+    <!-- Резултат -->
+    <div id="screen-randomizer" class="screen">
+        <h1>Рандомайзер</h1>
+        <div id="result-content"></div>
+        <button class="btn" onclick="generateRandomizer()">Тегли отново</button>
+        <button class="btn" id="btn-mark-completed" onclick="toggleCurrentAirportCompleted()" style="background-color: #15803d; margin-top: 8px;">Маркирай като завършена</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-settings')" style="margin-top: 8px;">Промени настройките</button>
+    </div>
+
+    <!-- Страница / Екран за Flight Log -->
+    <div id="screen-flight-log" class="screen">
+        <h1>Flight Log</h1>
+        <p>Отбележете минатите писти:</p>
+        
+        <div class="flight-log-filters">
+            <button type="button" class="filter-chip active" id="filter-chip-all" onclick="setFlightLogFilter('all')">Всички</button>
+            <button type="button" class="filter-chip" id="filter-chip-base" onclick="setFlightLogFilter('base')">Базова игра</button>
+            <button type="button" class="filter-chip" id="filter-chip-turbulence" onclick="setFlightLogFilter('turbulence')">Turbulence</button>
+        </div>
+
+        <div class="section-box" style="padding: 10px;">
+            <div id="flight-log-container" class="flight-log-list">
+                <!-- Тук динамично се попълват пистите -->
+            </div>
+        </div>
+        
+        <button class="btn btn-danger" onclick="clearAllFlightLog()">Демаркирай всички</button>
+        <button class="btn" onclick="goBackStep()" style="margin-top: 8px;">Готово</button>
+    </div>
+</div>
+
+<script>
+    // Пълен списък с летища (Базова игра + Turbulence)[span_4](start_span)[span_4](end_span)
+    const airports = [
+        // ========== BASE GAME ==========
+        { id: 1, name: "YUL Montréal-Trudeau", color: "green", exp: "base", modules: [], effects: [], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/cc6de749-2bbf-4766-9414-bec2c0fa4a1c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 2, name: "LHR Heathrow", color: "green", exp: "base", modules: [], effects: ["Traffic"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 3, name: "HND Haneda", color: "green", exp: "base", modules: [], effects: ["Turns"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 4, name: "OSL Gardermoen", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 5, name: "ATL Hartsfield-Jackson", color: "green", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 6, name: "PRG Václav Havel", color: "green", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        { id: 7, name: "LHR Heathrow", color: "yellow", exp: "base", modules: ["Intern"], effects: ["Traffic"], specialAbilities: 0, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/aa4e38d6-4ca1-49c9-b227-08b3e13a760c-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 8, name: "TGU Toncontín", color: "yellow", exp: "base", modules: ["Kerosene"], effects: ["Turns"], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 9, name: "GIG Galeão", color: "yellow", exp: "base", modules: ["Wind"], effects: ["Turns"], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 10, name: "KEF Keflavík", color: "yellow", exp: "base", modules: ["Ice Brakes"], effects: [], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 11, name: "PRG Václav Havel", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/09ca581f-3bd3-4e7a-b25d-d9ce773e85f3-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 12, name: "KUL Kuala Lumpur", color: "yellow", exp: "base", modules: ["Kerosene"], effects: [], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 13, name: "ATL Hartsfield-Jackson", color: "yellow", exp: "base", modules: ["Kerosene Leak"], effects: ["Traffic"], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5f1ed5e2-37a6-4094-b52e-10af30404f3e-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        { id: 14, name: "PBH Paro", color: "red", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 15, name: "HND Haneda", color: "red", exp: "base", modules: ["Kerosene", "Intern"], effects: ["Traffic"], specialAbilities: 1, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/21809749-9a5f-42e7-82f5-5c41e2e4aaa9-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 16, name: "GIG Galeão", color: "red", exp: "base", modules: ["Wind", "Kerosene Leak"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/35bb2d24-4f7e-4c14-af1f-70fe10cfd9c1-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 17, name: "OSL Gardermoen", color: "red", exp: "base", modules: ["Kerosene Leak", "Ice Brakes"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/5b927a6b-6f38-4574-a3e8-2020a57ddd5a-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 18, name: "TGU Toncontín", color: "red", exp: "base", modules: ["Kerosene", "Wind"], effects: ["Turns"], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/d3d93603-ce3d-4b77-b587-3f825eb8f5e7-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        { id: 19, name: "KEF Keflavík", color: "black", exp: "base", modules: ["Wind", "Ice Brakes"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7dcd3693-d70e-4952-ab61-6962a72e836d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 20, name: "KUL Kuala Lumpur", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/7eb6f78e-9d09-47aa-8a05-2792f6bc933d-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+        { id: 21, name: "PBH Paro", color: "black", exp: "base", modules: ["Kerosene", "Real-Time"], effects: [], specialAbilities: 2, notes: "", image: "https://assets.dized.app/project/39bb134b-58a6-4903-85c5-bd0e343231dd/en-US/eb51938ff9a3aaa135a6ae051260d1ab/22c37f23-8baf-4a04-9158-c5514abd2f57-d41d8cd98f00b204e9800998ecf8427e.jpg" },
+
+        // ========== TURBULENCE EXPANSION ==========
+        { id: 22, name: "TER Lajes, Azores", color: "green", exp: "turbulence", modules: ["Altitude 5000"], effects: [], specialAbilities: 0, notes: "Двигателите са изключени (няма гориво). В края на всяка рунда мести и двата трака.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 23, name: "SXM Princess Juliana", color: "green", exp: "turbulence", modules: ["Intern"], effects: [], specialAbilities: 0, notes: "Плажната писта – внимавай с turbulence при спускане.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 24, name: "DUS Düsseldorf", color: "green", exp: "turbulence", modules: ["Kerosene"], effects: [], specialAbilities: 0, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+
+        { id: 25, name: "WAW Warsaw Chopin", color: "yellow", exp: "turbulence", modules: ["Alarms"], effects: [], specialAbilities: 1, notes: "Колесникът е блокиран → belly landing.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 26, name: "KBP Boryspil", color: "yellow", exp: "turbulence", modules: ["Alarms", "Total Trust"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 27, name: "SYD Kingsford Smith", color: "yellow", exp: "turbulence", modules: ["Wind", "Low Visibility"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 28, name: "MAD Madrid–Barajas", color: "yellow", exp: "turbulence", modules: ["Alarms"], effects: [], specialAbilities: 0, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 29, name: "CPT Cape Town", color: "yellow", exp: "turbulence", modules: ["Wind"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 30, name: "PEK Beijing Capital", color: "yellow", exp: "turbulence", modules: ["Low Visibility"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+
+        { id: 31, name: "TER Lajes, Azores", color: "red", exp: "turbulence", modules: ["Altitude 5000", "Alarms"], effects: [], specialAbilities: 1, notes: "Двигателите са изключени (няма гориво).", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 32, name: "WAW Warsaw Chopin", color: "red", exp: "turbulence", modules: ["Alarms", "Kerosene"], effects: [], specialAbilities: 2, notes: "Колесникът е блокиран → belly landing.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 33, name: "NZIR Ice Runway", color: "red", exp: "turbulence", modules: ["Wind"], effects: [], specialAbilities: 1, notes: "Пингвини вместо самолети.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 34, name: "SXM Princess Juliana", color: "red", exp: "turbulence", modules: ["Turbulence", "Intern"], effects: [], specialAbilities: 1, notes: "Плажната писта + turbulence.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 35, name: "PEK Beijing Capital", color: "red", exp: "turbulence", modules: ["Low Visibility", "Alarms"], effects: [], specialAbilities: 2, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 36, name: "KBP Boryspil", color: "red", exp: "turbulence", modules: ["Alarms", "Total Trust"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+
+        { id: 37, name: "NZIR Ice Runway", color: "black", exp: "turbulence", modules: ["Wind", "Ice Brakes"], effects: [], specialAbilities: 2, notes: "Пингвини вместо самолети.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 38, name: "TER Lajes, Azores", color: "black", exp: "turbulence", modules: ["Altitude 5000", "Alarms", "Kerosene"], effects: [], specialAbilities: 2, notes: "Двигателите са изключени.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 39, name: "WAW Warsaw Chopin", color: "black", exp: "turbulence", modules: ["Alarms", "Total Trust"], effects: [], specialAbilities: 2, notes: "Колесникът е блокиран → belly landing.", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 40, name: "SYD Kingsford Smith", color: "black", exp: "turbulence", modules: ["Turbulence", "Low Visibility", "Wind"], effects: [], specialAbilities: 2, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" },
+        { id: 41, name: "DUS Düsseldorf", color: "black", exp: "turbulence", modules: ["Kerosene Leak", "Low Visibility"], effects: [], specialAbilities: 1, notes: "", image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80" }
+    ];
+
+    const allPossibleModules = [
+        "Kerosene", "Intern", "Wind", "Real-Time", "Kerosene Leak", 
+        "Ice Brakes", "Alarms", "Altitude 5000", "Total Trust", "Low Visibility", "Turbulence"
+    ];
+
+    const moduleIcons = {
+        "Kerosene": "⛽", "Intern": "🧑‍✈️", "Wind": "💨", "Real-Time": "⏱️", 
+        "Kerosene Leak": "🛢️", "Ice Brakes": "🧊", "Alarms": "🚨", 
+        "Altitude 5000": "📉", "Total Trust": "🤫", "Low Visibility": "🌫️", "Turbulence": "🌪️"
+    };
+
+    // Управление на навигацията и историята
+    let navigationHistory = ['screen-home'];
+    let currentFlightLogFilter = 'all';
+    let currentSelectedAirportId = null; // Запомня текущо генерираната писта
+
+    function goToScreen(screenId) {
+        if (navigationHistory[navigationHistory.length - 1] !== screenId) {
+            navigationHistory.push(screenId);
+        }
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function goHome() {
+        navigationHistory = ['screen-home'];
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById('screen-home').classList.add('active');
+    }
+
+    function goBackStep() {
+        if (navigationHistory.length > 1) {
+            navigationHistory.pop();
+            const prev = navigationHistory[navigationHistory.length - 1];
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(prev).classList.add('active');
+        } else {
+            goHome();
+        }
+    }
+
+    // Инициализация и показване на Flight Log
+    function openFlightLog() {
+        renderFlightLogUI();
+        goToScreen('screen-flight-log');
+    }
+
+    function getCompletedAirports() {
+        const saved = localStorage.getItem('skyteam_flight_log');
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    function toggleAirportCompleted(id) {
+        let completed = getCompletedAirports();
+        const index = completed.indexOf(id);
+        if (index > -1) {
+            completed.splice(index, 1);
+        } else {
+            completed.push(id);
+        }
+        localStorage.setItem('skyteam_flight_log', JSON.stringify(completed));
+    }
+
+    // Функция за бутона в рандомайзера
+    function toggleCurrentAirportCompleted() {
+        if (!currentSelectedAirportId) return;
+        toggleAirportCompleted(currentSelectedAirportId);
+        updateCompletedButtonVisual();
+    }
+
+    // Обновяване на визуалното състояние на бутона и бейджa
+    function updateCompletedButtonVisual() {
+        if (!currentSelectedAirportId) return;
+        const completed = getCompletedAirports();
+        const isCompleted = completed.includes(currentSelectedAirportId);
+        const btn = document.getElementById('btn-mark-completed');
+        const badge = document.getElementById('completed-status-badge');
+        
+        if (isCompleted) {
+            if (btn) {
+                btn.innerHTML = '✓ Завършена (Кликни за демаркиране)';
+                btn.style.backgroundColor = '#334155';
+                btn.style.color = '#22c55e';
+            }
+            if (badge) {
+                badge.style.display = 'inline-block';
+            }
+        } else {
+            if (btn) {
+                btn.innerHTML = 'Маркирай като завършена';
+                btn.style.backgroundColor = '#15803d';
+                btn.style.color = 'white';
+            }
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    function setFlightLogFilter(filter) {
+        currentFlightLogFilter = filter;
+        document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`filter-chip-${filter}`).classList.add('active');
+        renderFlightLogUI();
+    }
+
+    function clearAllFlightLog() {
+        if (confirm("Сигурни ли сте, че искате да демаркирате всички писти?")) {
+            localStorage.setItem('skyteam_flight_log', JSON.stringify([]));
+            renderFlightLogUI();
+            updateCompletedButtonVisual();
+        }
+    }
+
+    function renderFlightLogUI() {
+        const container = document.getElementById('flight-log-container');
+        const completed = getCompletedAirports();
+        const hasTurbulenceChecked = document.getElementById('turbulence').checked;
+
+        let available = airports.filter(a => a.exp === 'base' || (a.exp === 'turbulence' && hasTurbulenceChecked));
+
+        if (currentFlightLogFilter === 'base') {
+            available = available.filter(a => a.exp === 'base');
+        } else if (currentFlightLogFilter === 'turbulence') {
+            available = available.filter(a => a.exp === 'turbulence');
+        }
+
+        if (available.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#64748b; margin:15px 0;">Няма писти в тази категория.</p>`;
+            return;
+        }
+
+        container.innerHTML = available.map(a => {
+            const isChecked = completed.includes(a.id) ? 'checked' : '';
+            let dotColorClass = 'dot-green';
+            if (a.color === 'yellow') dotColorClass = 'dot-yellow';
+            if (a.color === 'red') dotColorClass = 'dot-red';
+            if (a.color === 'black') dotColorClass = 'dot-black';
+            const expBadge = a.exp === 'turbulence' ? ' <small style="color:#38bdf8;">(Turbulence)</small>' : '';
+
+            return `
+                <div class="flight-log-item">
+                    <label>
+                        <input type="checkbox" ${isChecked} onchange="toggleAirportCompleted(${a.id}); updateCompletedButtonVisual();">
+                        <span class="dot ${dotColorClass}"></span>
+                        <span><strong>#${a.id}</strong> ${a.name}${expBadge}</span>
+                    </label>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function generateRandomizer() {
+        const hasTurbulence = document.getElementById('turbulence').checked;
+        const trackMode = document.querySelector('input[name="track-mode"]:checked').value;
+        const unplayedOnly = document.getElementById('filter-unplayed-only').checked;
+        const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+        const completed = getCompletedAirports();
+
+        // 1. Филтриране по наличен експанжън
+        let filtered = airports.filter(a => a.exp === 'base' || (a.exp === 'turbulence' && hasTurbulence));
+
+        // 2. Прилагане на условието за неизвършени писти (ако е маркирано)
+        if (unplayedOnly) {
+            let unplayedFiltered = filtered.filter(a => !completed.includes(a.id));
+            if (unplayedFiltered.length > 0) {
+                filtered = unplayedFiltered;
+            }
+        }
+
+        // 3. Приоритизация по трудност
+        if (difficulty === 'easy') {
+            filtered = filtered.filter(a => a.color === 'green' || a.color === 'yellow');
+        } else if (difficulty === 'hard') {
+            filtered = filtered.filter(a => a.color === 'red' || a.color === 'black');
+        }
+
+        if (filtered.length === 0) {
+            document.getElementById('result-content').innerHTML = `
+                <div class="result-card">
+                    <p style="color: #ef4444;">Няма налични писти с тези критерии. Проверете изборите си или нулирайте Flight Log.</p>
+                </div>
+            `;
+            goToScreen('screen-randomizer');
+            return;
+        }
+
+        // 4. Избор на случайна писта
+        const selectedAirport = filtered[Math.floor(Math.random() * filtered.length)];
+        currentSelectedAirportId = selectedAirport.id; // Запазваме ID за бутона
+        let activeModules = [...selectedAirport.modules];
+
+        // 5. Ако е избран режим "Random", модифицираме модулите
+        if (trackMode === 'random') {
+            const count = activeModules.length;
+            activeModules = [];
+            let availablePool = hasTurbulence ? [...allPossibleModules] : allPossibleModules.filter(m => 
+                !["Alarms","Altitude 5000","Total Trust","Low Visibility","Turbulence"].includes(m)
+            );
+            for (let i = 0; i < count && availablePool.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * availablePool.length);
+                activeModules.push(availablePool.splice(randomIndex, 1)[0]);
+            }
+        }
+
+        // Цвят за визуализация
+        let dotClass = 'dot-green';
+        let colorName = 'Зелена (Routine Landing)';
+        if (selectedAirport.color === 'yellow') { dotClass = 'dot-yellow'; colorName = 'Жълта (Exceptional Conditions)'; }
+        if (selectedAirport.color === 'red') { dotClass = 'dot-red'; colorName = 'Червена (Elite Pilots Only)'; }
+        if (selectedAirport.color === 'black') { dotClass = 'dot-black'; colorName = 'Черна (Heroic Landing)'; }
+
+        const expLabel = selectedAirport.exp === 'turbulence' ? '<span style="background:#0369a1;color:white;padding:2px 8px;border-radius:6px;font-size:11px;margin-left:6px;">Turbulence</span>' : '';
+        const isCompleted = completed.includes(selectedAirport.id);
+        const statusBadgeHtml = `<span id="completed-status-badge" style="display: ${isCompleted ? 'inline-block' : 'none'}; background: #14532d; color: #4ade80; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 6px; border: 1px solid #166534;"><i class="fa-solid fa-check"></i> Мината</span>`;
+        const notesHtml = selectedAirport.notes ? `<p style="margin-top:12px;padding:10px;background:#1e3a5f;border-radius:8px;font-size:13px;color:#bae6fd;"><strong>⚠️ Специални правила:</strong> ${selectedAirport.notes}</p>` : '';
+
+        // Резултат
+        document.getElementById('result-content').innerHTML = `
+            <div class="result-card">
+                <img class="scenario-image" src="${selectedAirport.image}" alt="${selectedAirport.name}">
+                <h2>
+                    <span class="dot ${dotClass}"></span> 
+                    #${selectedAirport.id} ${selectedAirport.name}${expLabel} ${statusBadgeHtml}
+                </h2>
+                <p class="info-row"><strong>Трудност:</strong> ${colorName}</p>
+                <p class="info-row"><strong>Модули:</strong> ${activeModules.length > 0 ? activeModules.map(module => `<span class="module-icon" title="${module}">${moduleIcons[module] || '⚙️'}</span>${module}`).join(' ') : 'Няма'}</p>
+                <p class="info-row"><strong>Special Abilities:</strong> <span class="ability-count">${selectedAirport.specialAbilities > 0 ? '⭐'.repeat(selectedAirport.specialAbilities) : '—'} <small>(${selectedAirport.specialAbilities})</small></span></p>
+                ${notesHtml}
+            </div>
+        `;
+
+        updateCompletedButtonVisual();
+        goToScreen('screen-randomizer');
+    
+  try{showToast('Готово ✓');}catch(e){}
+}
+
+function showToast(msg){
+  var host = document.getElementById('toastHost');
+  if(!host){
+    host = document.createElement('div');
+    host.id = 'toastHost';
+    host.className = 'toast-host';
+    document.body.appendChild(host);
+  }
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  host.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2200);
+  try { if(navigator.vibrate) navigator.vibrate(10); } catch(e){}
+}
+
+</script>
+
+</body>
+</html>
+
