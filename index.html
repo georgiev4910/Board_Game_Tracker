@@ -1944,7 +1944,7 @@ window.saveDataToFirebase = async function () {
                 <p class="app-sub">Записвай · играй · побеждавай</p>
             </div>
         </div>
-        <button type="button" class="profile-chip" id="profileChip" onclick="openProfilePicker()" title="Смени профил" style="display:none">
+        <button type="button" class="profile-chip" id="profileChip" onclick="goToMyPlayerStats()" title="Моята статистика" style="display:none">
             <span>👤</span><span class="pc-name" id="profileChipName">—</span>
         </button>
         <div class="menu-wrap">
@@ -1958,8 +1958,6 @@ window.saveDataToFirebase = async function () {
                 <button type="button" data-nav="companions" onclick="goTo('companions')">🎮 Companion apps</button>
                 <hr>
                 <button type="button" data-nav="manage" onclick="goTo('manage')">⚙️ Настройки</button>
-                <hr>
-                <button type="button" onclick="openProfilePicker()">👤 Смени играч</button>
             </div>
         </div>
     </div>
@@ -1982,12 +1980,6 @@ window.saveDataToFirebase = async function () {
             <div class="home-you" id="homeYouBox" style="display:none">
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
-                <div class="hy-sub" id="homeYouSub"></div>
-            </div>
-            <div class="profile-gate" id="profileGate" style="display:none">
-                <h3>Кой играе?</h3>
-                <p>Избери своя профил — home екранът ще показва твоите резултати.</p>
-                <div class="profile-pick-grid" id="profilePickGrid"></div>
             </div>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
@@ -2146,9 +2138,8 @@ window.saveDataToFirebase = async function () {
 
             <div class="manage-card">
                 <div class="manage-card-title">👤 Активен играч</div>
-                <div class="small">Персонализира началния екран. Всеки вижда основно своите резултати.</div>
-                <div id="manageProfileNow" class="stats-note small" style="margin-bottom:8px">Не е избран</div>
-                <button type="button" class="btn-secondary" onclick="openProfilePicker()" style="margin:0">Смени играч</button>
+                <div class="small">Поздрав на home и филтър в статистиките (само твоите партии). Цъкни на името горе за личен преглед.</div>
+                <div id="manageProfileList" class="profile-pick-grid" style="max-width:none;margin:10px 0 0"></div>
             </div>
 
             <div class="manage-card">
@@ -2373,7 +2364,7 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); }
   else { updateUI(); }
 }
 
@@ -2382,79 +2373,59 @@ function refreshHomeStats(){
     updateProfileUI();
     const me = getActivePlayer();
     const allLogs = gameLogs || [];
-    const myLogs = me ? allLogs.filter(l => playerInLog(l, me)) : allLogs;
 
+    /* Always global counters on home */
     const g = Object.keys(myGamesObj || {}).length;
-    const l = me ? myLogs.length : allLogs.length;
+    const l = allLogs.length;
     const p = (myPlayers || []).length;
     const el = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
     el('homeGamesCount', g);
     el('homeLogsCount', l);
     el('homePlayersCount', p);
-    // relabel parties when personalized
     const logsLabel = document.querySelector('#homeQuickStats .home-stat:nth-child(2) .hs-label');
-    if(logsLabel) logsLabel.textContent = me ? 'Мои партии' : 'Партии';
+    if(logsLabel) logsLabel.textContent = 'Партии';
 
+    /* Greeting only */
     const youBox = document.getElementById('homeYouBox');
-    const gate = document.getElementById('profileGate');
-    if(!me){
-      if(youBox) youBox.style.display = 'none';
-      // show gate only if no player chosen and we have players - soft prompt once area
-      if(gate && (myPlayers||[]).length && gate.dataset.forced !== '1'){
-        // don't auto-show every time - only via picker
-      }
-    } else if(youBox){
-      if(gate) gate.style.display = 'none';
+    const hello = document.getElementById('homeYouHello');
+    const line = document.getElementById('homeYouLine');
+    const tips = [
+      'готов ли си за партия?',
+      'време за игра!',
+      'зарчетата чакат.',
+      'коя игра ще е днес?',
+      'успех на масата!',
+      'да разбъркаме нещо ново?'
+    ];
+    if(me && youBox){
       youBox.style.display = 'block';
-      const hello = document.getElementById('homeYouHello');
-      const line = document.getElementById('homeYouLine');
-      const sub = document.getElementById('homeYouSub');
       if(hello) hello.textContent = 'Здравей, ' + me + '!';
-      const pvpMine = myLogs.filter(x => x.type !== 'coop');
-      let wins = 0, losses = 0;
-      pvpMine.forEach(log => { if(playerWonLog(log, me)) wins++; else losses++; });
-      const rate = pvpMine.length ? Math.round(wins / pvpMine.length * 100) : 0;
-      const coopMine = myLogs.filter(x => x.type === 'coop');
-      const coopW = coopMine.filter(x => x.coopResult === 'win').length;
-      if(line){
-        if(pvpMine.length) line.textContent = 'PvP: ' + wins + 'П – ' + losses + 'З · ' + rate + '% win rate';
-        else line.textContent = 'Все още нямаш PvP партии';
-      }
-      if(sub){
-        if(coopMine.length) sub.textContent = 'Co-op: ' + coopW + '/' + coopMine.length + ' успеха';
-        else sub.textContent = 'Избираш се от 👤 горе или от менюто';
-      }
+      if(line) line.textContent = tips[Math.floor(Math.random() * tips.length)];
+    } else if(youBox){
+      youBox.style.display = 'none';
     }
 
+    /* Last session — always global */
     const box = document.getElementById('homeLastSession');
     const gEl = document.getElementById('homeLastGame');
     const mEl = document.getElementById('homeLastMeta');
-    const scopeLogs = me ? myLogs : allLogs;
     if(gEl){
-      if(!scopeLogs.length){
+      if(!allLogs.length){
         if(box) box.classList.add('empty');
-        gEl.textContent = me ? 'Няма твои записи' : 'Все още няма записи';
+        gEl.textContent = 'Все още няма записи';
         if(mEl) mEl.textContent = '';
       } else {
         if(box) box.classList.remove('empty');
-        const last = [...scopeLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
+        const last = [...allLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
         gEl.textContent = last.game || '—';
         let meta = '';
         if(last.type === 'coop'){
           const res = last.coopResult === 'win' ? '🏆 Успех' : '❌ Неуспех';
-          if(me) meta = res + (last.coopResult === 'win' ? ' за отбора' : '');
-          else {
-            const team = (last.participants || []).join(', ');
-            meta = res + (team ? ' · ' + team : '');
-          }
+          const team = (last.participants || []).join(', ');
+          meta = res + (team ? ' · ' + team : '');
         } else {
           const winners = (typeof getPvpWinners === 'function') ? getPvpWinners(last) : (last.winners || (last.winner ? [last.winner] : []));
-          if(me){
-            meta = winners.includes(me) ? '🏆 Ти победи' : '😔 Загуба';
-            if(last.scores && last.scores[me] !== undefined) meta += ' · ' + last.scores[me] + ' т.';
-          } else {
-            meta = winners.length ? ('🏆 ' + winners.join(' & ')) : '';
-          }
+          meta = winners.length ? ('🏆 ' + winners.join(' & ')) : '';
         }
         if(last.date){
           try {
@@ -2466,29 +2437,17 @@ function refreshHomeStats(){
       }
     }
 
-    /* Weekly — scoped */
+    /* Weekly — global */
     const weekEl = document.getElementById('homeWeekText');
     if(weekEl){
       const now = Date.now();
       const weekMs = 7 * 24 * 60 * 60 * 1000;
-      const weekLogs = scopeLogs.filter(x => {
+      const weekLogs = allLogs.filter(x => {
         const t = new Date(x.date || 0).getTime();
         return !isNaN(t) && (now - t) <= weekMs;
       });
       if(!weekLogs.length){
-        weekEl.textContent = me ? 'Тази седмица нямаш партии' : 'Няма партии последните 7 дни';
-      } else if(me){
-        const pvpW = weekLogs.filter(x => x.type !== 'coop');
-        let w = 0, l2 = 0;
-        pvpW.forEach(log => { if(playerWonLog(log, me)) w++; else l2++; });
-        const coopW = weekLogs.filter(x => x.type === 'coop' && x.coopResult === 'win').length;
-        const coopN = weekLogs.filter(x => x.type === 'coop').length;
-        let t = weekLogs.length + (weekLogs.length === 1 ? ' партия' : ' партии');
-        if(pvpW.length) t += ' · ' + w + 'П–' + l2 + 'З';
-        if(coopN) t += ' · co-op ' + coopW + '/' + coopN;
-        if(pvpW.length && w > l2) t += ' · добра седмица!';
-        else if(pvpW.length && w < l2) t += ' · реваншът чака';
-        weekEl.textContent = t;
+        weekEl.textContent = 'Няма партии последните 7 дни';
       } else {
         const pvpW = weekLogs.filter(x => x.type !== 'coop');
         const wins = {};
@@ -2503,68 +2462,43 @@ function refreshHomeStats(){
       }
     }
 
-    /* Home H2H — if me, vs each other top opponent; else first two players */
+    /* H2H first two players — global */
     const h2hBox = document.getElementById('homeH2H');
     if(h2hBox && myPlayers && myPlayers.length >= 2){
-      let a, b, h2hLogs, wa, wb;
-      if(me){
-        a = me;
-        // find most frequent opponent
-        const oppCount = {};
-        allLogs.forEach(l => {
-          if(l.type === 'coop' || !playerInLog(l, me)) return;
-          Object.keys(l.scores || {}).forEach(p => {
-            if(p !== me) oppCount[p] = (oppCount[p] || 0) + 1;
-          });
-        });
-        const opps = Object.entries(oppCount).sort((x,y) => y[1]-x[1]);
-        b = opps.length ? opps[0][0] : (myPlayers.find(p => p !== me) || myPlayers[1]);
-        h2hLogs = allLogs.filter(l => {
-          if(l.type === 'coop') return false;
-          const keys = Object.keys(l.scores || {});
-          return keys.length === 2 && keys.includes(a) && keys.includes(b);
-        });
-        wa = 0; wb = 0;
-        h2hLogs.forEach(l => {
-          const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
-          if(ws.includes(a)) wa++;
-          if(ws.includes(b)) wb++;
-        });
-      } else {
-        a = myPlayers[0]; b = myPlayers[1];
-        h2hLogs = allLogs.filter(l => {
-          if(l.type === 'coop') return false;
-          const keys = Object.keys(l.scores || {});
-          return keys.length === 2 && keys.includes(a) && keys.includes(b);
-        });
-        wa = 0; wb = 0;
-        h2hLogs.forEach(l => {
-          const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
-          if(ws.includes(a)) wa++;
-          if(ws.includes(b)) wb++;
-        });
-      }
+      const a = myPlayers[0], b = myPlayers[1];
+      const h2hLogs = allLogs.filter(l => {
+        if(l.type === 'coop') return false;
+        const keys = Object.keys(l.scores || {});
+        return keys.length === 2 && keys.includes(a) && keys.includes(b);
+      });
+      const wa = {a:0, b:0};
+      h2hLogs.forEach(l => {
+        const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
+        if(ws.includes(a)) wa.a++;
+        if(ws.includes(b)) wa.b++;
+      });
       h2hBox.style.display = h2hLogs.length ? 'block' : 'none';
       const set = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
-      set('hhNameA', a === me ? 'Ти' : a); set('hhNameB', b);
-      set('hhScoreA', wa); set('hhScoreB', wb);
+      set('hhNameA', a); set('hhNameB', b);
+      set('hhScoreA', wa.a); set('hhScoreB', wa.b);
       const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
-      if(sa){ sa.classList.toggle('lead', wa > wb); }
-      if(sb){ sb.classList.toggle('lead', wb > wa); }
-      const total = wa + wb || 1;
+      if(sa) sa.classList.toggle('lead', wa.a > wa.b);
+      if(sb) sb.classList.toggle('lead', wa.b > wa.a);
+      const total = wa.a + wa.b || 1;
       const ba = document.getElementById('hhBarA'), bb = document.getElementById('hhBarB');
-      if(ba) ba.style.width = (wa / total * 100) + '%';
-      if(bb) bb.style.width = (wb / total * 100) + '%';
+      if(ba) ba.style.width = (wa.a / total * 100) + '%';
+      if(bb) bb.style.width = (wa.b / total * 100) + '%';
       const meta = document.getElementById('hhMeta');
       if(meta){
-        if(wa === wb) meta.textContent = h2hLogs.length + ' директни · равенство';
-        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa > wb ? (a === me ? 'ти' : a) : b);
+        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
+        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa.a > wa.b ? a : b);
       }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
     }
   } catch(e){ console && console.warn && console.warn(e); }
 }
+
 
 
 function showToast(msg, type){
@@ -2697,51 +2631,58 @@ function setActivePlayer(name){
     if(name) localStorage.setItem('bgActivePlayer', name);
     else localStorage.removeItem('bgActivePlayer');
   } catch(e){}
-  closeProfilePicker();
-  refreshHomeStats();
   updateProfileUI();
-  if(name) showToast('👤 Здравей, ' + name + '!', 'info');
+  refreshHomeStats();
+  if(name) showToast('👤 Профил: ' + name, 'info');
+  else showToast('👀 Общ изглед', 'info');
 }
 function updateProfileUI(){
   const name = getActivePlayer();
   const chip = document.getElementById('profileChip');
   const chipName = document.getElementById('profileChipName');
-  const manageNow = document.getElementById('manageProfileNow');
   if(chip){
     chip.style.display = name ? 'inline-flex' : 'none';
     if(chipName) chipName.textContent = name || '—';
   }
-  if(manageNow) manageNow.textContent = name ? ('Сега: ' + name) : 'Не е избран — home е общ';
+  renderManageProfileList();
 }
-function openProfilePicker(){
-  closeQuickMenu();
+function renderManageProfileList(){
+  const list = document.getElementById('manageProfileList');
+  if(!list) return;
   const players = (typeof myPlayers !== 'undefined' && myPlayers.length) ? myPlayers.slice() : [];
-  const grid = document.getElementById('profilePickGrid');
-  const gate = document.getElementById('profileGate');
-  const you = document.getElementById('homeYouBox');
+  const cur = getActivePlayer();
   if(!players.length){
-    showToast('Добави играчи в Настройки първо', 'info');
-    goTo('manage');
+    list.innerHTML = '<div class="small">Добави играчи по-долу, после избери кой си ти.</div>';
     return;
   }
-  if(grid){
-    const cur = getActivePlayer();
-    grid.innerHTML = players.map(p =>
-      '<button type="button" class="profile-pick-btn'+(p===cur?' mine':'')+'" onclick="setActivePlayer(\'' +
-      String(p).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
-      (typeof esc==='function'?esc(p):p) + '</button>'
-    ).join('') +
-    '<button type="button" class="profile-pick-btn" onclick="setActivePlayer(\'\')" style="grid-column:1/-1;opacity:.85">👀 Общ екран (без профил)</button>';
-  }
-  goTo('home');
-  if(gate) gate.style.display = 'block';
-  if(you) you.style.display = 'none';
-  const qs = document.getElementById('homeQuickStats');
-  // keep stats visible
+  list.innerHTML = players.map(p => {
+    const active = p === cur;
+    return '<button type="button" class="profile-pick-btn'+(active?' mine':'')+'" data-player="'+
+      String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+
+      (active?'✓ ':'')+(typeof esc==='function'?esc(p):p)+'</button>';
+  }).join('') +
+  '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="grid-column:1/-1">'+
+  (cur?'':'✓ ')+'👀 Общ екран (без профил)</button>';
+  list.querySelectorAll('[data-player]').forEach(btn => {
+    btn.onclick = () => setActivePlayer(btn.getAttribute('data-player') || '');
+  });
 }
-function closeProfilePicker(){
-  const gate = document.getElementById('profileGate');
-  if(gate) gate.style.display = 'none';
+function goToMyPlayerStats(){
+  const me = getActivePlayer();
+  if(!me){
+    goTo('manage');
+    showToast('Избери активен играч в Настройки', 'info');
+    return;
+  }
+  selectedStatPlayer = me;
+  goTo('stats');
+  setTimeout(function(){
+    try {
+      showStatsPanel('player');
+      if(typeof setStatPlayer === 'function') setStatPlayer(me);
+      else if(typeof populatePlayerSelector === 'function'){ populatePlayerSelector(); renderPlayerStats(); }
+    } catch(e){}
+  }, 30);
 }
 function playerInLog(log, player){
   if(!player || !log) return false;
@@ -2754,7 +2695,12 @@ function playerWonLog(log, player){
   const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(log) : (log.winners || (log.winner ? [log.winner] : []));
   return ws.includes(player);
 }
-
+function getScopedLogs(){
+  const me = getActivePlayer();
+  const all = gameLogs || [];
+  if(!me) return all;
+  return all.filter(l => playerInLog(l, me));
+}
 
 function onLastSessionTap(){
   if(!gameLogs || !gameLogs.length){
@@ -2943,6 +2889,7 @@ function getCompanionButtonHtml(gameName) {
 
 function updateUI(){
     if(typeof refreshHomeStats==='function') refreshHomeStats();
+    if(typeof updateProfileUI==='function') updateProfileUI();
     const select=document.getElementById('gameSelect'), old=select.value;
     const games=Object.keys(myGamesObj).filter(g=>myGamesObj[g]===currentLogFilter).sort((a,b)=>a.localeCompare(b,'bg'));
     select.innerHTML='<option value="">-- Избери игра --</option>'+games.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
@@ -3304,10 +3251,20 @@ function statCard(number, label, extra = ''){
 function showStats(){
     const out = document.getElementById('statsOverviewOutput');
     if(!out) return;
-    if(!gameLogs.length){ out.innerHTML = '<div class="empty">Все още няма записани партии.</div>'; return; }
+    const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : gameLogs;
+    const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
+    if(!scoped.length){
+      out.innerHTML = me
+        ? '<div class="empty">Няма партии с участие на '+esc(me)+'.</div>'
+        : '<div class="empty">Все още няма записани партии.</div>';
+      return;
+    }
+    const scopeNote = me
+      ? '<div class="stats-note small">📊 Само партии с <b>'+esc(me)+'</b>. Общ изглед: Настройки → Общ екран.</div>'
+      : '';
 
-    const pvpLogs=getModeLogs('pvp'), coopLogs=getModeLogs('coop');
-    const uniqueGames=new Set(gameLogs.map(log=>log.game).filter(Boolean)).size;
+    const pvpLogs=getModeLogs('pvp', scoped), coopLogs=getModeLogs('coop', scoped);
+    const uniqueGames=new Set(scoped.map(log=>log.game).filter(Boolean)).size;
     const allPlayers=getAllPlayersList();
     const pvpPlayers=allPlayers.filter(p=>pvpLogs.some(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,p)));
 
@@ -3401,7 +3358,7 @@ function showStats(){
         html+=`</div>`;
     }
     html+=`</div>`;
-    out.innerHTML=html;
+    out.innerHTML = scopeNote + html;
 }
 
 
@@ -3695,20 +3652,17 @@ function renderDetailedStats(){
     }
 
 
-    if(!gameLogs.length){
-
-        out.innerHTML = `
-            <div class="empty">
-                Все още няма записани партии.
-            </div>
-        `;
-
+    const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : gameLogs;
+    const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
+    if(!scoped.length){
+        out.innerHTML = me
+            ? '<div class="empty">Няма партии с участие на '+esc(me)+'.</div>'
+            : '<div class="empty">Все още няма записани партии.</div>';
         return;
     }
 
-
     let logs =
-        getModeLogs(statsMode);
+        getModeLogs(statsMode, scoped);
 
 
     if(detailScope === 'specific'){
