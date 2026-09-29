@@ -37,6 +37,204 @@
   --glow-blue: 0 0 0 3px rgba(96,165,250,.25);
 }
 
+/* Theme: light */
+html[data-theme="light"] {
+  --bg: #eef2f9;
+  --bg-soft: #e2e8f4;
+  --card: #ffffff;
+  --card-2: #f4f6fc;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: rgba(15,23,42,.1);
+  --green-soft: rgba(34,197,94,.12);
+  --blue-soft: rgba(59,130,246,.12);
+  --red-soft: rgba(239,68,68,.12);
+  --amber-soft: rgba(245,158,11,.12);
+  --purple-soft: rgba(139,92,246,.12);
+  --shadow: 0 10px 30px rgba(15,23,42,.1);
+}
+html[data-theme="light"] body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(59,130,246,.12), transparent 50%),
+    radial-gradient(900px 500px at 100% 0%, rgba(34,197,94,.1), transparent 45%),
+    radial-gradient(800px 400px at 50% 100%, rgba(139,92,246,.08), transparent 50%),
+    var(--bg);
+}
+html[data-theme="light"] .container {
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(244,246,252,.98));
+}
+html[data-theme="light"] .top-chrome {
+  background: linear-gradient(180deg, rgba(238,242,249,.98), rgba(244,246,252,.95)) !important;
+}
+html[data-theme="light"] .app-title,
+html[data-theme="light"] .chrome-brand .app-title {
+  background: linear-gradient(90deg, #1e293b, #4f46e5);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+html[data-theme="light"] .home-hero h2 {
+  background: linear-gradient(90deg, #1e293b, #4f46e5);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+html[data-theme="light"] .stat-card .num,
+html[data-theme="light"] .h2h-card .num {
+  background: linear-gradient(135deg, #16a34a, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+html[data-theme="light"] input, html[data-theme="light"] select {
+  color: var(--text);
+}
+html[data-theme="light"] .toast {
+  color: #fff;
+}
+
+/* Theme toggle UI */
+.theme-toggle-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+.theme-toggle-row button {
+  margin: 0;
+  padding: 12px 8px;
+  font-size: 13px;
+  background: var(--bg-soft);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.theme-toggle-row button.active {
+  background: var(--blue-soft);
+  border-color: rgba(96,165,250,.45);
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* Weekly + H2H home */
+.home-week {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(96,165,250,.08);
+  border: 1px solid rgba(96,165,250,.2);
+  text-align: center;
+}
+html[data-theme="light"] .home-week {
+  background: rgba(59,130,246,.08);
+  border-color: rgba(59,130,246,.2);
+}
+.home-week .hw-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.home-week .hw-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.home-h2h {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(167,139,250,.08);
+  border: 1px solid rgba(167,139,250,.22);
+}
+.home-h2h .hh-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.home-h2h .hh-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.home-h2h .hh-player {
+  flex: 1;
+  text-align: center;
+}
+.home-h2h .hh-name { font-size: 13px; font-weight: 800; }
+.home-h2h .hh-score {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -.03em;
+}
+.home-h2h .hh-score.lead {
+  color: #4ade80;
+}
+html[data-theme="light"] .home-h2h .hh-score.lead { color: #16a34a; }
+.home-h2h .hh-vs {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  padding: 0 4px;
+}
+.home-h2h .hh-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  margin-top: 10px;
+  overflow: hidden;
+  display: flex;
+}
+html[data-theme="light"] .home-h2h .hh-bar { background: rgba(15,23,42,.08); }
+.home-h2h .hh-bar span:first-child {
+  background: linear-gradient(90deg, #60a5fa, #818cf8);
+  height: 100%;
+}
+.home-h2h .hh-bar span:last-child {
+  background: linear-gradient(90deg, #a78bfa, #f472b6);
+  height: 100%;
+}
+.home-h2h .hh-meta {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* Confetti canvas */
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Better H2H in stats */
+.h2h-scoreline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 8px 0 4px;
+}
+.h2h-scoreline .big {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+}
+.h2h-scoreline .big.lead { color: #4ade80; }
+html[data-theme="light"] .h2h-scoreline .big.lead { color: #16a34a; }
+.h2h-scoreline .sep { font-size: 18px; color: var(--muted); font-weight: 800; }
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html { scroll-behavior: smooth; }
@@ -1699,6 +1897,26 @@ window.saveDataToFirebase = async function () {
                 <div class="hl-game" id="homeLastGame">Все още няма записи</div>
                 <div class="hl-meta" id="homeLastMeta"></div>
             </div>
+            <div class="home-week" id="homeWeekBox">
+                <div class="hw-label">Тази седмица</div>
+                <div class="hw-text" id="homeWeekText">Няма партии последните 7 дни</div>
+            </div>
+            <div class="home-h2h" id="homeH2H" style="display:none">
+                <div class="hh-label">Директен двубой</div>
+                <div class="hh-row">
+                    <div class="hh-player">
+                        <div class="hh-name" id="hhNameA">—</div>
+                        <div class="hh-score" id="hhScoreA">0</div>
+                    </div>
+                    <div class="hh-vs">VS</div>
+                    <div class="hh-player">
+                        <div class="hh-name" id="hhNameB">—</div>
+                        <div class="hh-score" id="hhScoreB">0</div>
+                    </div>
+                </div>
+                <div class="hh-bar"><span id="hhBarA" style="width:50%"></span><span id="hhBarB" style="width:50%"></span></div>
+                <div class="hh-meta" id="hhMeta"></div>
+            </div>
         </div>
 
         <div class="home-nav-grid">
@@ -1822,6 +2040,16 @@ window.saveDataToFirebase = async function () {
                 <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
                 <button onclick="addPlayer()">Добави играч</button>
                 <div id="managePlayersList"></div>
+            </div>
+
+            <div class="manage-card">
+                <div class="manage-card-title">🎨 Изглед</div>
+                <div class="small">Светъл, тъмен или според телефона (системна настройка).</div>
+                <div class="theme-toggle-row">
+                    <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
+                    <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
+                    <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+                </div>
             </div>
 
             <div class="manage-card">
@@ -2031,6 +2259,7 @@ function goTo(tabName){
   if(tabName === 'stats'){ showStats(); populateDetailGameSelect(); }
   else if(tabName === 'randomizer'){ renderRandomizer(); }
   else if(tabName === 'home'){ refreshHomeStats(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); }
   else { updateUI(); }
 }
 
@@ -2047,32 +2276,93 @@ function refreshHomeStats(){
     const box = document.getElementById('homeLastSession');
     const gEl = document.getElementById('homeLastGame');
     const mEl = document.getElementById('homeLastMeta');
-    if(!gEl) return;
-    if(!gameLogs || !gameLogs.length){
-      if(box) box.classList.add('empty');
-      gEl.textContent = 'Все още няма записи';
-      if(mEl) mEl.textContent = '';
-      return;
+    if(gEl){
+      if(!gameLogs || !gameLogs.length){
+        if(box) box.classList.add('empty');
+        gEl.textContent = 'Все още няма записи';
+        if(mEl) mEl.textContent = '';
+      } else {
+        if(box) box.classList.remove('empty');
+        const last = [...gameLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
+        gEl.textContent = last.game || '—';
+        let meta = '';
+        if(last.type === 'coop'){
+          const res = last.coopResult === 'win' ? '🏆 Успех' : '❌ Неуспех';
+          const team = (last.participants || []).join(', ');
+          meta = res + (team ? ' · ' + team : '');
+        } else {
+          const winners = last.winners || (last.winner ? [last.winner] : []);
+          meta = winners.length ? ('🏆 ' + winners.join(' & ')) : '';
+        }
+        if(last.date){
+          try {
+            const d = new Date(last.date);
+            if(!isNaN(d)) meta += (meta ? ' · ' : '') + d.toLocaleDateString('bg-BG');
+          } catch(e){}
+        }
+        if(mEl) mEl.textContent = meta;
+      }
     }
-    if(box) box.classList.remove('empty');
-    const last = [...gameLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
-    gEl.textContent = last.game || '—';
-    let meta = '';
-    if(last.type === 'coop'){
-      const res = last.coopResult === 'win' ? '🏆 Успех' : '❌ Неуспех';
-      const team = (last.participants || []).join(', ');
-      meta = res + (team ? ' · ' + team : '');
-    } else {
-      const winners = last.winners || (last.winner ? [last.winner] : []);
-      meta = winners.length ? ('🏆 ' + winners.join(' & ')) : '';
+
+    /* Weekly */
+    const weekEl = document.getElementById('homeWeekText');
+    if(weekEl){
+      const now = Date.now();
+      const weekMs = 7 * 24 * 60 * 60 * 1000;
+      const weekLogs = (gameLogs || []).filter(x => {
+        const t = new Date(x.date || 0).getTime();
+        return !isNaN(t) && (now - t) <= weekMs;
+      });
+      if(!weekLogs.length){
+        weekEl.textContent = 'Няма партии последните 7 дни';
+      } else {
+        const pvpW = weekLogs.filter(x => x.type !== 'coop');
+        const wins = {};
+        pvpW.forEach(log => {
+          const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(log) : (log.winners || (log.winner ? [log.winner] : []));
+          ws.forEach(w => { wins[w] = (wins[w] || 0) + 1; });
+        });
+        let lead = '';
+        const ranked = Object.entries(wins).sort((a,b) => b[1]-a[1]);
+        if(ranked.length) lead = ' · води ' + ranked[0][0] + ' (' + ranked[0][1] + ')';
+        weekEl.textContent = weekLogs.length + ' ' + (weekLogs.length === 1 ? 'партия' : 'партии') + lead;
+      }
     }
-    if(last.date){
-      try {
-        const d = new Date(last.date);
-        if(!isNaN(d)) meta += (meta ? ' · ' : '') + d.toLocaleDateString('bg-BG');
-      } catch(e){}
+
+    /* Home H2H for first two players */
+    const h2hBox = document.getElementById('homeH2H');
+    if(h2hBox && myPlayers && myPlayers.length >= 2){
+      const a = myPlayers[0], b = myPlayers[1];
+      const h2hLogs = (gameLogs || []).filter(l => {
+        if(l.type === 'coop') return false;
+        const keys = Object.keys(l.scores || {});
+        return keys.length === 2 && keys.includes(a) && keys.includes(b);
+      });
+      const wa = {a:0, b:0};
+      h2hLogs.forEach(l => {
+        const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
+        if(ws.includes(a)) wa.a++;
+        if(ws.includes(b)) wa.b++;
+      });
+      h2hBox.style.display = h2hLogs.length ? 'block' : 'none';
+      const set = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
+      set('hhNameA', a); set('hhNameB', b);
+      set('hhScoreA', wa.a); set('hhScoreB', wa.b);
+      const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
+      if(sa){ sa.classList.toggle('lead', wa.a > wa.b); }
+      if(sb){ sb.classList.toggle('lead', wa.b > wa.a); }
+      const total = wa.a + wa.b || 1;
+      const ba = document.getElementById('hhBarA'), bb = document.getElementById('hhBarB');
+      if(ba) ba.style.width = (wa.a / total * 100) + '%';
+      if(bb) bb.style.width = (wa.b / total * 100) + '%';
+      const meta = document.getElementById('hhMeta');
+      if(meta){
+        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
+        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa.a > wa.b ? a : b);
+      }
+    } else if(h2hBox){
+      h2hBox.style.display = 'none';
     }
-    if(mEl) mEl.textContent = meta;
   } catch(e){}
 }
 
@@ -2092,6 +2382,109 @@ function showToast(msg, type){
 
 const DICE_FACES = ['🎲','⚀','⚁','⚂','⚃','⚄','⚅'];
 const DICE_WORDS = ['','едно','две','три','четири','пет','шест'];
+
+
+/* ===== Theme ===== */
+function getStoredTheme(){
+  try { return localStorage.getItem('bgTheme') || 'system'; } catch(e){ return 'system'; }
+}
+function resolveTheme(mode){
+  if(mode === 'light' || mode === 'dark') return mode;
+  try {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  } catch(e){ return 'dark'; }
+}
+function applyTheme(mode){
+  const resolved = resolveTheme(mode || getStoredTheme());
+  document.documentElement.setAttribute('data-theme', resolved);
+  const cur = mode || getStoredTheme();
+  ['system','dark','light'].forEach(t => {
+    const btn = document.getElementById('themeBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+    if(btn) btn.classList.toggle('active', cur === t);
+  });
+}
+function setTheme(mode){
+  try { localStorage.setItem('bgTheme', mode); } catch(e){}
+  applyTheme(mode);
+  showToast(mode === 'light' ? '☀️ Светъл режим' : mode === 'dark' ? '🌙 Тъмен режим' : '📱 Според телефона', 'info');
+}
+applyTheme(getStoredTheme());
+try {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if(getStoredTheme() === 'system') applyTheme('system');
+  });
+} catch(e){}
+
+/* ===== Confetti ===== */
+function fireConfetti(label){
+  const canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.display = 'block';
+  ctx.scale(dpr, dpr);
+  const W = window.innerWidth, H = window.innerHeight;
+  const colors = ['#22c55e','#60a5fa','#a78bfa','#fbbf24','#f472b6','#34d399'];
+  const parts = Array.from({length: 90}, () => ({
+    x: W * 0.5 + (Math.random() - 0.5) * 80,
+    y: H * 0.35 + (Math.random() - 0.5) * 40,
+    vx: (Math.random() - 0.5) * 14,
+    vy: -Math.random() * 12 - 4,
+    g: 0.22 + Math.random() * 0.12,
+    s: 4 + Math.random() * 6,
+    rot: Math.random() * 6,
+    vr: (Math.random() - 0.5) * 0.4,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    life: 60 + Math.floor(Math.random() * 30)
+  }));
+  let frame = 0;
+  function tick(){
+    ctx.clearRect(0, 0, W, H);
+    parts.forEach(p => {
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      p.life--;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, p.life / 40);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    frame++;
+    if(frame < 90) requestAnimationFrame(tick);
+    else {
+      ctx.clearRect(0, 0, W, H);
+      canvas.style.display = 'none';
+    }
+  }
+  tick();
+  if(label) showToast('👑 ' + label);
+  try { if(navigator.vibrate) navigator.vibrate([15, 40, 15, 40, 20]); } catch(e){}
+}
+
+function getWinsForGame(game, logs){
+  const wins = {};
+  (logs || []).filter(l => l.type !== 'coop' && l.game === game).forEach(l => {
+    const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(l) : (l.winners || (l.winner ? [l.winner] : []));
+    ws.forEach(w => { wins[w] = (wins[w] || 0) + 1; });
+  });
+  return wins;
+}
+function soleLeader(wins){
+  const entries = Object.entries(wins);
+  if(!entries.length) return null;
+  const max = Math.max(...entries.map(e => e[1]));
+  if(max <= 0) return null;
+  const leaders = entries.filter(e => e[1] === max).map(e => e[0]);
+  return leaders.length === 1 ? { name: leaders[0], wins: max } : null;
+}
+
 
 function onLastSessionTap(){
   if(!gameLogs || !gameLogs.length){
@@ -2385,6 +2778,7 @@ function logGame(){
     const btn = document.getElementById('logGameBtn');
     if(btn){ btn.classList.add('btn-loading'); btn.disabled = true; }
     const done = () => { if(btn){ setTimeout(()=>{ btn.classList.remove('btn-loading'); btn.disabled = false; }, 320); } };
+    let leadFlip = null;
     const game=document.getElementById('gameSelect').value;
     if(!game){ done(); return alert('Моля, избери игра!'); }
     const checked=[...document.querySelectorAll('.player-card input[type=checkbox]:checked')];
@@ -2398,10 +2792,18 @@ function logGame(){
         const result=calculateWinner();
         if(!result){ done(); return alert('Моля, попълни точките на всички участници.'); }
         const scores={};checked.forEach(cb=>{const p=cb.closest('.player-card').querySelector('.player-name').textContent;scores[p]=Number(document.getElementById('score_'+idSafe(p)).value)});
+        const winsBefore = getWinsForGame(game, gameLogs);
+        const leadBefore = soleLeader(winsBefore);
         gameLogs.push({ id: crypto.randomUUID(), game, type: 'pvp', scores, winners: result.winners, winner: result.winners[0], date: new Date().toISOString() });
+        const winsAfter = getWinsForGame(game, gameLogs);
+        const leadAfter = soleLeader(winsAfter);
+        if(leadAfter && (!leadBefore || leadBefore.name !== leadAfter.name)){
+          leadFlip = leadAfter.name + ' води при „' + game + '“ (' + leadAfter.wins + ' победи)';
+        }
     }
     saveAll();
     showToast('✓ Партията е записана!');
+    if(leadFlip){ setTimeout(function(){ fireConfetti(leadFlip); }, 400); }
     done();
     const status=document.getElementById('logStatus');status.className='success';
     status.innerText=`Успешно записано: ${game} ✓`;
@@ -2693,10 +3095,19 @@ function showStats(){
 
     if(pvpPlayers.length>=2){
         const a=pvpPlayers[0], b=pvpPlayers[1];
-        html+=`<div class="stats-section-label">👥 Директен двубой</div><div class="small">Показва само партии, в които точно тези двама са играли един срещу друг.</div><div class="head-to-head">
-            <div class="h2h-card"><div class="small">${esc(a)}</div><div class="num">${h2hWins[a]||0}</div><div class="small">победи</div></div>
-            <div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${h2hWins[b]||0}</div><div class="small">победи</div></div>
-        </div><div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни PvP партии</div>`;
+        const wa=h2hWins[a]||0, wb=h2hWins[b]||0;
+        html+=`<div class="stats-section-label">👥 Директен двубой</div>
+        <div class="small">Само партии с точно ${esc(a)} и ${esc(b)}.</div>
+        <div class="h2h-scoreline">
+          <span class="big ${wa>wb?'lead':''}">${wa}</span>
+          <span class="sep">—</span>
+          <span class="big ${wb>wa?'lead':''}">${wb}</span>
+        </div>
+        <div class="head-to-head">
+            <div class="h2h-card"><div class="small">${esc(a)}</div><div class="num ${wa>wb?'':''}">${wa}</div><div class="small">победи</div></div>
+            <div class="h2h-card"><div class="small">${esc(b)}</div><div class="num">${wb}</div><div class="small">победи</div></div>
+        </div>
+        <div class="small" style="text-align:center;margin-top:8px">${h2hLogs.length} директни · ${wa===wb?'равенство':'води '+(wa>wb?esc(a):esc(b))}</div>`;
     }
     html+=`</div>`;
 
