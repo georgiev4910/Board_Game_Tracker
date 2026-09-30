@@ -2765,6 +2765,135 @@ html[data-theme="light"] .rand-reveal-title {
   100% { opacity: 0; transform: translate(var(--bx), var(--by)) scale(1.2); }
 }
 
+
+/* === 2.0 polish batch === */
+.tab-content.active:not(#home) {
+  animation: tabIn .28s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes tabIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.empty {
+  text-align: center;
+  padding: 28px 16px !important;
+  border-radius: 16px;
+  border: 1px dashed var(--border);
+  background: var(--bg-soft);
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.empty .empty-emoji { font-size: 28px; display: block; margin-bottom: 8px; }
+.empty .empty-title { color: var(--text); font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+
+/* Unified cards */
+#log .winner-display, #stats .game-stats-box, #manage .mg-section {
+  border-radius: 16px;
+}
+#log label { letter-spacing: .04em; }
+#companions .companion-card-lg, #companions .companion-card {
+  border-radius: 16px !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  transition: transform .18s cubic-bezier(.34,1.4,.64,1), box-shadow .18s ease;
+}
+#companions .companion-card-lg:active, #companions .companion-card:active {
+  transform: scale(.98);
+}
+
+/* H2H: room for token + % */
+.hh-track-wrap { height: 26px !important; }
+.hh-track-pct {
+  position: absolute; top: 0; bottom: 0;
+  display: flex; align-items: center;
+  font-size: 10px; font-weight: 900;
+  color: #0f172a; padding: 0 8px; z-index: 1;
+  pointer-events: none;
+}
+.hh-track-token {
+  width: 24px !important; height: 24px !important;
+  margin: -12px 0 0 -12px !important;
+  z-index: 4 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.hh-fig { font-size: 24px !important; filter: drop-shadow(0 2px 3px rgba(0,0,0,.2)); }
+
+/* Home extras */
+.home-digest {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin: 6px 0 4px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+}
+.home-digest strong { color: var(--text); }
+.home-play-again {
+  display: flex; gap: 8px; margin: 8px 0 4px;
+}
+.home-play-again button {
+  flex: 1; margin: 0; padding: 12px 10px;
+  font-size: 13px; font-weight: 800;
+  border-radius: 14px;
+}
+.home-recent {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+}
+.home-recent .hr-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.home-recent .hr-row {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-size: 12px; font-weight: 700;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.home-recent .hr-row:last-child { border-bottom: 0; }
+.home-recent .hr-meta { color: var(--muted); font-weight: 600; font-size: 11px; }
+
+.btn-spinning { opacity: .75; pointer-events: none; position: relative; }
+.btn-spinning::after {
+  content: '…';
+  margin-left: 4px;
+}
+
+.scope-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 12px; margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(96,165,250,.1);
+  border: 1px solid rgba(96,165,250,.25);
+  font-size: 12px; font-weight: 700;
+}
+.scope-banner button {
+  margin: 0; padding: 8px 10px; font-size: 11px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); box-shadow: none;
+}
+
+html[data-theme="light"] .success,
+html[data-theme="light"] .leader-cell,
+html[data-theme="light"] td.coop-win,
+html[data-theme="light"] .sd-win {
+  color: #15803d !important;
+  -webkit-text-fill-color: #15803d !important;
+}
+html[data-theme="light"] .pill { color: #334155; }
+
+.mg-body { animation: mgBodyIn .25s ease both; }
+@keyframes mgBodyIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2966,6 +3095,10 @@ window.saveDataToFirebase = async function () {
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
             </div>
+            <div class="home-digest" id="homeDigest" style="display:none"></div>
+            <div class="home-play-again" id="homePlayAgain" style="display:none">
+                <button type="button" class="btn-blue" id="homePlayAgainBtn" onclick="playAgainLast()">🔄 Играйте отново</button>
+            </div>
             <div class="home-h2h" id="homeH2H" style="display:none">
                 <div class="hh-label">Директен двубой</div>
                 <div class="hh-arena">
@@ -2992,6 +3125,10 @@ window.saveDataToFirebase = async function () {
                     <span class="hh-lead-b" id="hhLeadB"></span>
                 </div>
                 <div class="hh-meta" id="hhMeta"></div>
+            </div>
+            <div class="home-recent" id="homeRecent" style="display:none">
+                <div class="hr-label">Последни партии</div>
+                <div id="homeRecentList"></div>
             </div>
             <div class="home-nav-grid">
                 <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
@@ -3137,6 +3274,13 @@ window.saveDataToFirebase = async function () {
                         <div class="st-desc">Показва избраните фигурки над имената в H2H.</div>
                       </div>
                       <button type="button" class="setting-switch on" id="figuresToggle" onclick="toggleFiguresVisible()" aria-label="Фигурки"></button>
+                    </div>
+                    <div class="setting-toggle-row">
+                      <div class="st-text">
+                        <div class="st-title">🔊 Звук при рандом</div>
+                        <div class="st-desc">Кратък звук при разкриване. По подразбиране изключен.</div>
+                      </div>
+                      <button type="button" class="setting-switch" id="soundToggle" onclick="toggleRandSound()" aria-label="Звук"></button>
                     </div>
                 </div>
             </div>
@@ -3391,13 +3535,75 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof renderManageProfileList==='function')renderManageProfileList(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof applySoundToggle==='function')applySoundToggle(); if(typeof renderManageProfileList==='function')renderManageProfileList(); }
   else { updateUI(); }
+}
+
+
+function updateHomeDigestExtras(){
+  try {
+    const allLogs = (typeof gameLogs !== 'undefined' && gameLogs) ? gameLogs : [];
+    const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
+    const now = Date.now();
+    const weekMs = 7*24*60*60*1000;
+    const weekLogs = allLogs.filter(x => {
+      const t = new Date(x.date||0).getTime();
+      return !isNaN(t) && (now-t) <= weekMs;
+    });
+    const digest = document.getElementById('homeDigest');
+    if(digest){
+      if(!weekLogs.length){
+        digest.style.display = 'block';
+        digest.innerHTML = 'Тази седмица още <strong>няма партии</strong> — време за игра?';
+      } else {
+        const pvp = weekLogs.filter(l => l.type !== 'coop');
+        const wins = {};
+        pvp.forEach(log => {
+          const ws = (typeof getPvpWinners==='function') ? getPvpWinners(log) : [];
+          ws.forEach(w => { wins[w]=(wins[w]||0)+1; });
+        });
+        let lead = '';
+        const ranked = Object.entries(wins).sort((a,b)=>b[1]-a[1]);
+        if(ranked.length) lead = ' · води <strong>'+ranked[0][0]+'</strong> ('+ranked[0][1]+')';
+        digest.style.display = 'block';
+        digest.innerHTML = 'Тази седмица: <strong>'+weekLogs.length+'</strong> '+(weekLogs.length===1?'партия':'партии')+lead;
+      }
+    }
+    const sorted = allLogs.slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+    const last = sorted[0];
+    const pa = document.getElementById('homePlayAgain');
+    const pab = document.getElementById('homePlayAgainBtn');
+    if(pa && pab && last && last.game){
+      pa.style.display = 'flex';
+      pab.textContent = '🔄 Играйте отново: '+last.game;
+    } else if(pa){ pa.style.display = 'none'; }
+
+    const recentBox = document.getElementById('homeRecent');
+    const recentList = document.getElementById('homeRecentList');
+    if(recentBox && recentList){
+      const top = sorted.slice(0, 5);
+      if(!top.length){ recentBox.style.display = 'none'; }
+      else {
+        recentBox.style.display = 'block';
+        recentList.innerHTML = top.map(l => {
+          const date = (typeof formatDate==='function') ? formatDate(l.date) : '';
+          let detail = '';
+          if(l.type==='coop') detail = (l.coopResult==='win'?'🏆':'❌');
+          else {
+            const ws = (typeof getPvpWinners==='function') ? getPvpWinners(l) : [];
+            detail = ws.length ? ('🏆 '+ws.join(', ')) : '';
+          }
+          return '<div class="hr-row"><span>'+ (typeof esc==='function'?esc(l.game):l.game) +'</span><span class="hr-meta">'+date+' '+detail+'</span></div>';
+        }).join('');
+      }
+    }
+  } catch(e){ console.warn(e); }
 }
 
 function refreshHomeStats(){
   try {
     updateProfileUI();
+    updateHomeDigestExtras();
     const me = getActivePlayer();
     const allLogs = gameLogs || [];
 
@@ -4006,6 +4212,68 @@ function getPlayerFigureId(name){
   const players=(typeof myPlayers!=='undefined')?myPlayers:[];
   return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].id;
 }
+
+/* === 2.0 helpers: sound, digest, play-again, backup remind === */
+function isRandSoundOn(){
+  try { return localStorage.getItem('bgRandSound') === '1'; } catch(e){ return false; }
+}
+function setRandSound(on){
+  try { localStorage.setItem('bgRandSound', on ? '1' : '0'); } catch(e){}
+  const tog = document.getElementById('soundToggle');
+  if(tog) tog.classList.toggle('on', on);
+  if(typeof showToast==='function') showToast(on ? '🔊 Звук: включен' : 'Звук: изключен', 'info');
+}
+function toggleRandSound(){ setRandSound(!isRandSoundOn()); }
+function applySoundToggle(){
+  const tog = document.getElementById('soundToggle');
+  if(tog) tog.classList.toggle('on', isRandSoundOn());
+}
+function playRandRevealSound(){
+  if(!isRandSoundOn()) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(520, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.28);
+    setTimeout(() => ctx.close(), 400);
+  } catch(e){}
+}
+function emptyState(title, sub, emoji){
+  return '<div class="empty"><span class="empty-emoji">'+(emoji||'🎲')+'</span><div class="empty-title">'+title+'</div>'+(sub||'')+'</div>';
+}
+function playAgainLast(){
+  const logs = (typeof gameLogs !== 'undefined' && gameLogs) ? gameLogs.slice() : [];
+  if(!logs.length){ if(typeof showToast==='function') showToast('Няма последна игра', 'info'); return; }
+  const last = logs.slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))[0];
+  if(!last || !last.game){ if(typeof showToast==='function') showToast('Няма последна игра', 'info'); return; }
+  if(typeof goLogWithGame === 'function') goLogWithGame(last.game);
+  else { goTo('log'); }
+}
+function maybeBackupReminder(){
+  try {
+    const key = 'bgBackupRemind';
+    const last = localStorage.getItem(key);
+    const now = Date.now();
+    const month = 30*24*60*60*1000;
+    if(last && (now - Number(last)) < month) return;
+    const logs = (typeof gameLogs !== 'undefined' && gameLogs) ? gameLogs.length : 0;
+    if(logs < 5) return;
+    localStorage.setItem(key, String(now));
+    setTimeout(function(){
+      if(typeof showToast==='function')
+        showToast('💾 Напомняне: архивирай JSON от Настройки → Изтриване → Разширени', 'info');
+    }, 2500);
+  } catch(e){}
+}
+
+
 function isHeroInteractive(){
   try{return localStorage.getItem('bgHeroInteractive')==='1';}catch(e){return false;}
 }
@@ -4226,6 +4494,7 @@ function pickRandomGame(){
     }
     if(out.dataset.spinning === '1') return;
     out.dataset.spinning = '1';
+    document.querySelectorAll('#randomizer button.btn-info').forEach(function(b){ b.classList.add('btn-spinning'); });
 
     const finalGame = games[Math.floor(Math.random() * games.length)];
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -4251,6 +4520,8 @@ function pickRandomGame(){
             extraBtnHtml + logBtn +
             '</div>';
         out.dataset.spinning = '0';
+        document.querySelectorAll('#randomizer button.btn-info').forEach(function(b){ b.classList.remove('btn-spinning'); });
+        if(typeof playRandRevealSound==='function') playRandRevealSound();
         if(typeof showToast === 'function') showToast('🎲 '+game, 'info');
     }
 
@@ -4807,12 +5078,12 @@ function showStats(){
     const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
     if(!scoped.length){
       out.innerHTML = me
-        ? '<div class="empty">Няма партии с участие на '+esc(me)+'.</div>'
-        : '<div class="empty">Все още няма записани партии.</div>';
+        ? emptyState('Няма партии с '+esc(me), 'Запиши първата от таб Запис или смени профила.', '👤')
+        : emptyState('Все още няма записи', 'Първата партия се записва за секунди в „Запис“.', '🎲');
       return;
     }
     const scopeNote = me
-      ? '<div class="stats-note small">📊 Само партии с <b>'+esc(me)+'</b>. Общ изглед: Настройки → Общ екран.</div>'
+      ? '<div class="scope-banner"><span>📊 Само партии с <b>'+esc(me)+'</b></span><button type="button" onclick="goTo('manage')">Профил</button></div>'
       : '';
 
     const pvpLogs=getModeLogs('pvp', scoped), coopLogs=getModeLogs('coop', scoped);
