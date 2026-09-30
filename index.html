@@ -3166,8 +3166,9 @@ window.saveDataToFirebase = async function () {
 
     <!-- ТАБ: РАНДОМАЙЗЕР -->
     <div id="randomizer" class="tab-content">
-        <h2>🎲 Рандомайзер на игри</h2>
-        <label>Избери режим</label>
+        <h2>🎲 Какво да играем?</h2>
+        <p class="small" style="margin:-6px 0 12px">Филтрирай и изтегли игра — равен шанс или приоритет към по-рядко играните.</p>
+        <label>Режим</label>
         <div class="filter-mode-container">
             <button type="button" class="filter-mode-btn all-mode active" id="randAllBtn" onclick="setRandFilter('all')">🌟 Всички</button>
             <button type="button" class="filter-mode-btn pvp-mode" id="randPvpBtn" onclick="setRandFilter('pvp')">⚔️ PvP</button>
@@ -3183,6 +3184,13 @@ window.saveDataToFirebase = async function () {
             <button type="button" class="filter-mode-btn" id="randPl5" onclick="setRandPlayers(5)">5+</button>
         </div>
         <div class="small" id="randPlayersHint" style="margin-top:6px">Без филтър по брой играчи</div>
+
+        <label style="margin-top:12px">Приоритет</label>
+        <div class="filter-mode-container" id="randPriorityFilter">
+            <button type="button" class="filter-mode-btn all-mode active" id="randPriEqual" onclick="setRandPriority('equal')">⚖️ Равен шанс</button>
+            <button type="button" class="filter-mode-btn" id="randPriRare" onclick="setRandPriority('rare')">📉 По-малко играни</button>
+        </div>
+        <div class="small" id="randPriorityHint" style="margin-top:6px">Всяка подходяща игра има еднакъв шанс</div>
         
         <div style="display:flex;gap:12px;margin:15px 0">
             <button class="btn-info" onclick="pickRandomGame()" style="flex:1;margin:0;padding:14px;">🎲 Случайна игра</button>
@@ -3342,6 +3350,7 @@ window.saveDataToFirebase = async function () {
 
     <!-- COMPANIONS -->
     <div id="companions" class="tab-content">
+        <p class="small companion-suite-note" style="margin-top:-4px;margin-bottom:12px">Част от Board Game Tracker · setup помощници за конкретни игри</p>
         <div class="comp-page-hero">
             <div class="art">🌲🏎️🏰✈️🏯🏝️</div>
             <h3>Companion Apps</h3>
@@ -3491,6 +3500,50 @@ function setRandPlayers(n){
   }
   if(typeof renderRandomizer === 'function') renderRandomizer();
 }
+
+let currentRandPriority = 'equal'; // equal | rare
+
+function getGamePlayCount(name){
+  const logs = (typeof gameLogs !== 'undefined' && gameLogs) ? gameLogs : [];
+  let n = 0;
+  for(let i=0;i<logs.length;i++){
+    if(logs[i] && logs[i].game === name) n++;
+  }
+  return n;
+}
+function setRandPriority(mode){
+  currentRandPriority = mode === 'rare' ? 'rare' : 'equal';
+  const eq = document.getElementById('randPriEqual');
+  const rr = document.getElementById('randPriRare');
+  if(eq) eq.classList.toggle('active', currentRandPriority === 'equal');
+  if(rr) rr.classList.toggle('active', currentRandPriority === 'rare');
+  const hint = document.getElementById('randPriorityHint');
+  if(hint){
+    hint.textContent = currentRandPriority === 'rare'
+      ? 'По-рядко играните игри имат по-голям шанс'
+      : 'Всяка подходяща игра има еднакъв шанс';
+  }
+}
+function pickWeightedGame(games){
+  if(!games || !games.length) return null;
+  if(currentRandPriority !== 'rare' || games.length === 1){
+    return games[Math.floor(Math.random() * games.length)];
+  }
+  // weight = 1 / (plays + 1)  → never played gets highest weight
+  const weights = games.map(function(g){
+    return 1 / (getGamePlayCount(g) + 1);
+  });
+  let sum = 0;
+  for(let i=0;i<weights.length;i++) sum += weights[i];
+  let r = Math.random() * sum;
+  for(let i=0;i<games.length;i++){
+    r -= weights[i];
+    if(r <= 0) return games[i];
+  }
+  return games[games.length - 1];
+}
+
+
 function getRandCandidateGames(){
   return Object.keys(myGamesObj).filter(function(g){
     const modeOk = currentRandFilter === 'all' || myGamesObj[g] === currentRandFilter;
@@ -4509,7 +4562,7 @@ function pickRandomGame(){
     out.dataset.spinning = '1';
     document.querySelectorAll('#randomizer button.btn-info').forEach(function(b){ b.classList.add('btn-spinning'); });
 
-    const finalGame = games[Math.floor(Math.random() * games.length)];
+    const finalGame = (typeof pickWeightedGame==='function' ? pickWeightedGame(games) : games[Math.floor(Math.random() * games.length)]);
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function showResult(game){
@@ -4518,6 +4571,8 @@ function pickRandomGame(){
         const typeLabel = isCoop ? '🤝 Кооперативна (Co-op)' : '⚔️ Състезателна (PvP)';
         const pr = typeof getGamePlayerRange==='function' ? getGamePlayerRange(game) : [2,4];
         const pLabel = pr[0]===pr[1] ? (pr[0]+' играчи') : (pr[0]+'–'+pr[1]+' играчи');
+        const plays = typeof getGamePlayCount==='function' ? getGamePlayCount(game) : 0;
+        const playsLabel = plays === 0 ? 'още не е играна' : (plays + (plays===1?' партия':' партии') + ' досега');
         const extraBtnHtml = typeof getCompanionButtonHtml === 'function' ? getCompanionButtonHtml(game) : '';
         const logBtn = typeof getLogShortcutHtml === 'function' ? getLogShortcutHtml(game) : '';
         const bursts = ['🎲','✨','🎯','🃏','♟️','🏆'];
@@ -4531,7 +4586,7 @@ function pickRandomGame(){
         out.innerHTML = '<div class="rand-reveal'+(isCoop?' coop':'')+'">'+burstHtml+
             '<div class="rand-reveal-badge">🎲 Избраната игра</div>'+
             '<div class="rand-reveal-title">'+esc(game)+'</div>'+
-            '<div class="rand-reveal-type">'+typeLabel+' · '+pLabel+'</div>'+
+            '<div class="rand-reveal-type">'+typeLabel+' · '+pLabel+' · '+playsLabel+'</div>'+
             extraBtnHtml + logBtn +
             '</div>';
         out.dataset.spinning = '0';
