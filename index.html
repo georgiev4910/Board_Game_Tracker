@@ -466,6 +466,14 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 .filter-mode-btn:hover,
 .coop-btn:hover { filter: none; transform: none; }
 
+/* Generic active — players 2/3/4/5+, priority, etc. */
+.filter-mode-btn.active {
+  background: color-mix(in srgb, var(--player-accent, #60a5fa) 22%, var(--card-2));
+  border-color: color-mix(in srgb, var(--player-accent, #60a5fa) 55%, var(--border));
+  color: var(--text);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--player-accent, #60a5fa) 28%, transparent);
+  font-weight: 900;
+}
 .filter-mode-btn.pvp-mode.active {
   background: var(--blue-soft);
   border-color: rgba(96,165,250,.45);
@@ -483,6 +491,26 @@ button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
   border-color: rgba(251,191,36,.45);
   color: #fcd34d;
   box-shadow: 0 0 0 1px rgba(251,191,36,.2);
+}
+html[data-theme="light"] .filter-mode-btn.active {
+  color: #0f172a;
+  background: color-mix(in srgb, var(--player-accent, #3b82f6) 18%, #fff);
+  border-color: color-mix(in srgb, var(--player-accent, #3b82f6) 45%, #cbd5e1);
+}
+html[data-theme="light"] .filter-mode-btn.pvp-mode.active {
+  color: #1d4ed8;
+  background: rgba(59,130,246,.12);
+  border-color: rgba(59,130,246,.4);
+}
+html[data-theme="light"] .filter-mode-btn.coop-mode.active {
+  color: #15803d;
+  background: rgba(34,197,94,.12);
+  border-color: rgba(34,197,94,.4);
+}
+html[data-theme="light"] .filter-mode-btn.all-mode.active {
+  color: #b45309;
+  background: rgba(245,158,11,.14);
+  border-color: rgba(245,158,11,.4);
 }
 .coop-btn.win.active {
   background: var(--green-soft);
