@@ -2652,6 +2652,119 @@ html[data-theme="light"] .splash-title {
   background: var(--blue-soft); color: var(--text); border-color: rgba(96,165,250,.4);
 }
 
+
+/* Randomizer spin reveal */
+.rand-spin-stage {
+  text-align: center;
+  padding: 22px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, var(--card-2), var(--card));
+  overflow: hidden;
+  position: relative;
+}
+.rand-spin-stage::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(120px 60px at 50% 0%, rgba(96,165,250,.18), transparent 70%);
+  pointer-events: none;
+}
+.rand-spin-label {
+  font-size: 11px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+}
+.rand-spin-window {
+  position: relative;
+  height: 56px;
+  margin: 0 auto 8px;
+  max-width: 320px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.15);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+html[data-theme="light"] .rand-spin-window { background: rgba(15,23,42,.05); }
+.rand-spin-window::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  box-shadow: inset 0 12px 16px rgba(0,0,0,.12), inset 0 -12px 16px rgba(0,0,0,.12);
+  pointer-events: none;
+}
+.rand-spin-name {
+  font-size: 22px; font-weight: 900; letter-spacing: -.02em;
+  padding: 0 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+  transition: transform .05s linear, opacity .05s linear;
+}
+.rand-spin-name.is-blur { filter: blur(1.5px); opacity: .85; transform: scale(1.02); }
+.rand-spin-dots {
+  display: flex; gap: 6px; justify-content: center; margin-top: 10px;
+}
+.rand-spin-dots span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted); opacity: .35;
+  animation: randDot 0.6s ease-in-out infinite;
+}
+.rand-spin-dots span:nth-child(2) { animation-delay: .15s; }
+.rand-spin-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes randDot {
+  0%, 100% { opacity: .3; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.15); background: #60a5fa; }
+}
+.rand-reveal {
+  text-align: center;
+  padding: 22px 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(96,165,250,.35);
+  background: linear-gradient(160deg, rgba(96,165,250,.12), var(--card-2));
+  animation: randRevealIn .55s cubic-bezier(.22,1,.36,1) both;
+  position: relative;
+  overflow: hidden;
+}
+.rand-reveal.coop {
+  border-color: rgba(34,197,94,.35);
+  background: linear-gradient(160deg, rgba(34,197,94,.12), var(--card-2));
+}
+@keyframes randRevealIn {
+  from { opacity: 0; transform: translateY(12px) scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+.rand-reveal-badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 8px;
+}
+.rand-reveal-title {
+  font-size: 26px; font-weight: 900; letter-spacing: -.03em;
+  line-height: 1.15; margin: 6px 0 8px;
+  background: linear-gradient(120deg, #60a5fa, #a78bfa, #4ade80);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: randTitlePop .5s cubic-bezier(.34,1.4,.64,1) .1s both;
+}
+html[data-theme="light"] .rand-reveal-title {
+  background: linear-gradient(120deg, #1d4ed8, #6d28d9, #15803d);
+  -webkit-background-clip: text; background-clip: text;
+}
+@keyframes randTitlePop {
+  from { opacity: 0; transform: scale(.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.rand-reveal-type {
+  font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 12px;
+}
+.rand-reveal .burst {
+  position: absolute; font-size: 18px; opacity: 0;
+  animation: randBurst .8s ease forwards;
+  pointer-events: none;
+}
+@keyframes randBurst {
+  0% { opacity: 0; transform: translate(0,0) scale(.5); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--bx), var(--by)) scale(1.2); }
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -4106,17 +4219,73 @@ function goLogWithGame(gameName){
 function pickRandomGame(){
     const games = Object.keys(myGamesObj).filter(g => currentRandFilter === 'all' || myGamesObj[g] === currentRandFilter);
     const out = document.getElementById('randomizerOutput');
+    if(!out) return;
     if(!games.length){
-        out.innerHTML = `<div class="winner-display" style="border-color:var(--red);color:var(--red)">Няма налични игри в тази категория!</div>`;
+        out.innerHTML = '<div class="winner-display" style="border-color:var(--red);color:var(--red)">Няма налични игри в тази категория!</div>';
         return;
     }
-    const randomGame = games[Math.floor(Math.random() * games.length)];
-    const gameType = myGamesObj[randomGame];
-    const typeLabel = gameType === 'coop' ? '🤝 Кооперативна игра (Co-op)' : '⚔️ Състезателна игра (PvP)';
-    
-    let extraBtnHtml = getCompanionButtonHtml(randomGame);
+    if(out.dataset.spinning === '1') return;
+    out.dataset.spinning = '1';
 
-    out.innerHTML = `<div class="winner-display" style="font-size:20px;padding:25px;">🎲 Избраната игра за днес е:<br><br><span style="color:var(--blue);font-size:24px;">${esc(randomGame)}</span><br><span class="small" style="margin-top:10px;display:block;">Категория: ${typeLabel}</span>${extraBtnHtml}${getLogShortcutHtml(randomGame)}</div>`;
+    const finalGame = games[Math.floor(Math.random() * games.length)];
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function showResult(game){
+        const gameType = myGamesObj[game];
+        const isCoop = gameType === 'coop';
+        const typeLabel = isCoop ? '🤝 Кооперативна (Co-op)' : '⚔️ Състезателна (PvP)';
+        const extraBtnHtml = typeof getCompanionButtonHtml === 'function' ? getCompanionButtonHtml(game) : '';
+        const logBtn = typeof getLogShortcutHtml === 'function' ? getLogShortcutHtml(game) : '';
+        const bursts = ['🎲','✨','🎯','🃏','♟️','🏆'];
+        let burstHtml = '';
+        for(let i=0;i<6;i++){
+            const ang = (i/6)*Math.PI*2;
+            const bx = Math.round(Math.cos(ang)*70)+'px';
+            const by = Math.round(Math.sin(ang)*40-20)+'px';
+            burstHtml += '<span class="burst" style="left:50%;top:30%;--bx:'+bx+';--by:'+by+';animation-delay:'+(0.05*i)+'s">'+bursts[i%bursts.length]+'</span>';
+        }
+        out.innerHTML = '<div class="rand-reveal'+(isCoop?' coop':'')+'">'+burstHtml+
+            '<div class="rand-reveal-badge">🎲 Избраната игра</div>'+
+            '<div class="rand-reveal-title">'+esc(game)+'</div>'+
+            '<div class="rand-reveal-type">'+typeLabel+'</div>'+
+            extraBtnHtml + logBtn +
+            '</div>';
+        out.dataset.spinning = '0';
+        if(typeof showToast === 'function') showToast('🎲 '+game, 'info');
+    }
+
+    if(reduce || games.length === 1){
+        showResult(finalGame);
+        return;
+    }
+
+    out.innerHTML = '<div class="rand-spin-stage">'+
+        '<div class="rand-spin-label">Хвърляме зарчето…</div>'+
+        '<div class="rand-spin-window"><div class="rand-spin-name is-blur" id="randSpinName">'+esc(games[0])+'</div></div>'+
+        '<div class="rand-spin-dots"><span></span><span></span><span></span></div>'+
+        '</div>';
+
+    const nameEl = document.getElementById('randSpinName');
+    let ticks = 0;
+    const totalTicks = 18 + Math.floor(Math.random()*8);
+    let delay = 40;
+
+    function tick(){
+        ticks++;
+        const g = (ticks >= totalTicks - 1) ? finalGame : games[Math.floor(Math.random()*games.length)];
+        if(nameEl){
+            nameEl.textContent = g;
+            nameEl.classList.add('is-blur');
+            if(ticks > totalTicks - 5) nameEl.classList.remove('is-blur');
+        }
+        if(ticks >= totalTicks){
+            setTimeout(function(){ showResult(finalGame); }, 180);
+            return;
+        }
+        delay = Math.min(140, delay + (ticks > totalTicks - 8 ? 12 : 3));
+        setTimeout(tick, delay);
+    }
+    setTimeout(tick, 50);
 }
 
 function onManualGameSelected(){
