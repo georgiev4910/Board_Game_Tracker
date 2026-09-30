@@ -2593,17 +2593,42 @@ html[data-theme="light"] .home-intro-title {
   0% { background-position: 0% center; }
   100% { background-position: 100% center; }
 }
-/* content cascade after intro */
+/* During intro: only brand text — hide the rest */
+#home.home-await .home-you,
+#home.home-await .hero-stage,
+#home.home-await .home-stats-row,
+#home.home-await .home-h2h,
+#home.home-await .home-nav-grid {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden !important;
+  border-width: 0 !important;
+  transform: translateY(8px);
+}
+#home.home-await .home-intro {
+  margin-top: 28px;
+  margin-bottom: 28px;
+}
+/* After intro: cascade content in */
+#home.home-reveal .home-you,
+#home.home-reveal .hero-stage,
 #home.home-reveal .home-stats-row,
 #home.home-reveal .home-h2h,
 #home.home-reveal .home-nav-grid {
-  animation: homeCascade .5s cubic-bezier(.22,1,.36,1) both;
+  animation: homeCascade .48s cubic-bezier(.22,1,.36,1) both;
 }
-#home.home-reveal .home-stats-row { animation-delay: .05s; }
-#home.home-reveal .home-h2h { animation-delay: .12s; }
+#home.home-reveal .home-you { animation-delay: .02s; }
+#home.home-reveal .hero-stage { animation-delay: .06s; }
+#home.home-reveal .home-stats-row { animation-delay: .1s; }
+#home.home-reveal .home-h2h { animation-delay: .14s; }
 #home.home-reveal .home-nav-grid { animation-delay: .18s; }
 @keyframes homeCascade {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2611,6 +2636,58 @@ html[data-theme="light"] .home-intro-title {
   .home-intro.phase-out, .home-intro.phase-done { opacity: 0; max-height: 0; display: none; }
 }
 
+
+
+/* Light theme: readable accents (darker greens, stronger titles) */
+html[data-theme="light"] {
+  --green: #15803d;
+  --green-dark: #166534;
+  --muted: #475569;
+}
+html[data-theme="light"] .app-title,
+html[data-theme="light"] .chrome-brand .app-title {
+  background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 55%, #312e81 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 900;
+}
+html[data-theme="light"] .app-sub { color: #64748b !important; }
+html[data-theme="light"] .success,
+html[data-theme="light"] .sd-win,
+html[data-theme="light"] .hh-side .hh-score.lead,
+html[data-theme="light"] .h2h-card .num.lead,
+html[data-theme="light"] .h2h-scoreline .big.lead,
+html[data-theme="light"] .filter-mode-btn.coop-mode.active,
+html[data-theme="light"] .stats-nav-btn.active,
+html[data-theme="light"] .player-filter-btn.active,
+html[data-theme="light"] td.coop-win,
+html[data-theme="light"] td.winner-score,
+html[data-theme="light"] .leader-cell,
+html[data-theme="light"] .winner-display {
+  color: #15803d !important;
+  -webkit-text-fill-color: #15803d !important;
+}
+html[data-theme="light"] .h2h-card .num.lead {
+  background: none !important;
+}
+html[data-theme="light"] .stat-card .num {
+  background: linear-gradient(135deg, #15803d, #1d4ed8) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+html[data-theme="light"] .home-intro-title {
+  background: linear-gradient(120deg, #0f172a 0%, #1e40af 50%, #166534 100%) !important;
+  background-size: 200% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+html[data-theme="light"] .home-stat .hs-num { color: #15803d !important; }
+html[data-theme="light"] .report-summary .rs-num { color: #15803d !important; }
+html[data-theme="light"] .pill { color: #334155; }
+html[data-theme="light"] .qm-badge { background: #15803d; color: #fff; }
 
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
@@ -2773,7 +2850,7 @@ window.saveDataToFirebase = async function () {
     </div>
 
     <!-- HOME -->
-    <div id="home" class="tab-content active">
+    <div id="home" class="tab-content active home-await">
         <div class="home-hero">
             <div class="home-you" id="homeYouBox" style="display:none">
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
@@ -3174,17 +3251,22 @@ function runHomeIntro(){
   const seen = sessionStorage.getItem('bgHomeIntroSeen') === '1';
 
   intro.classList.remove('phase-in', 'phase-out', 'phase-done', 'home-intro-hide');
-  if(home) home.classList.remove('home-reveal');
+  if(home){
+    home.classList.remove('home-reveal');
+    home.classList.add('home-await');
+  }
 
   if(seen || reduce){
     intro.classList.add('phase-done');
     intro.setAttribute('aria-hidden', 'true');
-    if(home) home.classList.add('home-reveal');
+    if(home){
+      home.classList.remove('home-await');
+      home.classList.add('home-reveal');
+    }
     return;
   }
 
   intro.setAttribute('aria-hidden', 'false');
-  // force reflow then enter
   void intro.offsetWidth;
   intro.classList.add('phase-in');
 
@@ -3197,8 +3279,11 @@ function runHomeIntro(){
     intro.classList.add('phase-done');
     intro.setAttribute('aria-hidden', 'true');
     try { sessionStorage.setItem('bgHomeIntroSeen', '1'); } catch(e){}
-    if(home) home.classList.add('home-reveal');
-  }, 3000);
+    if(home){
+      home.classList.remove('home-await');
+      home.classList.add('home-reveal');
+    }
+  }, 2950);
 }
 
 function goHome(){
