@@ -2367,256 +2367,70 @@ html[data-theme="light"] .h2h-card .num.lead {
 }
 
 
-/* ===== App shell: less scroll outside stats ===== */
-html, body {
-  height: 100%;
-  overflow: hidden;
-}
-body {
-  padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
-  min-height: 100dvh;
+/* H2H 7-wonders style + reports + figures */
+.hh-arena {
   display: flex;
-  flex-direction: column;
-}
-.container {
-  flex: 1;
-  min-height: 0;
-  max-width: 920px;
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 12px 12px !important;
-  border-radius: 18px !important;
-  overflow: hidden;
-}
-.top-chrome {
-  margin: -4px -4px 8px !important;
-  padding: 8px 6px !important;
-  flex-shrink: 0;
-}
-/* Scroll only the active section content */
-.tab-content {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding-bottom: 8px;
-}
-.tab-content.active {
-  display: flex;
-  flex-direction: column;
-}
-/* Home: compact, prefer no scroll */
-#home.tab-content.active {
-  overflow-y: auto; /* fallback if content still tall */
-  justify-content: flex-start;
-  gap: 0;
-}
-#home .home-hero {
-  padding: 8px 6px 6px !important;
-  margin-bottom: 8px !important;
-  border-radius: 14px !important;
-  flex-shrink: 0;
-}
-#home .hero-stage {
-  margin: 2px auto 4px !important;
-  padding: 8px 8px 6px !important;
-  max-width: 240px;
-}
-#home .hero-icons .hi {
-  width: 44px !important;
-  height: 44px !important;
-  font-size: 26px !important;
-  border-radius: 12px !important;
-}
-#home .hero-hint { margin-top: 4px !important; font-size: 10px !important; }
-#home .home-hero h2 {
-  font-size: 18px !important;
-  margin: 4px 0 2px !important;
-}
-#home .home-hero > p {
-  font-size: 11px !important;
-  margin: 0 auto 6px !important;
-  line-height: 1.35;
-  max-width: 280px;
-}
-#home .home-you {
-  margin-bottom: 6px !important;
-  padding: 8px 10px !important;
-  border-radius: 12px !important;
-}
-#home .home-you .hy-hello { font-size: 15px !important; }
-#home .home-you .hy-line { font-size: 12px !important; }
-#home .home-stats-row {
-  margin: 6px 0 4px !important;
-  gap: 6px !important;
-}
-#home .home-stat .hs-num { font-size: 18px !important; }
-#home .home-stat .hs-label { font-size: 9px !important; }
-#home .home-last, #home .home-week, #home .home-h2h {
-  margin-top: 6px !important;
-  padding: 8px 10px !important;
-  border-radius: 12px !important;
-}
-#home .home-h2h .hh-score { font-size: 22px !important; }
-#home .home-nav-grid {
-  margin-top: 8px !important;
-  gap: 8px !important;
-  flex: 1;
-  min-height: 0;
-  grid-template-rows: 1fr 1fr;
-}
-#home .home-nav-card {
-  padding: 10px 10px !important;
-  border-radius: 14px !important;
-  min-height: 0;
-}
-#home .home-nav-card .hn-icon {
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 16px !important;
-  margin-bottom: 4px !important;
-}
-#home .home-nav-card .hn-title { font-size: 14px !important; }
-#home .home-nav-card .hn-desc { font-size: 10px !important; line-height: 1.25; }
-
-/* Log / randomizer / manage / companions: denser */
-#log h2, #randomizer h2, #manage h2, #companions h2, #stats h2 {
-  font-size: 18px !important;
-  margin: 0 0 8px !important;
-}
-#log label, #randomizer label {
-  margin: 8px 0 4px !important;
-  font-size: 11px !important;
-}
-#log input, #log select, #log button,
-#randomizer input, #randomizer select, #randomizer button {
-  margin: 4px 0 8px !important;
-  padding: 11px 12px !important;
-}
-#log .filter-mode-btn, #randomizer .filter-mode-btn {
-  padding: 10px 6px !important;
-  font-size: 12px !important;
-}
-#log .player-card { padding: 8px 10px !important; }
-#log .winner-display { padding: 10px !important; margin-bottom: 10px !important; font-size: 13px !important; }
-
-#companions .comp-page-hero {
-  padding: 12px 10px !important;
-  margin-bottom: 10px !important;
-}
-#companions .comp-page-hero .art { font-size: 28px !important; margin-bottom: 4px !important; }
-#companions .comp-page-hero h3 { font-size: 18px !important; }
-#companions .comp-page-hero p { font-size: 11px !important; }
-#companions .companion-card-lg {
-  padding: 12px !important;
-  gap: 10px !important;
-}
-#companions .companion-card-lg .cl-icon {
-  width: 42px !important;
-  height: 42px !important;
-  font-size: 20px !important;
-}
-#companions .companion-card-lg .cl-name { font-size: 14px !important; }
-#companions .companion-card-lg .cl-desc { font-size: 11px !important; }
-
-#manage .mg-head { padding: 12px 14px !important; font-size: 14px !important; }
-#manage > .small { margin: -2px 0 8px !important; }
-
-/* Stats keeps scroll — full flex child */
-#stats.tab-content.active {
-  overflow-y: auto;
-}
-.app-footer {
-  flex-shrink: 0;
-  margin-top: 6px !important;
-  padding-top: 6px !important;
-  font-size: 10px !important;
-}
-
-/* Desktop: allow page scroll again */
-@media (min-width: 700px) {
-  html, body { overflow: auto; height: auto; }
-  body { display: block; }
-  .container {
-    display: block;
-    overflow: visible;
-    min-height: auto;
-  }
-  .tab-content, #home.tab-content.active {
-    overflow: visible;
-    display: block;
-  }
-  #home.tab-content.active { display: block; }
-}
-@media (max-height: 720px) {
-  #home .home-hero > p { display: none; }
-  #home .hero-hint { display: none; }
-  #home .home-h2h .hh-bar { margin-top: 6px !important; }
-}
-@media (max-height: 640px) {
-  #home .home-last .hl-meta { display: none; }
-  #home .home-nav-card .hn-desc { display: none; }
-}
-
-
-/* Hero interactive off */
-.hero-stage.hero-locked {
-  cursor: default;
-  pointer-events: none;
-}
-.hero-stage.hero-locked .hero-hint {
-  opacity: .55;
-}
-.hero-stage:not(.hero-locked) {
-  cursor: pointer;
-}
-.setting-toggle-row {
-  display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  margin: 8px 0;
-  border-radius: 12px;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
+  gap: 8px;
+  margin-bottom: 6px;
 }
-.setting-toggle-row .st-text { flex: 1; min-width: 0; }
-.setting-toggle-row .st-title { font-weight: 800; font-size: 13px; }
-.setting-toggle-row .st-desc { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; }
-.setting-switch {
-  position: relative;
-  width: 48px;
-  height: 28px;
-  flex-shrink: 0;
-  border-radius: 999px;
-  background: rgba(255,255,255,.12);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: .2s ease;
-  padding: 0;
-  margin: 0;
-  box-shadow: none;
+.hh-side { width: 58px; text-align: center; flex-shrink: 0; }
+.hh-fig { font-size: 28px; line-height: 1; margin-bottom: 2px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
+.hh-side .hh-name { font-size: 11px !important; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hh-side .hh-score { font-size: 20px !important; font-weight: 900; }
+.hh-side .hh-score.lead { color: #4ade80; }
+html[data-theme="light"] .hh-side .hh-score.lead { color: #16a34a; }
+.hh-track-wrap {
+  position: relative; height: 18px; margin: 4px 0 6px;
+  border-radius: 999px; background: rgba(255,255,255,.07);
+  border: 1px solid var(--border); overflow: hidden;
 }
-.setting-switch.on {
-  background: color-mix(in srgb, var(--green) 55%, transparent);
-  border-color: rgba(34,197,94,.45);
+html[data-theme="light"] .hh-track-wrap { background: rgba(15,23,42,.07); }
+.hh-track-fill {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 50%;
+  border-radius: 999px; transition: left .4s ease, width .4s ease, background .3s;
 }
-.setting-switch::after {
-  content: '';
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform .2s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+.hh-track-mid {
+  position: absolute; top: -2px; bottom: -2px; left: 50%; width: 2px; margin-left: -1px;
+  background: rgba(255,255,255,.5); z-index: 2;
 }
-.setting-switch.on::after { transform: translateX(20px); }
+.hh-track-token {
+  position: absolute; top: 50%; left: 50%; width: 22px; height: 22px;
+  margin: -11px 0 0 -11px; border-radius: 50%;
+  background: var(--card); border: 2px solid rgba(255,255,255,.55);
+  box-shadow: 0 2px 8px rgba(0,0,0,.35); display: grid; place-items: center;
+  font-size: 11px; z-index: 3; transition: left .4s ease;
+}
+.home-nav-grid { gap: 10px !important; }
+.home-nav-card { padding: 14px 12px !important; min-height: 70px; }
+.home-nav-card .hn-title { font-size: 15px !important; }
+.home-nav-card .hn-desc { font-size: 11px !important; }
+.figure-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.figure-swatch {
+  width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 10px;
+  font-size: 18px; background: var(--bg-soft); border: 2px solid var(--border);
+  box-shadow: none; display: grid; place-items: center;
+}
+.figure-swatch.on {
+  border-color: var(--pref-color, #60a5fa);
+  background: color-mix(in srgb, var(--pref-color, #60a5fa) 22%, transparent);
+}
+.report-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.report-tabs button {
+  flex: 1; margin: 0; padding: 12px; background: var(--card-2); color: var(--muted);
+  border: 1px solid var(--border); box-shadow: none; font-weight: 800;
+}
+.report-tabs button.active {
+  background: var(--blue-soft); color: var(--text); border-color: rgba(96,165,250,.4);
+}
+.report-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.report-summary .rs-card {
+  text-align: center; padding: 12px 8px; border-radius: 12px;
+  background: var(--card-2); border: 1px solid var(--border);
+}
+.report-summary .rs-num { font-size: 22px; font-weight: 900; color: var(--green); }
+.report-summary .rs-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
 
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
@@ -2772,6 +2586,7 @@ window.saveDataToFirebase = async function () {
                   </div>
                 </div>
 
+                <button type="button" class="qm-flat" data-nav="reports" onclick="goTo('reports')">📅 Отчети</button>
                 <button type="button" class="qm-flat" data-nav="manage" onclick="goTo('manage')">⚙️ Настройки</button>
             </div>
         </div>
@@ -2784,18 +2599,18 @@ window.saveDataToFirebase = async function () {
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
             </div>
-            <div class="hero-stage hero-locked" id="heroStage" title="">
+            <div class="hero-stage" id="heroStage" onclick="playHeroShow()" title="Докосни!">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
                     <span class="hi" id="hi0">🎲</span>
                     <span class="hi" id="hi1">♟️</span>
                     <span class="hi" id="hi2">🃏</span>
                 </div>
-                <div class="hero-hint" id="heroHint"></div>
+                <div class="hero-hint" id="heroHint">✨ докосни за изненада</div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
             <h2>Board Game Suite</h2>
-            <p>Партии · статистики · companion apps</p>
+            <p>Записвай партии, следи статистики и ползвай companion apps за любимите игри.</p>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
@@ -2806,24 +2621,25 @@ window.saveDataToFirebase = async function () {
                 <div class="hl-game" id="homeLastGame">Все още няма записи</div>
                 <div class="hl-meta" id="homeLastMeta"></div>
             </div>
-            <div class="home-week" id="homeWeekBox">
-                <div class="hw-label">Тази седмица</div>
-                <div class="hw-text" id="homeWeekText">Няма партии последните 7 дни</div>
-            </div>
             <div class="home-h2h" id="homeH2H" style="display:none">
                 <div class="hh-label">Директен двубой</div>
-                <div class="hh-row">
-                    <div class="hh-player">
+                <div class="hh-arena">
+                    <div class="hh-side">
+                        <div class="hh-fig" id="hhFigA">♟️</div>
                         <div class="hh-name" id="hhNameA">—</div>
                         <div class="hh-score" id="hhScoreA">0</div>
                     </div>
-                    <div class="hh-vs">VS</div>
-                    <div class="hh-player">
+                    <div class="hh-side">
+                        <div class="hh-fig" id="hhFigB">♟️</div>
                         <div class="hh-name" id="hhNameB">—</div>
                         <div class="hh-score" id="hhScoreB">0</div>
                     </div>
                 </div>
-                <div class="hh-bar"><span id="hhBarA" style="width:50%"></span><span id="hhBarB" style="width:50%"></span></div>
+                <div class="hh-track-wrap">
+                    <div class="hh-track-fill" id="hhTrackFill"></div>
+                    <div class="hh-track-mid"></div>
+                    <div class="hh-track-token" id="hhToken">⚖️</div>
+                </div>
                 <div class="hh-meta" id="hhMeta"></div>
             </div>
         </div>
@@ -2832,22 +2648,22 @@ window.saveDataToFirebase = async function () {
             <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
                 <span class="hn-icon">📝</span>
                 <span class="hn-title">Запис</span>
-                <span class="hn-desc">Въведи резултат от PvP или Co-op партия</span>
+                <span class="hn-desc">Резултат от партия</span>
             </button>
             <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
                 <span class="hn-icon">🎲</span>
                 <span class="hn-title">Рандом</span>
-                <span class="hn-desc">Избери случайна игра</span>
+                <span class="hn-desc">Случайна игра</span>
             </button>
             <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
                 <span class="hn-icon">📊</span>
                 <span class="hn-title">Статистика</span>
                 <span class="hn-desc">Win rate, серии, head-to-head</span>
             </button>
-            <button type="button" class="home-nav-card hn-apps" onclick="goTo('companions')">
-                <span class="hn-icon">🎮</span>
-                <span class="hn-title">Companions</span>
-                <span class="hn-desc">6 помощни апа · setup</span>
+            <button type="button" class="home-nav-card hn-apps" onclick="goTo('reports')">
+                <span class="hn-icon">📅</span>
+                <span class="hn-title">Отчети</span>
+                <span class="hn-desc">Седмица и месец</span>
             </button>
         </div>
     </div>
@@ -2982,13 +2798,6 @@ window.saveDataToFirebase = async function () {
                         <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
                         <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
                     </div>
-                    <div class="setting-toggle-row">
-                      <div class="st-text">
-                        <div class="st-title">✨ Интерактивен home</div>
-                        <div class="st-desc">Докосване на трите иконки за изненада. По подразбиране изключено.</div>
-                      </div>
-                      <button type="button" class="setting-switch" id="heroInteractiveToggle" onclick="toggleHeroInteractive()" aria-label="Интерактивен home"></button>
-                    </div>
                     <div class="small" style="margin-top:14px">Импорт / експорт на данни</div>
                     <input type="file" id="csvFileInput" accept=".csv,.txt">
                     <div class="manage-actions">
@@ -3017,6 +2826,16 @@ window.saveDataToFirebase = async function () {
 
 
     <!-- COMPANIONS -->
+    
+    <div id="reports" class="tab-content">
+        <h2>📅 Отчети</h2>
+        <div class="report-tabs">
+            <button type="button" class="active" id="reportWeekBtn" onclick="setReportPeriod('week')">Седмица</button>
+            <button type="button" id="reportMonthBtn" onclick="setReportPeriod('month')">Месец</button>
+        </div>
+        <div id="reportsOutput"></div>
+    </div>
+
     <div id="companions" class="tab-content">
         <div class="comp-page-hero">
             <div class="art">🌲🏎️🏰✈️🏯🏝️</div>
@@ -3198,7 +3017,8 @@ function goTo(tabName){
     }
   } catch(e){}
 
-  if(tabName === 'stats'){
+  if(tabName === 'reports'){ if(typeof renderReports==='function') renderReports(); }
+  else if(tabName === 'stats'){
     const out = document.getElementById('statsOverviewOutput');
     if(out && !out.dataset.loaded){
       out.innerHTML = '<div class="stats-skeleton"><div class="sk-row"><div class="sk-line lg"></div><div class="sk-line lg"></div></div><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>';
@@ -3212,7 +3032,7 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); applyHeroInteractive(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); }
   else { updateUI(); }
 }
 
@@ -3324,14 +3144,40 @@ function refreshHomeStats(){
       const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
       if(sa) sa.classList.toggle('lead', wa.a > wa.b);
       if(sb) sb.classList.toggle('lead', wa.b > wa.a);
-      const total = wa.a + wa.b || 1;
-      const ba = document.getElementById('hhBarA'), bb = document.getElementById('hhBarB');
-      if(ba) ba.style.width = (wa.a / total * 100) + '%';
-      if(bb) bb.style.width = (wa.b / total * 100) + '%';
+      set('hhFigA', typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(a) : '♟️');
+      set('hhFigB', typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(b) : '♟️');
+      const colA = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(a) : '#60a5fa';
+      const colB = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(b) : '#a78bfa';
+      h2hBox.style.setProperty('--hh-color-a', colA);
+      h2hBox.style.setProperty('--hh-color-b', colB);
+      const diff = wa.a - wa.b;
+      const maxDiff = 12;
+      const t = Math.max(-1, Math.min(1, diff / maxDiff));
+      const tokenPct = 50 + t * 45;
+      const token = document.getElementById('hhToken');
+      if(token){
+        token.style.left = tokenPct + '%';
+        token.textContent = wa.a === wa.b ? '⚖️' : (wa.a > wa.b ? getPlayerFigureEmoji(a) : getPlayerFigureEmoji(b));
+      }
+      const fill = document.getElementById('hhTrackFill');
+      if(fill){
+        if(wa.a === wa.b){
+          fill.style.left = '35%'; fill.style.width = '30%';
+          fill.style.background = 'linear-gradient(90deg,'+colA+','+colB+')';
+        } else if(wa.a > wa.b){
+          const inv = 50 + Math.min(48, (diff/maxDiff)*48);
+          fill.style.left = '0%'; fill.style.width = inv+'%';
+          fill.style.background = 'linear-gradient(90deg,'+colA+','+colA+')';
+        } else {
+          const inv = 50 + Math.min(48, (-diff/maxDiff)*48);
+          fill.style.left = (100-inv)+'%'; fill.style.width = inv+'%';
+          fill.style.background = 'linear-gradient(90deg,'+colB+','+colB+')';
+        }
+      }
       const meta = document.getElementById('hhMeta');
       if(meta){
         if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
-        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa.a > wa.b ? a : b);
+        else meta.textContent = h2hLogs.length + ' директни · ' + (wa.a > wa.b ? a : b) + ' настъпва (+' + Math.abs(diff) + ')';
       }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
@@ -3467,6 +3313,35 @@ function soleLeader(wins){
 /* ===== Active player profile ===== */
 
 
+
+const PLAYER_FIGURE_PRESETS = [
+  {id:'pawn',emoji:'♟️',label:'Пешка'},{id:'knight',emoji:'♞',label:'Кон'},
+  {id:'rook',emoji:'♜',label:'Топ'},{id:'queen',emoji:'♛',label:'Царица'},
+  {id:'king',emoji:'♚',label:'Цар'},{id:'car',emoji:'🏎️',label:'Кола'},
+  {id:'hat',emoji:'🎩',label:'Шапка'},{id:'dog',emoji:'🐕',label:'Куче'},
+  {id:'ship',emoji:'⛵',label:'Кораб'},{id:'boot',emoji:'👢',label:'Ботуш'},
+  {id:'dragon',emoji:'🐉',label:'Дракон'},{id:'wizard',emoji:'🧙',label:'Магьосник'},
+  {id:'robot',emoji:'🤖',label:'Робот'},{id:'cat',emoji:'🐱',label:'Котка'},
+  {id:'fox',emoji:'🦊',label:'Лисица'},{id:'star',emoji:'⭐',label:'Звезда'}
+];
+function getPlayerFiguresMap(){ try{return JSON.parse(localStorage.getItem('bgPlayerFigures')||'{}');}catch(e){return{};} }
+function setPlayerFigure(name,figId){
+  if(!name)return; const m=getPlayerFiguresMap(); m[name]=figId;
+  try{localStorage.setItem('bgPlayerFigures',JSON.stringify(m));}catch(e){}
+  if(typeof updateProfileUI==='function')updateProfileUI();
+  if(typeof refreshHomeStats==='function')refreshHomeStats();
+}
+function getPlayerFigureEmoji(name){
+  const m=getPlayerFiguresMap(); const p=PLAYER_FIGURE_PRESETS.find(x=>x.id===m[name]);
+  if(p)return p.emoji;
+  const players=(typeof myPlayers!=='undefined')?myPlayers:[];
+  return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].emoji;
+}
+function getPlayerFigureId(name){
+  const m=getPlayerFiguresMap(); if(m[name])return m[name];
+  const players=(typeof myPlayers!=='undefined')?myPlayers:[];
+  return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].id;
+}
 const PLAYER_COLOR_PRESETS = [
   { id: 'blue', hex: '#60a5fa', label: 'Син' },
   { id: 'pink', hex: '#f472b6', label: 'Розов' },
@@ -3642,6 +3517,10 @@ function renderManageProfileList(){
     const hex = getPlayerAccentHex(p);
     const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     const initial = (p.trim().charAt(0) || '?').toUpperCase();
+    const figId = getPlayerFigureId(p);
+    const figures = PLAYER_FIGURE_PRESETS.map(pf =>
+      '<button type="button" class="figure-swatch'+(pf.id===figId?' on':'')+'" title="'+pf.label+'" data-fig-for="'+safe+'" data-fig="'+pf.id+'">'+pf.emoji+'</button>'
+    ).join('');
     const swatches = PLAYER_COLOR_PRESETS.map(pc =>
       '<button type="button" class="color-swatch'+(pc.id===colorId?' on':'')+'" style="background:'+pc.hex+'" title="'+pc.label+'" data-color-for="'+safe+'" data-color="'+pc.id+'"></button>'
     ).join('');
@@ -3656,6 +3535,7 @@ function renderManageProfileList(){
         '<button type="button" class="'+(g==='m'?'on':'')+'" data-gender-for="'+safe+'" data-gender="m">♂ Мъж</button>'+
       '</div></div>'+
       '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
+      '<div class="player-pref-row"><span class="player-pref-label">Фигура</span><div class="figure-seg">'+figures+'</div></div>'+
     '</div>';
   }).join('') +
   '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="width:100%;margin:0">'+
@@ -3676,6 +3556,13 @@ function renderManageProfileList(){
       e.stopPropagation();
       setPlayerColor(btn.getAttribute('data-color-for'), btn.getAttribute('data-color'));
       showToast('🎨 Цветът е сменен', 'info');
+    };
+  });
+  list.querySelectorAll('[data-fig-for]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      setPlayerFigure(btn.getAttribute('data-fig-for'), btn.getAttribute('data-fig'));
+      showToast('♟️ Фигурата е сменена', 'info');
     };
   });
 }
@@ -3787,48 +3674,7 @@ const HERO_LINES = [
   'Успех, командире!'
 ];
 
-function isHeroInteractive(){
-  try { return localStorage.getItem('bgHeroInteractive') === '1'; } catch(e){ return false; }
-}
-function setHeroInteractive(on){
-  try { localStorage.setItem('bgHeroInteractive', on ? '1' : '0'); } catch(e){}
-  applyHeroInteractive();
-  showToast(on ? '✨ Интерактивен home: включен' : 'Интерактивен home: изключен', 'info');
-}
-function toggleHeroInteractive(){
-  setHeroInteractive(!isHeroInteractive());
-}
-function applyHeroInteractive(){
-  const on = isHeroInteractive();
-  const stage = document.getElementById('heroStage');
-  const hint = document.getElementById('heroHint');
-  const tog = document.getElementById('heroInteractiveToggle');
-  if(tog) tog.classList.toggle('on', on);
-  if(!stage) return;
-  stage.classList.toggle('hero-locked', !on);
-  if(on){
-    stage.setAttribute('onclick', 'playHeroShow()');
-    stage.title = 'Докосни за изненада!';
-    if(hint) hint.textContent = '✨ докосни за изненада';
-  } else {
-    stage.removeAttribute('onclick');
-    stage.title = '';
-    if(hint) hint.textContent = '';
-  }
-}
-function shuffleHeroIcons(){
-  const icons = [document.getElementById('hi0'), document.getElementById('hi1'), document.getElementById('hi2')];
-  if(!icons[0] || typeof HERO_SETS === 'undefined') return;
-  const set = HERO_SETS[Math.floor(Math.random() * HERO_SETS.length)].slice();
-  // shuffle set order
-  for(let i = set.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [set[i], set[j]] = [set[j], set[i]];
-  }
-  icons.forEach((el, i) => { if(el) el.textContent = set[i] || '🎲'; });
-}
 function playHeroShow(){
-  if(!isHeroInteractive()) return;
   const stage = document.getElementById('heroStage');
   const result = document.getElementById('heroResult');
   const hint = document.getElementById('heroHint');
@@ -4458,6 +4304,76 @@ function toggleStatExpand(id, el){
 /* =========================================================
    ОБЩА СТАТИСТИКА
    ========================================================= */
+
+
+let reportPeriod = 'week';
+function setReportPeriod(p){
+  reportPeriod = p === 'month' ? 'month' : 'week';
+  const wb = document.getElementById('reportWeekBtn');
+  const mb = document.getElementById('reportMonthBtn');
+  if(wb) wb.classList.toggle('active', reportPeriod==='week');
+  if(mb) mb.classList.toggle('active', reportPeriod==='month');
+  renderReports();
+}
+function renderReports(){
+  const out = document.getElementById('reportsOutput');
+  if(!out) return;
+  const all = gameLogs || [];
+  const now = Date.now();
+  const span = reportPeriod==='month' ? 30*24*60*60*1000 : 7*24*60*60*1000;
+  const label = reportPeriod==='month' ? 'Последните 30 дни' : 'Последните 7 дни';
+  const logs = all.filter(x => { const t=new Date(x.date||0).getTime(); return !isNaN(t)&&(now-t)<=span; })
+    .sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  const pvp = logs.filter(l=>l.type!=='coop');
+  const coop = logs.filter(l=>l.type==='coop');
+  const wins={};
+  pvp.forEach(log=>{
+    const ws=(typeof getPvpWinners==='function')?getPvpWinners(log):(log.winners||(log.winner?[log.winner]:[]));
+    ws.forEach(w=>{wins[w]=(wins[w]||0)+1;});
+  });
+  const byGame={};
+  logs.forEach(l=>{
+    if(!l.game)return;
+    if(!byGame[l.game]) byGame[l.game]={n:0,pvp:0,coop:0,coopW:0};
+    byGame[l.game].n++;
+    if(l.type==='coop'){ byGame[l.game].coop++; if(l.coopResult==='win') byGame[l.game].coopW++; }
+    else byGame[l.game].pvp++;
+  });
+  let html='<div class="small" style="margin-bottom:10px">'+esc(label)+'</div>';
+  html+='<div class="report-summary">';
+  html+='<div class="rs-card"><div class="rs-num">'+logs.length+'</div><div class="rs-label">Партии</div></div>';
+  html+='<div class="rs-card"><div class="rs-num">'+pvp.length+'</div><div class="rs-label">PvP</div></div>';
+  html+='<div class="rs-card"><div class="rs-num">'+coop.length+'</div><div class="rs-label">Co-op</div></div>';
+  html+='</div>';
+  if(!logs.length){ out.innerHTML=html+'<div class="empty">Няма партии в този период.</div>'; return; }
+  if(Object.keys(wins).length){
+    html+='<div class="game-stats-box"><h3>🏆 Победи (PvP)</h3><div class="mobile-stat-list">';
+    Object.entries(wins).sort((a,b)=>b[1]-a[1]).forEach(([p,n])=>{
+      html+='<div class="mobile-stat-item"><div class="top"><b>'+esc(p)+'</b><b>'+n+'</b></div></div>';
+    });
+    html+='</div></div>';
+  }
+  html+='<div class="game-stats-box"><h3>🎲 По игри</h3><div class="mobile-stat-list">';
+  Object.entries(byGame).sort((a,b)=>b[1].n-a[1].n).forEach(([g,d])=>{
+    let meta=d.n+(d.n===1?' партия':' партии');
+    if(d.pvp) meta+=' · PvP '+d.pvp;
+    if(d.coop) meta+=' · co-op '+d.coopW+'/'+d.coop;
+    html+='<div class="mobile-stat-item"><div class="top"><b>'+esc(g)+'</b></div><div class="meta"><span class="pill">'+meta+'</span></div></div>';
+  });
+  html+='</div></div><div class="game-stats-box"><h3>🕒 Хронология</h3><div class="mobile-stat-list">';
+  logs.forEach(l=>{
+    if(l.type==='coop'){
+      const ok=l.coopResult==='win';
+      html+='<div class="recent-result"><div class="date">'+(typeof formatDate==='function'?formatDate(l.date):'')+'</div><div><div class="game">'+esc(l.game)+'</div><div class="score">'+esc((l.participants||[]).join(', '))+'</div></div><div class="'+(ok?'success':'error')+'">'+(ok?'🏆 Успех':'❌ Неуспех')+'</div></div>';
+    } else {
+      const ws=(typeof getPvpWinners==='function')?getPvpWinners(l):(l.winners||[]);
+      const scores=Object.entries(l.scores||{}).map(([p,s])=>p+': '+s).join(' · ');
+      html+='<div class="recent-result"><div class="date">'+(typeof formatDate==='function'?formatDate(l.date):'')+'</div><div><div class="game">'+esc(l.game)+'</div><div class="score">'+esc(scores)+'</div></div><div class="success">🏆 '+esc(ws.join(' & ')||'—')+'</div></div>';
+    }
+  });
+  html+='</div></div>';
+  out.innerHTML=html;
+}
 
 function showStats(){
     const out = document.getElementById('statsOverviewOutput');
@@ -5505,7 +5421,7 @@ function parseCsvLine(text){
 /* Deep link: #randomizer / #stats / #manage / #log */
 function applyHashTab(){
   const h = (location.hash || '').replace('#','').toLowerCase();
-  const map = { randomizer: 'randomizer', random: 'randomizer', stats: 'stats', manage: 'manage', log: 'log', home: 'home', companions: 'companions', apps: 'companions', companion: 'companions' };
+  const map = { randomizer: 'randomizer', random: 'randomizer', stats: 'stats', manage: 'manage', log: 'log', home: 'home', companions: 'companions', apps: 'companions', companion: 'companions', reports: 'reports', report: 'reports' };
   const tab = map[h] || 'home';
   goTo(tab);
 }
@@ -5528,8 +5444,6 @@ updateUI();
 
 applyHashTab();
 
-shuffleHeroIcons();
-applyHeroInteractive();
 updateProfileUI();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
