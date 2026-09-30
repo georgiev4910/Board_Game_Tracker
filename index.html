@@ -2922,6 +2922,61 @@ html[data-theme="light"] .pill { color: #334155; }
   to { opacity: 1; transform: none; }
 }
 
+
+/* Log tab 2.0 */
+#log .log-hero h2 {
+  margin-bottom: 4px;
+  letter-spacing: -.02em;
+}
+#log .log-sub { margin: 0 0 14px; color: var(--muted); }
+#log .log-card {
+  padding: 16px 14px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, var(--card-2), var(--card));
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+#log .log-card label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+#log .log-card label:first-child { margin-top: 0; }
+#log .log-card select {
+  width: 100%;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+#log .players-container {
+  border-radius: 14px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+}
+#log .log-submit {
+  width: 100%;
+  margin-top: 16px;
+  padding: 15px 14px !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  border-radius: 16px !important;
+  letter-spacing: -.01em;
+}
+#log .log-status {
+  margin-top: 12px;
+  font-weight: 800;
+  text-align: center;
+  min-height: 1.2em;
+}
+#log #dynamicLogSection {
+  margin-top: 8px;
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -3177,19 +3232,24 @@ window.saveDataToFirebase = async function () {
 
     <!-- ТАБ: ЗАПИСВАНЕ -->
     <div id="log" class="tab-content">
-        <h2>Запиши партия</h2>
-        <label>Тип игра</label>
-        <div class="filter-mode-container">
-            <button type="button" class="filter-mode-btn pvp-mode active" id="filterPvpBtn" onclick="setLogFilter('pvp')">⚔️ Състезателни (PvP)</button>
-            <button type="button" class="filter-mode-btn coop-mode" id="filterCoopBtn" onclick="setLogFilter('coop')">🤝 Кооперативни (Co-op)</button>
+        <div class="log-hero">
+          <h2>📝 Запиши партия</h2>
+          <p class="small log-sub">Резултатът влиза в статистиките и рандомайзера.</p>
         </div>
-        <label>Игра</label>
-        <select id="gameSelect" onchange="onGameSelected()"><option value="">-- Избери игра --</option></select>
-        <label>Участващи играчи</label>
-        <div id="playersCheckboxContainer" class="players-container"><span class="small">Няма добавени играчи още.</span></div>
-        <div id="dynamicLogSection"></div>
-        <button class="btn-blue" id="logGameBtn" onclick="logGame()" style="padding:14px;font-size:16px">Запиши резултата</button>
-        <div id="logStatus" style="margin-top:10px;font-weight:bold;text-align:center"></div>
+        <div class="log-card">
+          <label>Тип игра</label>
+          <div class="filter-mode-container">
+              <button type="button" class="filter-mode-btn pvp-mode active" id="filterPvpBtn" onclick="setLogFilter('pvp')">⚔️ PvP</button>
+              <button type="button" class="filter-mode-btn coop-mode" id="filterCoopBtn" onclick="setLogFilter('coop')">🤝 Co-op</button>
+          </div>
+          <label>Игра</label>
+          <select id="gameSelect" onchange="onGameSelected()"><option value="">-- Избери игра --</option></select>
+          <label>Участващи играчи</label>
+          <div id="playersCheckboxContainer" class="players-container"><span class="small">Няма добавени играчи още.</span></div>
+          <div id="dynamicLogSection"></div>
+          <button class="btn-blue log-submit" id="logGameBtn" onclick="logGame()">✓ Запиши резултата</button>
+          <div id="logStatus" class="log-status"></div>
+        </div>
     </div>
 
     <!-- ТАБ: РАНДОМАЙЗЕР -->
