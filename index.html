@@ -2588,6 +2588,70 @@ html[data-theme="light"] .splash-title {
   .splash-blob, .splash-die, .splash-brand { animation: none !important; }
 }
 
+
+/* Hero text centered when interactive */
+.hero-stage {
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+.hero-hint {
+  display: block !important;
+  width: 100%;
+  text-align: center !important;
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--muted) !important;
+}
+.hero-result {
+  display: none;
+  margin: 10px auto 0 !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  max-width: 90%;
+}
+.hero-result.show {
+  display: inline-block !important;
+}
+.home-nav-grid { gap: 8px !important; margin-top: 10px !important; }
+.home-nav-card {
+  min-height: 0 !important;
+  padding: 10px 10px !important;
+  border-radius: 14px !important;
+  gap: 4px !important;
+}
+.home-nav-card .hn-icon {
+  width: 32px !important; height: 32px !important;
+  font-size: 16px !important; border-radius: 10px !important;
+  margin-bottom: 2px !important;
+}
+.home-nav-card .hn-title { font-size: 13px !important; }
+.home-nav-card .hn-desc {
+  font-size: 10px !important;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.home-h2h { padding: 10px 12px !important; margin-top: 8px !important; }
+.hh-fig { font-size: 22px !important; }
+.home-stats-row { margin: 8px 0 !important; gap: 6px !important; }
+.home-stat { padding: 8px 6px !important; }
+.home-stat .hs-num { font-size: 18px !important; }
+.stats-period-tabs {
+  display: flex; gap: 6px; margin: 8px 0 12px;
+}
+.stats-period-tabs button {
+  flex: 1; margin: 0; padding: 10px 8px; font-size: 12px; font-weight: 800;
+  background: var(--card-2); color: var(--muted); border: 1px solid var(--border); box-shadow: none;
+}
+.stats-period-tabs button.active {
+  background: var(--blue-soft); color: var(--text); border-color: rgba(96,165,250,.4);
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -5410,6 +5474,84 @@ function renderPlayerStats(){
    НАВИГАЦИЯ МЕЖДУ СТАТИСТИКИТЕ
    ========================================================= */
 
+
+let reportPeriod = 'week';
+function setReportPeriod(p){
+  reportPeriod = p === 'month' ? 'month' : 'week';
+  const wb = document.getElementById('reportWeekBtn');
+  const mb = document.getElementById('reportMonthBtn');
+  if(wb) wb.classList.toggle('active', reportPeriod === 'week');
+  if(mb) mb.classList.toggle('active', reportPeriod === 'month');
+  renderReports();
+}
+function renderReports(){
+  const out = document.getElementById('reportsOutput');
+  if(!out) return;
+  const all = gameLogs || [];
+  const now = Date.now();
+  const span = reportPeriod === 'month' ? 30*24*60*60*1000 : 7*24*60*60*1000;
+  const label = reportPeriod === 'month' ? 'Последните 30 дни' : 'Последните 7 дни';
+  const logs = all.filter(x => {
+    const t = new Date(x.date || 0).getTime();
+    return !isNaN(t) && (now - t) <= span;
+  }).sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+  const pvp = logs.filter(l => l.type !== 'coop');
+  const coop = logs.filter(l => l.type === 'coop');
+  const wins = {};
+  pvp.forEach(log => {
+    const ws = (typeof getPvpWinners === 'function') ? getPvpWinners(log) : (log.winners || (log.winner ? [log.winner] : []));
+    ws.forEach(w => { wins[w] = (wins[w] || 0) + 1; });
+  });
+  const byGame = {};
+  logs.forEach(l => {
+    if(!l.game) return;
+    if(!byGame[l.game]) byGame[l.game] = { n:0, pvp:0, coop:0, coopW:0 };
+    byGame[l.game].n++;
+    if(l.type === 'coop'){ byGame[l.game].coop++; if(l.coopResult==='win') byGame[l.game].coopW++; }
+    else byGame[l.game].pvp++;
+  });
+  let html = '<div class="small" style="margin-bottom:10px">' + (typeof esc==='function'?esc(label):label) + '</div>';
+  html += '<div class="dashboard">';
+  html += '<div class="stat-card"><div class="num">' + logs.length + '</div><div class="label">Партии</div></div>';
+  html += '<div class="stat-card"><div class="num">' + pvp.length + '</div><div class="label">PvP</div></div>';
+  html += '<div class="stat-card"><div class="num">' + coop.length + '</div><div class="label">Co-op</div></div>';
+  html += '</div>';
+  if(!logs.length){
+    out.innerHTML = html + '<div class="empty">Няма партии в този период.</div>';
+    return;
+  }
+  if(Object.keys(wins).length){
+    html += '<div class="game-stats-box"><h3>🏆 Победи (PvP)</h3><div class="mobile-stat-list">';
+    Object.entries(wins).sort((a,b)=>b[1]-a[1]).forEach(([p,n]) => {
+      html += '<div class="mobile-stat-item"><div class="top"><b>' + (typeof esc==='function'?esc(p):p) + '</b><b>' + n + '</b></div></div>';
+    });
+    html += '</div></div>';
+  }
+  html += '<div class="game-stats-box"><h3>🎲 По игри</h3><div class="mobile-stat-list">';
+  Object.entries(byGame).sort((a,b)=>b[1].n-a[1].n).forEach(([g,d]) => {
+    let meta = d.n + (d.n===1?' партия':' партии');
+    if(d.pvp) meta += ' · PvP ' + d.pvp;
+    if(d.coop) meta += ' · co-op ' + d.coopW + '/' + d.coop;
+    html += '<div class="mobile-stat-item"><div class="top"><b>' + (typeof esc==='function'?esc(g):g) + '</b></div><div class="meta"><span class="pill">' + meta + '</span></div></div>';
+  });
+  html += '</div></div>';
+  html += '<div class="game-stats-box"><h3>🕒 Хронология</h3><div class="mobile-stat-list">';
+  logs.slice(0, 40).forEach(l => {
+    const date = (typeof formatDate==='function') ? formatDate(l.date) : '';
+    if(l.type === 'coop'){
+      const ok = l.coopResult === 'win';
+      html += '<div class="recent-result"><div class="date">' + date + '</div><div><div class="game">' + (typeof esc==='function'?esc(l.game):l.game) + '</div></div><div class="' + (ok?'success':'error') + '">' + (ok?'🏆 Успех':'❌ Неуспех') + '</div></div>';
+    } else {
+      const ws = (typeof getPvpWinners==='function') ? getPvpWinners(l) : [];
+      const scores = Object.entries(l.scores||{}).map(([p,s]) => p + ': ' + s).join(' · ');
+      html += '<div class="recent-result"><div class="date">' + date + '</div><div><div class="game">' + (typeof esc==='function'?esc(l.game):l.game) + '</div><div class="score">' + (typeof esc==='function'?esc(scores):scores) + '</div></div><div class="success">🏆 ' + (typeof esc==='function'?esc(ws.join(' & ')||'—'): (ws.join(' & ')||'—')) + '</div></div>';
+    }
+  });
+  html += '</div></div>';
+  out.innerHTML = html;
+}
+
+
 function showStatsPanel(panel){
 
     document
@@ -5498,6 +5640,14 @@ function showStatsPanel(panel){
 
         renderPlayerStats();
 
+    }
+
+    else if(panel === 'reports'){
+        const btn = document.getElementById('statsReportsBtn');
+        const pan = document.getElementById('statsReportsPanel');
+        if(btn) btn.classList.add('active');
+        if(pan) pan.classList.add('active');
+        if(typeof renderReports === 'function') renderReports();
     }
 
 }
@@ -5641,6 +5791,39 @@ applyHeroInteractive();
 applyFiguresVisible();
 setTimeout(runHomeIntro, 80);
 updateProfileUI();
+
+/* Edge swipe → back to home (app-like) */
+(function setupSwipeBack(){
+  let startX = 0, startY = 0, tracking = false;
+  document.addEventListener('touchstart', function(e){
+    if(!document.body.classList.contains('section-mode')) return;
+    if(!e.touches || !e.touches[0]) return;
+    if(e.touches[0].clientX > 28) return; // left edge only
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
+  }, { passive: true });
+  document.addEventListener('touchmove', function(e){
+    if(!tracking || !e.touches || !e.touches[0]) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if(dy > 50) tracking = false;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    if(!tracking) return;
+    tracking = false;
+    const t = e.changedTouches && e.changedTouches[0];
+    if(!t) return;
+    const dx = t.clientX - startX;
+    const dy = Math.abs(t.clientY - startY);
+    if(dx > 70 && dy < 60 && document.body.classList.contains('section-mode')){
+      if(typeof goHome === 'function') goHome();
+      else if(typeof goTo === 'function') goTo('home');
+    }
+  }, { passive: true });
+})();
+
+
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
   try { reg.update(); } catch(e){}
