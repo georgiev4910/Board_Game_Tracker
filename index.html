@@ -2432,6 +2432,61 @@ html[data-theme="light"] .hh-track-wrap { background: rgba(15,23,42,.07); }
 .report-summary .rs-num { font-size: 22px; font-weight: 900; color: var(--green); }
 .report-summary .rs-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
 
+
+/* Hero locked */
+.hero-stage.hero-locked { cursor: default; pointer-events: none; }
+.hero-stage.hero-locked .hero-hint { opacity: .4; }
+.hero-stage:not(.hero-locked) { cursor: pointer; }
+.setting-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; margin: 8px 0; border-radius: 12px;
+  background: var(--bg-soft); border: 1px solid var(--border);
+}
+.setting-toggle-row .st-text { flex: 1; min-width: 0; }
+.setting-toggle-row .st-title { font-weight: 800; font-size: 13px; }
+.setting-toggle-row .st-desc { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; }
+.setting-switch {
+  position: relative; width: 48px; height: 28px; flex-shrink: 0;
+  border-radius: 999px; background: rgba(255,255,255,.12);
+  border: 1px solid var(--border); cursor: pointer; transition: .2s;
+  padding: 0; margin: 0; box-shadow: none;
+}
+.setting-switch.on {
+  background: color-mix(in srgb, var(--green) 55%, transparent);
+  border-color: rgba(34,197,94,.45);
+}
+.setting-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  transition: transform .2s; box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.setting-switch.on::after { transform: translateX(20px); }
+.home-h2h.hh-no-figs .hh-fig { display: none; }
+.hh-track-labels {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; font-weight: 800; margin-top: 4px; gap: 8px;
+}
+.hh-track-labels .hh-lead-a { color: var(--hh-color-a, #60a5fa); }
+.hh-track-labels .hh-lead-b { color: var(--hh-color-b, #a78bfa); text-align: right; }
+.hh-track-labels .hh-lead-mid { color: var(--muted); flex: 1; text-align: center; font-size: 10px; }
+.hh-track-wrap { height: 22px !important; }
+.hh-track-fill-a, .hh-track-fill-b {
+  position: absolute; top: 0; bottom: 0; transition: width .4s ease;
+}
+.hh-track-fill-a {
+  left: 0; border-radius: 999px 0 0 999px;
+  background: var(--hh-color-a, #60a5fa);
+}
+.hh-track-fill-b {
+  right: 0; border-radius: 0 999px 999px 0;
+  background: var(--hh-color-b, #a78bfa);
+}
+.hh-track-pct {
+  position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+  font-size: 10px; font-weight: 900; color: #0f1220; padding: 0 6px;
+  text-shadow: 0 0 4px rgba(255,255,255,.4); pointer-events: none; z-index: 1;
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2599,14 +2654,14 @@ window.saveDataToFirebase = async function () {
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
             </div>
-            <div class="hero-stage" id="heroStage" onclick="playHeroShow()" title="Докосни!">
+            <div class="hero-stage hero-locked" id="heroStage" title="">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
                     <span class="hi" id="hi0">🎲</span>
                     <span class="hi" id="hi1">♟️</span>
                     <span class="hi" id="hi2">🃏</span>
                 </div>
-                <div class="hero-hint" id="heroHint">✨ докосни за изненада</div>
+                <div class="hero-hint" id="heroHint"></div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
             <h2>Board Game Suite</h2>
@@ -2636,9 +2691,17 @@ window.saveDataToFirebase = async function () {
                     </div>
                 </div>
                 <div class="hh-track-wrap">
-                    <div class="hh-track-fill" id="hhTrackFill"></div>
+                    <div class="hh-track-fill-a" id="hhFillA" style="width:50%"></div>
+                    <div class="hh-track-fill-b" id="hhFillB" style="width:50%"></div>
                     <div class="hh-track-mid"></div>
+                    <div class="hh-track-pct" id="hhPctA" style="left:0"></div>
+                    <div class="hh-track-pct" id="hhPctB" style="right:0;left:auto"></div>
                     <div class="hh-track-token" id="hhToken">⚖️</div>
+                </div>
+                <div class="hh-track-labels">
+                    <span class="hh-lead-a" id="hhLeadA"></span>
+                    <span class="hh-lead-mid" id="hhLeadMid"></span>
+                    <span class="hh-lead-b" id="hhLeadB"></span>
                 </div>
                 <div class="hh-meta" id="hhMeta"></div>
             </div>
@@ -2797,6 +2860,20 @@ window.saveDataToFirebase = async function () {
                         <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
                         <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
                         <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+                    </div>
+                    <div class="setting-toggle-row">
+                      <div class="st-text">
+                        <div class="st-title">✨ Интерактивен home</div>
+                        <div class="st-desc">Докосване на трите иконки. По подразбиране изключено.</div>
+                      </div>
+                      <button type="button" class="setting-switch" id="heroInteractiveToggle" onclick="toggleHeroInteractive()" aria-label="Интерактивен home"></button>
+                    </div>
+                    <div class="setting-toggle-row">
+                      <div class="st-text">
+                        <div class="st-title">♟️ Фигурки в двубоя</div>
+                        <div class="st-desc">Показва избраните фигурки над имената в H2H.</div>
+                      </div>
+                      <button type="button" class="setting-switch on" id="figuresToggle" onclick="toggleFiguresVisible()" aria-label="Фигурки"></button>
                     </div>
                     <div class="small" style="margin-top:14px">Импорт / експорт на данни</div>
                     <input type="file" id="csvFileInput" accept=".csv,.txt">
@@ -3032,7 +3109,7 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); applyHeroInteractive(); applyFiguresVisible(); }
   else { updateUI(); }
 }
 
@@ -3144,40 +3221,45 @@ function refreshHomeStats(){
       const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
       if(sa) sa.classList.toggle('lead', wa.a > wa.b);
       if(sb) sb.classList.toggle('lead', wa.b > wa.a);
-      set('hhFigA', typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(a) : '♟️');
-      set('hhFigB', typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(b) : '♟️');
+      const showFig = typeof isFiguresVisible !== 'function' || isFiguresVisible();
+      set('hhFigA', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(a) : '');
+      set('hhFigB', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(b) : '');
+      h2hBox.classList.toggle('hh-no-figs', !showFig);
       const colA = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(a) : '#60a5fa';
       const colB = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(b) : '#a78bfa';
       h2hBox.style.setProperty('--hh-color-a', colA);
       h2hBox.style.setProperty('--hh-color-b', colB);
+      const total = wa.a + wa.b;
+      const pctA = total ? (wa.a / total * 100) : 50;
+      const pctB = total ? (wa.b / total * 100) : 50;
+      const fa = document.getElementById('hhFillA');
+      const fb = document.getElementById('hhFillB');
+      if(fa){ fa.style.width = pctA + '%'; fa.style.background = colA; }
+      if(fb){ fb.style.width = pctB + '%'; fb.style.background = colB; }
+      const pa = document.getElementById('hhPctA');
+      const pb = document.getElementById('hhPctB');
+      if(pa) pa.textContent = total && pctA >= 18 ? (Math.round(pctA) + '%') : '';
+      if(pb) pb.textContent = total && pctB >= 18 ? (Math.round(pctB) + '%') : '';
       const diff = wa.a - wa.b;
-      const maxDiff = 12;
-      const t = Math.max(-1, Math.min(1, diff / maxDiff));
-      const tokenPct = 50 + t * 45;
+      const tokenPct = total ? pctA : 50;
       const token = document.getElementById('hhToken');
       if(token){
         token.style.left = tokenPct + '%';
-        token.textContent = wa.a === wa.b ? '⚖️' : (wa.a > wa.b ? getPlayerFigureEmoji(a) : getPlayerFigureEmoji(b));
+        if(wa.a === wa.b) token.textContent = '⚖️';
+        else if(showFig && typeof getPlayerFigureEmoji==='function')
+          token.textContent = wa.a > wa.b ? getPlayerFigureEmoji(a) : getPlayerFigureEmoji(b);
+        else token.textContent = wa.a > wa.b ? '◀' : '▶';
       }
-      const fill = document.getElementById('hhTrackFill');
-      if(fill){
-        if(wa.a === wa.b){
-          fill.style.left = '35%'; fill.style.width = '30%';
-          fill.style.background = 'linear-gradient(90deg,'+colA+','+colB+')';
-        } else if(wa.a > wa.b){
-          const inv = 50 + Math.min(48, (diff/maxDiff)*48);
-          fill.style.left = '0%'; fill.style.width = inv+'%';
-          fill.style.background = 'linear-gradient(90deg,'+colA+','+colA+')';
-        } else {
-          const inv = 50 + Math.min(48, (-diff/maxDiff)*48);
-          fill.style.left = (100-inv)+'%'; fill.style.width = inv+'%';
-          fill.style.background = 'linear-gradient(90deg,'+colB+','+colB+')';
-        }
-      }
+      const la = document.getElementById('hhLeadA');
+      const lb = document.getElementById('hhLeadB');
+      const lm = document.getElementById('hhLeadMid');
+      if(la) la.textContent = wa.a > wa.b ? ('▲ +' + diff) : (wa.a === wa.b ? '' : '');
+      if(lb) lb.textContent = wa.b > wa.a ? ('▲ +' + (wa.b - wa.a)) : (wa.a === wa.b ? '' : '');
+      if(lm) lm.textContent = wa.a === wa.b ? 'равенство' : '';
       const meta = document.getElementById('hhMeta');
       if(meta){
-        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
-        else meta.textContent = h2hLogs.length + ' директни · ' + (wa.a > wa.b ? a : b) + ' настъпва (+' + Math.abs(diff) + ')';
+        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b;
+        else meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b + ' · води ' + (wa.a > wa.b ? a : b);
       }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
@@ -3674,7 +3756,66 @@ const HERO_LINES = [
   'Успех, командире!'
 ];
 
+
+function isHeroInteractive(){
+  try { return localStorage.getItem('bgHeroInteractive') === '1'; } catch(e){ return false; }
+}
+function setHeroInteractive(on){
+  try { localStorage.setItem('bgHeroInteractive', on ? '1' : '0'); } catch(e){}
+  applyHeroInteractive();
+  if(typeof showToast==='function') showToast(on ? '✨ Интерактивен home: включен' : 'Интерактивен home: изключен', 'info');
+}
+function toggleHeroInteractive(){ setHeroInteractive(!isHeroInteractive()); }
+function applyHeroInteractive(){
+  const on = isHeroInteractive();
+  const stage = document.getElementById('heroStage');
+  const hint = document.getElementById('heroHint');
+  const tog = document.getElementById('heroInteractiveToggle');
+  if(tog) tog.classList.toggle('on', on);
+  if(!stage) return;
+  stage.classList.toggle('hero-locked', !on);
+  if(on){
+    stage.setAttribute('onclick', 'playHeroShow()');
+    stage.title = 'Докосни за изненада!';
+    if(hint) hint.textContent = '✨ докосни за изненада';
+  } else {
+    stage.removeAttribute('onclick');
+    stage.title = '';
+    if(hint) hint.textContent = '';
+  }
+}
+function isFiguresVisible(){
+  try {
+    const v = localStorage.getItem('bgFiguresVisible');
+    if(v === null || v === '') return true; /* default ON */
+    return v === '1';
+  } catch(e){ return true; }
+}
+function setFiguresVisible(on){
+  try { localStorage.setItem('bgFiguresVisible', on ? '1' : '0'); } catch(e){}
+  applyFiguresVisible();
+  if(typeof showToast==='function') showToast(on ? '♟️ Фигурки: включени' : 'Фигурки: изключени', 'info');
+}
+function toggleFiguresVisible(){ setFiguresVisible(!isFiguresVisible()); }
+function applyFiguresVisible(){
+  const on = isFiguresVisible();
+  const tog = document.getElementById('figuresToggle');
+  if(tog) tog.classList.toggle('on', on);
+  document.querySelectorAll('.home-h2h').forEach(el => el.classList.toggle('hh-no-figs', !on));
+}
+function shuffleHeroIcons(){
+  const icons = [document.getElementById('hi0'), document.getElementById('hi1'), document.getElementById('hi2')];
+  if(!icons[0] || typeof HERO_SETS === 'undefined') return;
+  const set = HERO_SETS[Math.floor(Math.random() * HERO_SETS.length)].slice();
+  for(let i = set.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [set[i], set[j]] = [set[j], set[i]];
+  }
+  icons.forEach((el, i) => { if(el) el.textContent = set[i] || '🎲'; });
+}
+
 function playHeroShow(){
+  if(typeof isHeroInteractive === 'function' && !isHeroInteractive()) return;
   const stage = document.getElementById('heroStage');
   const result = document.getElementById('heroResult');
   const hint = document.getElementById('heroHint');
@@ -5444,6 +5585,9 @@ updateUI();
 
 applyHashTab();
 
+shuffleHeroIcons();
+applyHeroInteractive();
+applyFiguresVisible();
 updateProfileUI();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
