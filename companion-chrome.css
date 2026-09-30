@@ -1,0 +1,48 @@
+/* Board Game Tracker — shared companion chrome */
+#bgt-chrome {
+  position: fixed;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 18px;
+  background: rgba(12, 16, 28, 0.92);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+#bgt-chrome a, #bgt-chrome button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
+  color: #f1f5f9;
+  font: 800 12px/1 system-ui, -apple-system, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+#bgt-chrome a:active, #bgt-chrome button:active {
+  transform: scale(0.96);
+}
+#bgt-chrome .bgt-lang {
+  color: #fcd34d;
+  min-width: 52px;
+}
+#bgt-chrome a:hover, #bgt-chrome button:hover {
+  background: rgba(255,255,255,0.12);
+}
+body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+@media (prefers-reduced-motion: reduce) {
+  #bgt-chrome a, #bgt-chrome button { transition: none; }
+}

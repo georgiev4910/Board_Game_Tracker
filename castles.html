@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>The Castles of Burgundy - Companion</title>
+    <!-- FontAwesome за икони -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+:root {
+  --bg: #0c0a0b;
+  --card: #1a1216;
+  --card-2: #24181e;
+  --border: rgba(225, 29, 72, 0.18);
+  --accent: #e11d48;
+  --accent-dark: #9f1239;
+  --accent-soft: rgba(225, 29, 72, 0.12);
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --radius: 14px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0; padding: 0; height: 100dvh; max-height: 100dvh; overflow: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 10% -5%, rgba(225,29,72,.14), transparent 50%),
+    radial-gradient(700px 400px at 100% 10%, rgba(159,18,57,.1), transparent 45%),
+    var(--bg);
+  display: flex; flex-direction: column; align-items: center;
+}
+.top-header {
+  width: 100%; max-width: 100%;
+  background: linear-gradient(180deg, rgba(26,18,22,.98), rgba(26,18,22,.95));
+  border: none; border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 0;
+  backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 50; flex-shrink: 0; padding-top: max(10px, env(safe-area-inset-top, 0px));
+}
+.top-header .nav-btns {
+  display: flex; gap: 6px; align-items: center;
+  border-right: 1px solid var(--border); padding-right: 10px; margin-right: 4px;
+}
+.top-header .nav-btn {
+  background: var(--card-2); border: 1px solid var(--border);
+  color: var(--muted); width: 36px; height: 36px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: .18s; font-size: 14px; text-decoration: none; padding: 0;
+}
+.top-header .nav-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
+.top-header .nav-btn.home-btn { color: #fb7185; }
+.top-header .nav-btn.back-btn { color: #fda4af; }
+.top-header .nav-btn.tracker-btn { color: #f43f5e; }
+.top-header .title-area { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; }
+.top-header .logo-icon {
+  background: linear-gradient(135deg, #e11d48, #9f1239);
+  width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;
+  box-shadow: 0 4px 14px rgba(225,29,72,.35);
+}
+.top-header .title-mini { font-size: 12px; font-weight: 800; color: #fb7185; letter-spacing: .03em; line-height: 1.2; }
+.top-header .title-sub { font-size: 10px; color: var(--muted); font-weight: 500; }
+.container {
+  background: transparent;
+  padding: 18px 16px 32px; border-radius: 0;
+  box-shadow: none;
+  width: 100%; max-width: 480px; text-align: center; box-sizing: border-box;
+  border: none; margin-bottom: 0; flex: 1;
+  overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+h1 { margin: 0 0 6px; color: #fb7185; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+p { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn .22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.btn {
+  background: linear-gradient(135deg, #e11d48, #9f1239); color: white; border: 0;
+  padding: 13px 20px; font-size: 15px; font-weight: 700; border-radius: 12px;
+  cursor: pointer; transition: .18s; width: 100%; margin-top: 8px;
+  box-shadow: 0 6px 18px rgba(225,29,72,.28);
+}
+.btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn:active { transform: scale(.98); }
+.btn-secondary { background: linear-gradient(135deg, #3f3f46, #27272a); box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.image-container {
+  width: 100%; height: 160px; border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+  border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.image-container img { width: 100%; height: 100%; object-fit: cover; }
+.player-setup-row {
+  display: flex; flex-direction: column; gap: .4rem;
+  background: var(--card-2); padding: .75rem; border-radius: 12px; margin-bottom: .7rem;
+  border-left: 4px solid #ccc; text-align: left;
+  border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.player-setup-row.red { border-left-color: #ef4444; }
+.player-setup-row.blue { border-left-color: #3b82f6; }
+.player-setup-row.black { border-left-color: #71717a; }
+.player-setup-row.green { border-left-color: #22c55e; }
+input[type="text"] {
+  background: var(--bg); border: 1px solid var(--border); color: white;
+  padding: .5rem .65rem; border-radius: 8px; font-size: .95rem; font-family: inherit;
+}
+input[type="text"]:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(225,29,72,.2); }
+.player-count-btns { display: flex; flex-direction: column; gap: .7rem; margin-top: .8rem; }
+.expansion-list {
+  text-align: left; background: var(--card-2); padding: 12px; border-radius: 12px;
+  border: 1px solid var(--border); margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.expansion-item {
+  display: flex; align-items: center; gap: 10px; font-size: .9rem; color: #d4d4d8; cursor: pointer;
+}
+.expansion-item input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+.dice-grid { display: flex; flex-direction: column; gap: .9rem; }
+.market-dice-box {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card-2); padding: .75rem 1rem; border-radius: 12px; border: 1px solid var(--border);
+}
+.player-dice-card {
+  background: var(--card-2); padding: .75rem; border-radius: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid var(--border); text-align: left;
+}
+.dice-pair { display: flex; gap: .5rem; }
+.die {
+  width: 42px; height: 42px; background: #fff; color: #000; border-radius: 8px;
+  display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 1.2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3); cursor: pointer; user-select: none; transition: .15s;
+}
+.die:active { transform: scale(.92); }
+.die.used { text-decoration: line-through; opacity: .35; filter: grayscale(.5); }
+.die.white { background: #f3f4f6; color: #111; border: 2px solid #d1d5db; }
+.die.red { background: #ef4444; color: #fff; }
+.die.blue { background: #3b82f6; color: #fff; }
+.die.black { background: #27272a; color: #fff; border: 1px solid #52525b; }
+.die.green { background: #22c55e; color: #fff; }
+.roll-btn {
+  background: linear-gradient(135deg, #e11d48, #9f1239); color: white; border: none;
+  padding: .9rem; font-size: 1.05rem; font-weight: 800; border-radius: 12px; cursor: pointer;
+  width: 100%; margin-top: 1rem; box-shadow: 0 6px 18px rgba(225,29,72,.3);
+}
+.roll-btn:hover { filter: brightness(1.08); }
+@media (min-width: 520px) {
+  body { padding: 16px 0; height: 100dvh; }
+  .top-header, .container { max-width: 480px; }
+  .top-header {
+    max-width: 480px; margin-top: 0; border-radius: 18px 18px 0 0;
+    border: 1px solid var(--border); border-bottom: none;
+  }
+  .container {
+    max-width: 480px;
+    background: linear-gradient(180deg, rgba(26,18,22,.98), rgba(20,14,17,.99));
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    padding: 22px 20px 28px; margin-bottom: 24px;
+  }
+}
+
+/* UX polish: safe-area + reduced motion + focus */
+html { height: 100%; }
+body {
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+
+.toast-host {
+  position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 0px)); left: 50%;
+  transform: translateX(-50%); z-index: 200; width: min(340px, calc(100% - 24px));
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.toast {
+  pointer-events: auto; background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff; font-weight: 800; font-size: 14px; padding: 12px 16px;
+  border-radius: 14px; text-align: center; box-shadow: 0 10px 28px rgba(0,0,0,.4);
+  animation: toastIn .25s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+
+/* ===== Companion motion polish (sync with main app) ===== */
+html { scroll-behavior: smooth; }
+body {
+  animation: compPageIn .45s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes compPageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+/* Interactive controls */
+button, .btn, a.btn, [type="button"], [role="button"],
+select, .chip, .tab, .mode-btn, .filter-btn {
+  transition:
+    transform .16s cubic-bezier(.34, 1.45, .64, 1),
+    box-shadow .18s ease,
+    filter .18s ease,
+    background-color .18s ease,
+    border-color .18s ease,
+    opacity .18s ease !important;
+}
+button:hover, .btn:hover, a.btn:hover, [type="button"]:hover {
+  filter: brightness(1.06);
+}
+button:active, .btn:active, a.btn:active, [type="button"]:active {
+  transform: scale(0.97) !important;
+}
+/* Cards / panels */
+.card, .panel, .box, .game-card, .tile-card, .spirit-card,
+[class*="rounded-2xl"], [class*="rounded-xl"], [class*="rounded-lg"] {
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+/* Soft reveal for main content blocks */
+main, .container, .app, #app, .content, .wrapper {
+  animation: compFade .5s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes compFade {
+  from { opacity: 0.01; }
+  to { opacity: 1; }
+}
+/* Sticky chrome */
+header, .top-chrome, .sticky-header, nav.sticky, .navbar {
+  backdrop-filter: saturate(1.2) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(12px);
+}
+/* Toast / result pop */
+.toast, .result, .winner-display, .alert, .banner {
+  animation: compPop .35s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes compPop {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+/* List stagger helper */
+.comp-stagger > * {
+  animation: compCascade .4s cubic-bezier(.22, 1, .36, 1) both;
+}
+.comp-stagger > *:nth-child(1) { animation-delay: .02s; }
+.comp-stagger > *:nth-child(2) { animation-delay: .06s; }
+.comp-stagger > *:nth-child(3) { animation-delay: .1s; }
+.comp-stagger > *:nth-child(4) { animation-delay: .14s; }
+.comp-stagger > *:nth-child(5) { animation-delay: .18s; }
+.comp-stagger > *:nth-child(6) { animation-delay: .22s; }
+.comp-stagger > *:nth-child(7) { animation-delay: .26s; }
+.comp-stagger > *:nth-child(8) { animation-delay: .3s; }
+@keyframes compCascade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+/* Focus visible for accessibility */
+button:focus-visible, a:focus-visible, select:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, .7);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  body, main, .container, .app, #app, .content, .wrapper,
+  .toast, .result, .winner-display, .comp-stagger > * {
+    animation: none !important;
+  }
+  button, .btn, a.btn, [type="button"] {
+    transition: none !important;
+  }
+}
+
+</style>
+<link rel="stylesheet" href="./companion-chrome.css">
+</head>
+<body>
+
+<!-- Постоянен хедър с бутони -->
+<div class="top-header">
+    <div class="nav-btns">
+        <button type="button" class="nav-btn home-btn" onclick="goHome()" title="Начало">
+            <i class="fa-solid fa-house"></i>
+        </button>
+        <button type="button" class="nav-btn back-btn" onclick="goBackStep()" title="Назад">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <a href="./index.html#log" class="nav-btn tracker-btn" title="Към Board Game Tracker">
+            <i class="fa-solid fa-flag-checkered"></i>
+        </a>
+    </div>
+    <div class="title-area">
+        <div class="logo-icon"><i class="fa-solid fa-chess-rook"></i></div>
+        <div>
+            <div class="title-mini">BURGUNDY</div>
+            <div class="title-sub">Companion</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- ЕКРАН 1: Начален -->
+    <div id="home-screen" class="screen active">
+        <h1>Castles of Burgundy</h1>
+        <p>Дигитален Зар-Симулатор и Помощник</p>
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=800&q=80" alt="Castles of Burgundy">
+        </div>
+        <button class="btn" onclick="goToPlayerSelection()">Започни нова игра</button>
+    </div>
+
+    <!-- ЕКРАН 2: Избор на брой играчи (1, 2, 3, 4) -->
+    <div id="players-count-screen" class="screen">
+        <h1>Брой играчи</h1>
+        <p>Изберете колко участници ще играят:</p>
+        <div class="player-count-btns">
+            <button class="btn" onclick="handlePlayerCountSelection(1)">👤 1 Играч</button>
+            <button class="btn" onclick="handlePlayerCountSelection(2)">👥 2 Играчи</button>
+            <button class="btn" onclick="handlePlayerCountSelection(3)">👥 3 Играчи</button>
+            <button class="btn" onclick="handlePlayerCountSelection(4)">👥 4 Играчи</button>
+        </div>
+        <button class="btn btn-secondary" onclick="goHome()" style="margin-top: 15px;">Назад</button>
+    </div>
+
+    <!-- ЕКРАН 2.1: Допълнителен избор само при 4 играчи (Индивидуално или Отборно) -->
+    <div id="four-players-mode-screen" class="screen">
+        <h1>Режим за 4 играчи</h1>
+        <p>Изберете тип състезание:</p>
+        <div class="player-count-btns">
+            <button class="btn" onclick="setModeAndProceed('individual')">⚔️ Индивидуално (1в1в1в1)</button>
+            <button class="btn" onclick="setModeAndProceed('team')">🛡️ Отборно (2 срещу 2)</button>
+        </div>
+        <button class="btn btn-secondary" onclick="goToPlayerSelection()" style="margin-top: 15px;">Назад</button>
+    </div>
+
+    <!-- ЕКРАН 2.5: Избор на разширения / модули (Special Edition) -->
+    <div id="expansions-screen" class="screen">
+        <h1>Разширения</h1>
+        <p>Изберете активни модули (по избор):</p>
+        <div class="expansion-list">
+            <label class="expansion-item"><input type="checkbox" id="exp-vineyards" value="Лозята"> 🍇 Лозята (Vineyards)</label>
+            <label class="expansion-item"><input type="checkbox" id="exp-shields" value="Щитовете"> 🛡️ Щитовете (Shields)</label>
+            <label class="expansion-item"><input type="checkbox" id="exp-trade" value="Търговски пътища"> 📜 Търговски пътища</label>
+            <label class="expansion-item"><input type="checkbox" id="exp-castles" value="Бели замъци"> 🏰 Бели замъци (White Castles)</label>
+            <label class="expansion-item"><input type="checkbox" id="exp-monastery" value="Манастири"> ⛪ Разширени манастири</label>
+        </div>
+        <button class="btn" onclick="proceedToConfig()">Към настройка на играчите</button>
+        <button class="btn btn-secondary" onclick="backFromExpansions()" style="margin-top: 8px;">Назад</button>
+    </div>
+
+    <!-- ЕКРАН 3: Настройка на играчи (Цвят и Борд) -->
+    <div id="players-config-screen" class="screen">
+        <h1>Настройка на играчите</h1>
+        <p>Персонализирайте имената и разпределението:</p>
+        <div id="players-config-container"></div>
+        <button class="btn" onclick="goToDiceScreen()">Към заровете 🎲</button>
+        <button class="btn btn-secondary" onclick="goToExpansionsScreen()" style="margin-top: 8px;">Назад</button>
+    </div>
+
+    <!-- ЕКРАН 4: Зар-Симулатор -->
+    <div id="dice-screen" class="screen">
+        <h1>Зар-Симулатор</h1>
+        <p>Хвърляне за текущия рунд (кликни на зар за зачеркване):</p>
+        
+        <div class="dice-grid">
+            <!-- Бял зар за пазара -->
+            <div class="market-dice-box">
+                <span style="font-weight: bold; font-size: 0.95rem; color: #e4e4e7;">⬜ Бял зар (Пазар):</span>
+                <div id="white-die" class="die white" onclick="toggleDie(this)">-</div>
+            </div>
+
+            <!-- Контейнер за заровете на самите играчи -->
+            <div id="players-dice-container" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+        </div>
+
+        <button class="roll-btn" onclick="rollAllDice()">Хвърли всички зарове 🎲</button>
+        <button class="btn btn-secondary" onclick="goToPlayerConfigFromDice()" style="margin-top: 8px;">Редактирай играчи</button>
+    </div>
+</div>
+
+<script>
+    let navigationHistory = ['home-screen'];
+    let selectedPlayerCount = 1;
+    let gameMode = 'solo'; // 'solo', 'individual', 'team'
+    let playersData = [];
+    let activeExpansions = [];
+
+    const availableColors = [
+        { id: 'red', name: 'Червен', class: 'red' },
+        { id: 'blue', name: 'Син', class: 'blue' },
+        { id: 'black', name: 'Черен', class: 'black' },
+        { id: 'green', name: 'Зелен', class: 'green' }
+    ];
+
+    const singleBoards = [
+        "Табло № 1 (Класическо)", "Табло № 2", "Табло № 3", "Табло № 4", 
+        "Табло № 5", "Табло № 6", "Табло № 7", "Табло № 8", "Табло № 9", "Табло № 10"
+    ];
+
+    const teamBoards = [
+        "Отборно Табло № 31A / 31B",
+        "Отборно Табло № 32A / 32B"
+    ];
+
+    function getStoredPlayerNames() {
+        try {
+            const saved = localStorage.getItem('boardgame_players');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return ["Играч 1", "Играч 2", "Играч 3", "Играч 4"];
+    }
+
+    function goToScreen(screenId) {
+        if (navigationHistory[navigationHistory.length - 1] !== screenId) {
+            navigationHistory.push(screenId);
+        }
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function goHome() {
+        navigationHistory = ['home-screen'];
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('home-screen').classList.add('active');
+    }
+
+    function goBackStep() {
+        if (navigationHistory.length > 1) {
+            navigationHistory.pop();
+            const prev = navigationHistory[navigationHistory.length - 1];
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(prev).classList.add('active');
+        } else {
+            goHome();
+        }
+    }
+
+    function goToPlayerSelection() {
+        goToScreen('players-count-screen');
+    }
+
+    function handlePlayerCountSelection(count) {
+        selectedPlayerCount = count;
+        if (count === 1) {
+            gameMode = 'solo';
+            goToScreen('expansions-screen');
+        } else if (count === 2 || count === 3) {
+            gameMode = 'individual';
+            goToScreen('expansions-screen');
+        } else if (count === 4) {
+            goToScreen('four-players-mode-screen');
+        }
+    }
+
+    function setModeAndProceed(mode) {
+        gameMode = mode;
+        goToScreen('expansions-screen');
+    }
+
+    function goToExpansionsScreen() {
+        goToScreen('expansions-screen');
+    }
+
+    function backFromExpansions() {
+        if (selectedPlayerCount === 4) {
+            goToScreen('four-players-mode-screen');
+        } else {
+            goToScreen('players-count-screen');
+        }
+    }
+
+    function shuffleArray(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function proceedToConfig() {
+        activeExpansions = [];
+        if (document.getElementById('exp-vineyards').checked) activeExpansions.push('Лозята');
+        if (document.getElementById('exp-shields').checked) activeExpansions.push('Щитовете');
+        if (document.getElementById('exp-trade').checked) activeExpansions.push('Търговски пътища');
+        if (document.getElementById('exp-castles').checked) activeExpansions.push('Бели замъци');
+        if (document.getElementById('exp-monastery').checked) activeExpansions.push('Разширени манастири');
+
+        const defaultNames = getStoredPlayerNames();
+        playersData = [];
+        const shuffledColors = shuffleArray(availableColors);
+
+        for (let i = 0; i < selectedPlayerCount; i++) {
+            let assignedBoard = "";
+            
+            if (gameMode === 'team') {
+                assignedBoard = teamBoards[Math.floor(Math.random() * teamBoards.length)];
+            } else {
+                assignedBoard = singleBoards[Math.floor(Math.random() * singleBoards.length)];
+            }
+
+            let displayName = defaultNames[i] || `Играч ${i + 1}`;
+            if (gameMode === 'solo' && i === 0) {
+                displayName = "Соло Играч";
+            } else if (gameMode === 'team') {
+                let teamNum = i < 2 ? 1 : 2;
+                displayName += ` (Отбор ${teamNum})`;
+            }
+
+            playersData.push({
+                name: displayName,
+                colorObj: shuffledColors[i],
+                board: assignedBoard
+            });
+        }
+
+        renderPlayersConfig();
+        goToScreen('players-config-screen');
+    }
+
+    function renderPlayersConfig() {
+        const container = document.getElementById('players-config-container');
+        container.innerHTML = '';
+
+        playersData.forEach((player, index) => {
+            container.innerHTML += `
+                <div class="player-setup-row ${player.colorObj.class}">
+                    <label style="font-size: 0.8rem; color: #a1a1aa;">Участник ${index + 1} (${player.colorObj.name})</label>
+                    <input type="text" id="p-name-${index}" value="${player.name}" oninput="updatePlayerName(${index}, this.value)">
+                    <div style="font-size: 0.8rem; margin-top: 0.2rem; color: #d4d4d8;">Зарове: <b>${player.colorObj.name}</b> | Борд: <b>${player.board}</b></div>
+                </div>
+            `;
+        });
+
+        if (activeExpansions.length > 0) {
+            container.innerHTML += `
+                <div style="font-size: 0.75rem; color: #fb7185; margin-top: 5px; text-align: left;">
+                    Активни разширения: ${activeExpansions.join(', ')}
+                </div>
+            `;
+        }
+    }
+
+    function updatePlayerName(index, value) {
+        playersData[index].name = value;
+    }
+
+    function goToDiceScreen() {
+        renderDiceScreen();
+        goToScreen('dice-screen');
+    }
+
+    function goToPlayerConfigFromDice() {
+        goToScreen('players-config-screen');
+    }
+
+    function renderDiceScreen() {
+        const container = document.getElementById('players-dice-container');
+        container.innerHTML = '';
+
+        playersData.forEach((player, index) => {
+            container.innerHTML += `
+                <div class="player-dice-card">
+                    <div>
+                        <div style="font-weight: bold; font-size: 0.95rem; color: #fff;">${player.name}</div>
+                        <div style="font-size: 0.75rem; color: #a1a1aa;">Цвят: ${player.colorObj.name}</div>
+                    </div>
+                    <div class="dice-pair">
+                        <div id="p-die-1-${index}" class="die ${player.colorObj.class}" onclick="toggleDie(this)">-</div>
+                        <div id="p-die-2-${index}" class="die ${player.colorObj.class}" onclick="toggleDie(this)">-</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function toggleDie(element) {
+        if (element.innerText !== '-') {
+            element.classList.toggle('used');
+        }
+    }
+
+    function rollAllDice() {
+        const whiteDie = document.getElementById('white-die');
+        whiteDie.innerText = Math.floor(Math.random() * 6) + 1;
+        whiteDie.classList.remove('used');
+
+        playersData.forEach((player, index) => {
+            const die1 = document.getElementById(`p-die-1-${index}`);
+            const die2 = document.getElementById(`p-die-2-${index}`);
+            
+            die1.innerText = Math.floor(Math.random() * 6) + 1;
+            die1.classList.remove('used');
+
+            die2.innerText = Math.floor(Math.random() * 6) + 1;
+            die2.classList.remove('used');
+        });
+    
+  try{showToast('Готово ✓');}catch(e){}
+}
+
+function showToast(msg){
+  var host = document.getElementById('toastHost');
+  if(!host){
+    host = document.createElement('div');
+    host.id = 'toastHost';
+    host.className = 'toast-host';
+    document.body.appendChild(host);
+  }
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  host.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2200);
+  try { if(navigator.vibrate) navigator.vibrate(10); } catch(e){}
+}
+
+</script>
+
+
+<script>
+(function(){
+  function enhance(){
+    document.documentElement.classList.add('comp-ready');
+    var sels = [
+      '.grid', '[class*="grid-cols"]', '.cards', '.tile-list',
+      '#routes', '#spirits', '.spirit-grid', '.meeple-grid'
+    ];
+    sels.forEach(function(sel){
+      document.querySelectorAll(sel).forEach(function(el){
+        if(el.children && el.children.length > 1 && el.children.length < 40){
+          el.classList.add('comp-stagger');
+        }
+      });
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', enhance);
+  else enhance();
+})();
+</script>
+
+
+<script>
+(function(){
+  window.currentLang = (function(){ try { return localStorage.getItem('bgCompanionLang') || 'bg'; } catch(e){ return 'bg'; } })();
+  window.toggleLanguage = function(){
+    window.currentLang = window.currentLang === 'bg' ? 'en' : 'bg';
+    try { localStorage.setItem('bgCompanionLang', window.currentLang); } catch(e){}
+    var el = document.getElementById('lang-btn-text');
+    if(el) el.textContent = window.currentLang.toUpperCase();
+    document.documentElement.lang = window.currentLang;
+    // lightweight label swap for data-i18n-bg / data-i18n-en
+    document.querySelectorAll('[data-i18n-bg]').forEach(function(node){
+      var bg = node.getAttribute('data-i18n-bg');
+      var en = node.getAttribute('data-i18n-en') || bg;
+      node.textContent = window.currentLang === 'en' ? en : bg;
+    });
+  };
+  if(!document.getElementById('suite-chrome')){
+    var bar = document.createElement('div');
+    bar.id = 'suite-chrome';
+    bar.style.cssText = 'position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));right:12px;z-index:9999;display:flex;gap:8px;';
+    bar.innerHTML = '<a href="./index.html#log" style="padding:10px 12px;border-radius:14px;background:rgba(15,18,32,.92);color:#fff;text-decoration:none;font:800 12px/1 system-ui;border:1px solid rgba(255,255,255,.12)">📝 Log</a>'+
+      '<a href="./index.html#randomizer" style="padding:10px 12px;border-radius:14px;background:rgba(15,18,32,.92);color:#fff;text-decoration:none;font:800 12px/1 system-ui;border:1px solid rgba(255,255,255,.12)">🎲 Rand</a>'+
+      '<button type="button" onclick="toggleLanguage()" style="padding:10px 12px;border-radius:14px;background:rgba(15,18,32,.92);color:#fcd34d;font:800 12px/1 system-ui;border:1px solid rgba(255,255,255,.12)">🌐 <span id="lang-btn-text">BG</span></button>';
+    document.body.appendChild(bar);
+    try {
+      var l = localStorage.getItem('bgCompanionLang') || 'bg';
+      var el = document.getElementById('lang-btn-text');
+      if(el) el.textContent = l.toUpperCase();
+    } catch(e){}
+  }
+})();
+</script>
+<script src="./companion-chrome.js" defer></script>
+</body>
+</html>
+
