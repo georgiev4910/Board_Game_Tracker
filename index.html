@@ -2487,6 +2487,42 @@ html[data-theme="light"] .hh-track-wrap { background: rgba(15,23,42,.07); }
   text-shadow: 0 0 4px rgba(255,255,255,.4); pointer-events: none; z-index: 1;
 }
 
+
+.home-intro {
+  text-align: center;
+  margin: 4px 0 8px;
+  max-height: 80px;
+  overflow: hidden;
+  transition: max-height .55s ease, opacity .5s ease, margin .5s ease, transform .5s ease;
+}
+.home-intro.home-intro-hide {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+.home-intro-title {
+  margin: 0 !important;
+  font-size: 20px !important;
+  animation: introTitleIn .7s ease both;
+}
+.home-intro-sub {
+  margin: 4px 0 0 !important;
+  font-size: 12px !important;
+  color: var(--muted);
+  animation: introSubIn .8s .15s ease both;
+}
+@keyframes introTitleIn {
+  from { opacity: 0; letter-spacing: .12em; transform: translateY(6px); }
+  to { opacity: 1; letter-spacing: -.02em; transform: none; }
+}
+@keyframes introSubIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.home-hero-compact .home-stats-row { margin-top: 4px !important; }
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2664,17 +2700,14 @@ window.saveDataToFirebase = async function () {
                 <div class="hero-hint" id="heroHint"></div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
-            <h2>Board Game Suite</h2>
-            <p>Записвай партии, следи статистики и ползвай companion apps за любимите игри.</p>
+            <div class="home-intro" id="homeIntro">
+                <h2 class="home-intro-title">Board Game Suite</h2>
+                <p class="home-intro-sub">Партии · статистики · companion apps</p>
+            </div>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
-            </div>
-            <div class="home-last" id="homeLastSession" onclick="onLastSessionTap()" title="Към статистика">
-                <div class="hl-label">Последна партия</div>
-                <div class="hl-game" id="homeLastGame">Все още няма записи</div>
-                <div class="hl-meta" id="homeLastMeta"></div>
             </div>
             <div class="home-h2h" id="homeH2H" style="display:none">
                 <div class="hh-label">Директен двубой</div>
@@ -3033,11 +3066,23 @@ const SECTION_TITLES = {
   randomizer: '🎲 Рандомайзер',
   stats: '📊 Статистика',
   companions: '🎮 Companion apps',
-  manage: '⚙️ Настройки'
+  manage: '⚙️ Настройки',
+  reports: '📅 Отчети'
 };
 
+
+function runHomeIntro(){
+  const intro = document.getElementById('homeIntro');
+  if(!intro) return;
+  intro.classList.remove('home-intro-hide');
+  clearTimeout(window._homeIntroTimer);
+  window._homeIntroTimer = setTimeout(function(){
+    intro.classList.add('home-intro-hide');
+  }, 3200);
+}
 function goHome(){
   goTo('home');
+  setTimeout(runHomeIntro, 50);
 }
 
 function toggleQuickMenu(){
@@ -3066,7 +3111,7 @@ function openTab(evt, tabName){
 }
 
 function goTo(tabName){
-  const valid = ['home','log','randomizer','stats','companions','manage'];
+  const valid = ['home','log','randomizer','stats','companions','manage','reports'];
   if(!valid.includes(tabName)) tabName = 'home';
 
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -3116,6 +3161,7 @@ function goTo(tabName){
 function refreshHomeStats(){
   try {
     updateProfileUI();
+    if(document.getElementById('home')?.classList.contains('active')) runHomeIntro();
     const me = getActivePlayer();
     const allLogs = gameLogs || [];
 
@@ -5589,6 +5635,7 @@ shuffleHeroIcons();
 applyHeroInteractive();
 applyFiguresVisible();
 updateProfileUI();
+setTimeout(runHomeIntro, 100);
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
   try { reg.update(); } catch(e){}
