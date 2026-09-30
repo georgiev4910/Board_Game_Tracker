@@ -2367,600 +2367,86 @@ html[data-theme="light"] .h2h-card .num.lead {
 }
 
 
-/* H2H 7-wonders style + reports + figures */
-.hh-arena {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
+/* Light theme: readable top chrome */
+html[data-theme="light"] .top-chrome,
+html[data-theme="light"] body:not(.section-mode) .top-chrome,
+html[data-theme="light"] body.section-mode .top-chrome {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
+  border-bottom: 1px solid rgba(15,23,42,.1) !important;
 }
-.hh-side { width: 58px; text-align: center; flex-shrink: 0; }
-.hh-fig { font-size: 28px; line-height: 1; margin-bottom: 2px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.3)); }
-.hh-side .hh-name { font-size: 11px !important; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hh-side .hh-score { font-size: 20px !important; font-weight: 900; }
-.hh-side .hh-score.lead { color: #4ade80; }
-html[data-theme="light"] .hh-side .hh-score.lead { color: #16a34a; }
-.hh-track-wrap {
-  position: relative; height: 18px; margin: 4px 0 6px;
-  border-radius: 999px; background: rgba(255,255,255,.07);
-  border: 1px solid var(--border); overflow: hidden;
+html[data-theme="light"] .chrome-brand .app-title,
+html[data-theme="light"] .app-title {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
 }
-html[data-theme="light"] .hh-track-wrap { background: rgba(15,23,42,.07); }
-.hh-track-fill {
-  position: absolute; top: 0; bottom: 0; left: 0; width: 50%;
-  border-radius: 999px; transition: left .4s ease, width .4s ease, background .3s;
+html[data-theme="light"] .chrome-brand .app-sub,
+html[data-theme="light"] .app-sub {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
 }
-.hh-track-mid {
-  position: absolute; top: -2px; bottom: -2px; left: 50%; width: 2px; margin-left: -1px;
-  background: rgba(255,255,255,.5); z-index: 2;
+html[data-theme="light"] .sec-title { color: #0f172a !important; }
+html[data-theme="light"] .menu-btn,
+html[data-theme="light"] #menuBtn {
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15,23,42,.12) !important;
+  box-shadow: 0 2px 8px rgba(15,23,42,.06) !important;
 }
-.hh-track-token {
-  position: absolute; top: 50%; left: 50%; width: 22px; height: 22px;
-  margin: -11px 0 0 -11px; border-radius: 50%;
-  background: var(--card); border: 2px solid rgba(255,255,255,.55);
-  box-shadow: 0 2px 8px rgba(0,0,0,.35); display: grid; place-items: center;
-  font-size: 11px; z-index: 3; transition: left .4s ease;
+html[data-theme="light"] .back-home {
+  color: #0f172a !important;
+  background: rgba(15,23,42,.06) !important;
 }
-.home-nav-grid { gap: 10px !important; }
-.home-nav-card { padding: 14px 12px !important; min-height: 70px; }
-.home-nav-card .hn-title { font-size: 15px !important; }
-.home-nav-card .hn-desc { font-size: 11px !important; }
-.figure-seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.figure-swatch {
-  width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 10px;
-  font-size: 18px; background: var(--bg-soft); border: 2px solid var(--border);
-  box-shadow: none; display: grid; place-items: center;
-}
-.figure-swatch.on {
-  border-color: var(--pref-color, #60a5fa);
-  background: color-mix(in srgb, var(--pref-color, #60a5fa) 22%, transparent);
-}
-.report-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
-.report-tabs button {
-  flex: 1; margin: 0; padding: 12px; background: var(--card-2); color: var(--muted);
-  border: 1px solid var(--border); box-shadow: none; font-weight: 800;
-}
-.report-tabs button.active {
-  background: var(--blue-soft); color: var(--text); border-color: rgba(96,165,250,.4);
-}
-.report-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
-.report-summary .rs-card {
-  text-align: center; padding: 12px 8px; border-radius: 12px;
-  background: var(--card-2); border: 1px solid var(--border);
-}
-.report-summary .rs-num { font-size: 22px; font-weight: 900; color: var(--green); }
-.report-summary .rs-label { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
-
-
-/* Hero locked */
-.hero-stage.hero-locked { cursor: default; pointer-events: none; }
-.hero-stage.hero-locked .hero-hint { opacity: .4; }
-.hero-stage:not(.hero-locked) { cursor: pointer; }
-.setting-toggle-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 12px; margin: 8px 0; border-radius: 12px;
-  background: var(--bg-soft); border: 1px solid var(--border);
-}
-.setting-toggle-row .st-text { flex: 1; min-width: 0; }
-.setting-toggle-row .st-title { font-weight: 800; font-size: 13px; }
-.setting-toggle-row .st-desc { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; }
-.setting-switch {
-  position: relative; width: 48px; height: 28px; flex-shrink: 0;
-  border-radius: 999px; background: rgba(255,255,255,.12);
-  border: 1px solid var(--border); cursor: pointer; transition: .2s;
-  padding: 0; margin: 0; box-shadow: none;
-}
-.setting-switch.on {
-  background: color-mix(in srgb, var(--green) 55%, transparent);
-  border-color: rgba(34,197,94,.45);
-}
-.setting-switch::after {
-  content: ''; position: absolute; top: 3px; left: 3px;
-  width: 20px; height: 20px; border-radius: 50%; background: #fff;
-  transition: transform .2s; box-shadow: 0 2px 6px rgba(0,0,0,.25);
-}
-.setting-switch.on::after { transform: translateX(20px); }
-.home-h2h.hh-no-figs .hh-fig { display: none; }
-.hh-track-labels {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 11px; font-weight: 800; margin-top: 4px; gap: 8px;
-}
-.hh-track-labels .hh-lead-a { color: var(--hh-color-a, #60a5fa); }
-.hh-track-labels .hh-lead-b { color: var(--hh-color-b, #a78bfa); text-align: right; }
-.hh-track-labels .hh-lead-mid { color: var(--muted); flex: 1; text-align: center; font-size: 10px; }
-.hh-track-wrap { height: 22px !important; }
-.hh-track-fill-a, .hh-track-fill-b {
-  position: absolute; top: 0; bottom: 0; transition: width .4s ease;
-}
-.hh-track-fill-a {
-  left: 0; border-radius: 999px 0 0 999px;
-  background: var(--hh-color-a, #60a5fa);
-}
-.hh-track-fill-b {
-  right: 0; border-radius: 0 999px 999px 0;
-  background: var(--hh-color-b, #a78bfa);
-}
-.hh-track-pct {
-  position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
-  font-size: 10px; font-weight: 900; color: #0f1220; padding: 0 6px;
-  text-shadow: 0 0 4px rgba(255,255,255,.4); pointer-events: none; z-index: 1;
-}
-
-
-
-/* Cinematic home intro — once per session, then content leads */
-.home-intro {
-  position: relative;
-  text-align: center;
-  margin: 2px auto 10px;
-  padding: 10px 12px 12px;
-  max-width: 320px;
-  border-radius: 18px;
-  overflow: hidden;
-  transform-origin: center top;
-  transition:
-    opacity .55s cubic-bezier(.22,1,.36,1),
-    transform .55s cubic-bezier(.22,1,.36,1),
-    max-height .55s cubic-bezier(.22,1,.36,1),
-    padding .45s ease,
-    margin .45s ease,
-    filter .45s ease;
-  max-height: 120px;
-}
-.home-intro::before {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(120px 60px at 50% 0%, rgba(96,165,250,.2), transparent 70%),
-    radial-gradient(100px 50px at 30% 100%, rgba(34,197,94,.12), transparent 70%);
-  pointer-events: none;
-  opacity: .9;
-}
-.home-intro .intro-kicker {
-  position: relative;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 4px;
-  opacity: 0;
-  transform: translateY(8px);
-}
-.home-intro-title {
-  position: relative;
-  margin: 0 !important;
-  font-size: 22px !important;
-  font-weight: 900 !important;
-  letter-spacing: -.03em;
-  line-height: 1.15;
-  background: linear-gradient(120deg, #fff 0%, #a5b4fc 40%, #4ade80 75%, #60a5fa 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  opacity: 0;
-  transform: translateY(10px) scale(.98);
-  filter: blur(4px);
-}
-html[data-theme="light"] .home-intro-title {
-  background: linear-gradient(120deg, #1e293b 0%, #4f46e5 45%, #16a34a 80%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-.home-intro-sub {
-  position: relative;
-  margin: 6px 0 0 !important;
-  font-size: 12px !important;
-  font-weight: 600;
-  color: var(--muted);
-  opacity: 0;
-  transform: translateY(6px);
-}
-/* choreography phases */
-.home-intro.phase-in .intro-kicker {
-  animation: introRise .55s cubic-bezier(.22,1,.36,1) .05s both;
-}
-.home-intro.phase-in .home-intro-title {
-  animation: introTitleBloom .7s cubic-bezier(.22,1,.36,1) .12s both,
-             introShimmer 2.2s ease .5s both;
-}
-.home-intro.phase-in .home-intro-sub {
-  animation: introRise .55s cubic-bezier(.22,1,.36,1) .28s both;
-}
-.home-intro.phase-out {
-  opacity: 0;
-  transform: translateY(-12px) scale(.96);
-  filter: blur(6px);
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  margin: 0 auto;
-  pointer-events: none;
-}
-.home-intro.phase-done { display: none; }
-@keyframes introRise {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
-}
-@keyframes introTitleBloom {
-  from { opacity: 0; transform: translateY(12px) scale(.96); filter: blur(6px); }
-  to { opacity: 1; transform: none; filter: blur(0); }
-}
-@keyframes introShimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: 100% center; }
-}
-/* During intro: only brand text — hide the rest */
-#home.home-await .home-you,
-#home.home-await .hero-stage,
-#home.home-await .home-stats-row,
-#home.home-await .home-h2h,
-#home.home-await .home-nav-grid {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  max-height: 0 !important;
-  margin: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  overflow: hidden !important;
-  border-width: 0 !important;
-  transform: translateY(8px);
-}
-#home.home-await .home-intro {
-  margin-top: 28px;
-  margin-bottom: 28px;
-}
-/* After intro: cascade content in */
-#home.home-reveal .home-you,
-#home.home-reveal .hero-stage,
-#home.home-reveal .home-stats-row,
-#home.home-reveal .home-h2h,
-#home.home-reveal .home-nav-grid {
-  animation: homeCascade .48s cubic-bezier(.22,1,.36,1) both;
-}
-#home.home-reveal .home-you { animation-delay: .02s; }
-#home.home-reveal .hero-stage { animation-delay: .06s; }
-#home.home-reveal .home-stats-row { animation-delay: .1s; }
-#home.home-reveal .home-h2h { animation-delay: .14s; }
-#home.home-reveal .home-nav-grid { animation-delay: .18s; }
-@keyframes homeCascade {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-intro, .home-intro * { animation: none !important; transition: opacity .2s ease !important; filter: none !important; }
-  .home-intro.phase-out, .home-intro.phase-done { opacity: 0; max-height: 0; display: none; }
-}
-
-
-
-/* Light theme: readable accents (darker greens, stronger titles) */
-html[data-theme="light"] {
-  --green: #15803d;
-  --green-dark: #166534;
-  --muted: #475569;
-}
-html[data-theme="light"] .app-title,
-html[data-theme="light"] .chrome-brand .app-title {
-  background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 55%, #312e81 100%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
-  font-weight: 900;
-}
-html[data-theme="light"] .app-sub { color: #64748b !important; }
 html[data-theme="light"] .success,
-html[data-theme="light"] .sd-win,
 html[data-theme="light"] .hh-side .hh-score.lead,
-html[data-theme="light"] .h2h-card .num.lead,
-html[data-theme="light"] .h2h-scoreline .big.lead,
-html[data-theme="light"] .filter-mode-btn.coop-mode.active,
-html[data-theme="light"] .stats-nav-btn.active,
-html[data-theme="light"] .player-filter-btn.active,
-html[data-theme="light"] td.coop-win,
-html[data-theme="light"] td.winner-score,
-html[data-theme="light"] .leader-cell,
-html[data-theme="light"] .winner-display {
+html[data-theme="light"] .h2h-card .num.lead {
   color: #15803d !important;
   -webkit-text-fill-color: #15803d !important;
 }
-html[data-theme="light"] .h2h-card .num.lead {
-  background: none !important;
-}
-html[data-theme="light"] .stat-card .num {
-  background: linear-gradient(135deg, #15803d, #1d4ed8) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-}
-html[data-theme="light"] .home-intro-title {
-  background: linear-gradient(120deg, #0f172a 0%, #1e40af 50%, #166534 100%) !important;
-  background-size: 200% auto !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-}
-html[data-theme="light"] .home-stat .hs-num { color: #15803d !important; }
-html[data-theme="light"] .report-summary .rs-num { color: #15803d !important; }
-html[data-theme="light"] .pill { color: #334155; }
-html[data-theme="light"] .qm-badge { background: #15803d; color: #fff; }
 
-
-/* ========== HOME 2.0 ========== */
-#home.tab-content {
-  position: relative;
-  min-height: min(70vh, 640px);
+/* Tab enter + settings polish */
+.tab-content.active:not(#home) {
+  animation: tabIn .32s cubic-bezier(.22,1,.36,1) both;
 }
-.home-splash {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--bg-soft);
-  transition: opacity .55s cubic-bezier(.22,1,.36,1), visibility .55s, transform .55s cubic-bezier(.22,1,.36,1);
-}
-.home-splash.is-done {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: scale(1.04);
-}
-.splash-bg { position: absolute; inset: 0; overflow: hidden; }
-.splash-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: .45;
-  animation: blobFloat 6s ease-in-out infinite;
-}
-.splash-blob.b1 {
-  width: 180px; height: 180px; left: -20%; top: 10%;
-  background: #22c55e;
-}
-.splash-blob.b2 {
-  width: 160px; height: 160px; right: -15%; top: 40%;
-  background: #60a5fa;
-  animation-delay: -2s;
-}
-.splash-blob.b3 {
-  width: 120px; height: 120px; left: 30%; bottom: -10%;
-  background: #a78bfa;
-  animation-delay: -4s;
-}
-@keyframes blobFloat {
-  0%, 100% { transform: translate(0,0) scale(1); }
-  50% { transform: translate(12px,-16px) scale(1.08); }
-}
-.splash-stage {
-  position: relative;
-  text-align: center;
-  padding: 24px;
-  z-index: 1;
-}
-.splash-dice-row {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  margin-bottom: 22px;
-}
-.splash-die {
-  width: 56px; height: 56px;
-  border-radius: 16px;
-  display: grid; place-items: center;
-  font-size: 30px;
-  background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
-  border: 1px solid rgba(255,255,255,.14);
-  box-shadow: 0 12px 28px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.12);
-  opacity: 0;
-  transform: translateY(20px) rotate(-8deg) scale(.8);
-}
-.home-splash.is-play .splash-die {
-  animation: dieIn .7s cubic-bezier(.34,1.56,.64,1) forwards;
-}
-.home-splash.is-play .splash-die:nth-child(1) { animation-delay: .08s; }
-.home-splash.is-play .splash-die:nth-child(2) { animation-delay: .18s; }
-.home-splash.is-play .splash-die:nth-child(3) { animation-delay: .28s; }
-.home-splash.is-play .splash-die.spin {
-  animation: dieIn .7s cubic-bezier(.34,1.56,.64,1) forwards, dieSpin .55s ease .45s;
-}
-@keyframes dieIn {
-  to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
-}
-@keyframes dieSpin {
-  0% { transform: rotate(0) scale(1); }
-  40% { transform: rotate(180deg) scale(1.12); }
-  100% { transform: rotate(360deg) scale(1); }
-}
-.splash-brand { opacity: 0; transform: translateY(12px); }
-.home-splash.is-play .splash-brand {
-  animation: brandIn .65s cubic-bezier(.22,1,.36,1) .55s forwards;
-}
-@keyframes brandIn {
+@keyframes tabIn {
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
-.splash-kicker {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.splash-title {
-  font-size: 36px;
-  font-weight: 900;
-  letter-spacing: -.04em;
-  line-height: 1;
-  background: linear-gradient(120deg, #fff 10%, #a5b4fc 40%, #4ade80 70%, #60a5fa 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: introShimmer 2.4s ease infinite;
-}
-html[data-theme="light"] .splash-title {
-  background: linear-gradient(120deg, #0f172a 0%, #1e40af 45%, #166534 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-.splash-sub {
-  margin-top: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-/* Main content hidden until splash done */
-.home-main {
-  opacity: 0;
-  transform: translateY(16px);
-  pointer-events: none;
-  transition: opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);
-}
-#home.home-ready .home-main {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-#home.home-ready .home-main .home-you,
-#home.home-ready .home-main .hero-stage,
-#home.home-ready .home-main .home-stats-row,
-#home.home-ready .home-main .home-h2h,
-#home.home-ready .home-main .home-nav-grid {
-  animation: homeCascade .5s cubic-bezier(.22,1,.36,1) both;
-}
-#home.home-ready .home-main .home-you { animation-delay: .04s; }
-#home.home-ready .home-main .hero-stage { animation-delay: .1s; }
-#home.home-ready .home-main .home-stats-row { animation-delay: .16s; }
-#home.home-ready .home-main .home-h2h { animation-delay: .22s; }
-#home.home-ready .home-main .home-nav-grid { animation-delay: .28s; }
-
-/* Nav tiles 2.0 */
-.home-nav-grid {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 12px !important;
-  margin-top: 14px !important;
-}
-.home-nav-card {
-  position: relative;
-  min-height: 96px !important;
-  padding: 16px 14px !important;
-  border-radius: 20px !important;
+.mg-section {
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
-  transition: transform .2s cubic-bezier(.34,1.4,.64,1), box-shadow .2s ease !important;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
 }
-.home-nav-card::after {
-  content: '';
-  position: absolute;
-  inset: auto -20% -40% auto;
-  width: 90px; height: 90px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.06);
-  pointer-events: none;
+.mg-section.open {
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
 }
-.home-nav-card:hover {
-  transform: translateY(-3px) scale(1.02) !important;
-  box-shadow: 0 14px 32px rgba(0,0,0,.18) !important;
+.advanced-data-details {
+  margin-top: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
 }
-.home-nav-card:active {
-  transform: scale(.97) !important;
-}
-.home-nav-card .hn-icon {
-  width: 42px !important;
-  height: 42px !important;
-  font-size: 22px !important;
-  border-radius: 14px !important;
-  margin-bottom: 8px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,.12);
-}
-.home-nav-card .hn-title {
-  font-size: 16px !important;
-  font-weight: 900 !important;
-  letter-spacing: -.02em;
-}
-.home-nav-card .hn-desc {
-  font-size: 11px !important;
-  opacity: .85;
-}
-
-/* Stats chips */
-.home-stats-row {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 8px !important;
-  margin: 12px 0 !important;
-}
-.home-stat {
-  text-align: center;
-  padding: 12px 8px !important;
-  border-radius: 16px !important;
-  background: var(--card-2) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: 0 4px 14px rgba(0,0,0,.08);
-}
-.home-stat .hs-num {
-  font-size: 22px !important;
-  font-weight: 900 !important;
-  letter-spacing: -.03em;
-}
-.home-stat .hs-label {
-  font-size: 10px !important;
-  font-weight: 800 !important;
-  text-transform: uppercase;
-  letter-spacing: .06em;
+.advanced-data-details > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--muted);
 }
-
-/* Hero tiles polish */
-.hero-stage {
-  margin: 8px auto 4px !important;
-  padding: 12px !important;
-  border-radius: 20px !important;
+.advanced-data-details > summary::-webkit-details-marker { display: none; }
+.advanced-data-details .adv-body { padding: 0 12px 12px; }
+.advanced-data-details .manage-actions {
+  display: flex; flex-direction: column; gap: 8px;
 }
-.hero-icons .hi {
-  width: 52px !important;
-  height: 52px !important;
-  font-size: 28px !important;
-  border-radius: 16px !important;
-  box-shadow: 0 8px 20px rgba(0,0,0,.15);
-  transition: transform .25s cubic-bezier(.34,1.4,.64,1);
+.advanced-data-details .manage-actions button {
+  margin: 0; padding: 10px 12px; font-size: 13px;
 }
-.hero-stage:not(.hero-locked) .hi:hover {
-  transform: translateY(-4px) scale(1.06);
-}
-
-/* Greeting card */
-.home-you {
-  border-radius: 16px !important;
-  padding: 12px 14px !important;
-  margin-bottom: 8px !important;
-}
-
-/* H2H card */
-.home-h2h {
-  border-radius: 18px !important;
-  padding: 14px !important;
-  box-shadow: 0 6px 20px rgba(0,0,0,.1);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .splash-blob, .splash-die, .splash-brand, .splash-title,
-  #home.home-ready .home-main * {
-    animation: none !important;
-  }
-  .home-splash.is-done { transition: opacity .2s; }
-  .home-main { transition: opacity .2s; }
+  .tab-content.active:not(#home) { animation: none; }
 }
 
 </style>
@@ -3117,7 +2603,6 @@ window.saveDataToFirebase = async function () {
                   </div>
                 </div>
 
-                <button type="button" class="qm-flat" data-nav="reports" onclick="goTo('reports')">📅 Отчети</button>
                 <button type="button" class="qm-flat" data-nav="manage" onclick="goTo('manage')">⚙️ Настройки</button>
             </div>
         </div>
@@ -3125,106 +2610,80 @@ window.saveDataToFirebase = async function () {
 
     <!-- HOME -->
     <div id="home" class="tab-content active">
-        <!-- Splash overlay: only this during intro -->
-        <div class="home-splash" id="homeSplash" aria-hidden="false">
-            <div class="splash-bg">
-                <span class="splash-blob b1"></span>
-                <span class="splash-blob b2"></span>
-                <span class="splash-blob b3"></span>
-            </div>
-            <div class="splash-stage">
-                <div class="splash-dice-row" id="splashDice">
-                    <span class="splash-die" id="sd0">🎲</span>
-                    <span class="splash-die" id="sd1">♟️</span>
-                    <span class="splash-die" id="sd2">🃏</span>
-                </div>
-                <div class="splash-brand">
-                    <div class="splash-kicker">Board Game</div>
-                    <div class="splash-title">Suite</div>
-                    <div class="splash-sub">играй · записвай · побеждавай</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="home-main" id="homeMain">
+        <div class="home-hero">
             <div class="home-you" id="homeYouBox" style="display:none">
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
             </div>
-
-            <div class="hero-stage hero-locked" id="heroStage" title="">
+            <div class="hero-stage" id="heroStage" onclick="playHeroShow()" title="Докосни!">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
                     <span class="hi" id="hi0">🎲</span>
                     <span class="hi" id="hi1">♟️</span>
                     <span class="hi" id="hi2">🃏</span>
                 </div>
-                <div class="hero-hint" id="heroHint"></div>
+                <div class="hero-hint" id="heroHint">✨ докосни за изненада</div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
-
+            <h2>Board Game Suite</h2>
+            <p>Записвай партии, следи статистики и ползвай companion apps за любимите игри.</p>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
             </div>
-
+            <div class="home-last" id="homeLastSession" onclick="onLastSessionTap()" title="Към статистика">
+                <div class="hl-label">Последна партия</div>
+                <div class="hl-game" id="homeLastGame">Все още няма записи</div>
+                <div class="hl-meta" id="homeLastMeta"></div>
+            </div>
+            <div class="home-week" id="homeWeekBox">
+                <div class="hw-label">Тази седмица</div>
+                <div class="hw-text" id="homeWeekText">Няма партии последните 7 дни</div>
+            </div>
             <div class="home-h2h" id="homeH2H" style="display:none">
                 <div class="hh-label">Директен двубой</div>
-                <div class="hh-arena">
-                    <div class="hh-side">
-                        <div class="hh-fig" id="hhFigA">♟️</div>
+                <div class="hh-row">
+                    <div class="hh-player">
                         <div class="hh-name" id="hhNameA">—</div>
                         <div class="hh-score" id="hhScoreA">0</div>
                     </div>
-                    <div class="hh-side">
-                        <div class="hh-fig" id="hhFigB">♟️</div>
+                    <div class="hh-vs">VS</div>
+                    <div class="hh-player">
                         <div class="hh-name" id="hhNameB">—</div>
                         <div class="hh-score" id="hhScoreB">0</div>
                     </div>
                 </div>
-                <div class="hh-track-wrap">
-                    <div class="hh-track-fill-a" id="hhFillA" style="width:50%"></div>
-                    <div class="hh-track-fill-b" id="hhFillB" style="width:50%"></div>
-                    <div class="hh-track-mid"></div>
-                    <div class="hh-track-pct" id="hhPctA" style="left:0"></div>
-                    <div class="hh-track-pct" id="hhPctB" style="right:0;left:auto"></div>
-                    <div class="hh-track-token" id="hhToken">⚖️</div>
-                </div>
-                <div class="hh-track-labels">
-                    <span class="hh-lead-a" id="hhLeadA"></span>
-                    <span class="hh-lead-mid" id="hhLeadMid"></span>
-                    <span class="hh-lead-b" id="hhLeadB"></span>
-                </div>
+                <div class="hh-bar"><span id="hhBarA" style="width:50%"></span><span id="hhBarB" style="width:50%"></span></div>
                 <div class="hh-meta" id="hhMeta"></div>
             </div>
+        </div>
 
-            <div class="home-nav-grid">
-                <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
-                    <span class="hn-icon">📝</span>
-                    <span class="hn-title">Запис</span>
-                    <span class="hn-desc">Резултат от партия</span>
-                </button>
-                <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
-                    <span class="hn-icon">🎲</span>
-                    <span class="hn-title">Рандом</span>
-                    <span class="hn-desc">Случайна игра</span>
-                </button>
-                <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
-                    <span class="hn-icon">📊</span>
-                    <span class="hn-title">Статистика</span>
-                    <span class="hn-desc">H2H и история</span>
-                </button>
-                <button type="button" class="home-nav-card hn-apps" onclick="goTo('reports')">
-                    <span class="hn-icon">📅</span>
-                    <span class="hn-title">Отчети</span>
-                    <span class="hn-desc">Седмица и месец</span>
-                </button>
-            </div>
+        <div class="home-nav-grid">
+            <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
+                <span class="hn-icon">📝</span>
+                <span class="hn-title">Запис</span>
+                <span class="hn-desc">Въведи резултат от PvP или Co-op партия</span>
+            </button>
+            <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
+                <span class="hn-icon">🎲</span>
+                <span class="hn-title">Рандом</span>
+                <span class="hn-desc">Избери случайна игра</span>
+            </button>
+            <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
+                <span class="hn-icon">📊</span>
+                <span class="hn-title">Статистика</span>
+                <span class="hn-desc">Win rate, серии, head-to-head</span>
+            </button>
+            <button type="button" class="home-nav-card hn-apps" onclick="goTo('companions')">
+                <span class="hn-icon">🎮</span>
+                <span class="hn-title">Companions</span>
+                <span class="hn-desc">6 помощни апа · setup</span>
+            </button>
         </div>
     </div>
 
-<!-- ТАБ: ЗАПИСВАНЕ -->
+    <!-- ТАБ: ЗАПИСВАНЕ -->
     <div id="log" class="tab-content">
         <h2>Запиши партия</h2>
         <label>Тип игра</label>
@@ -3309,21 +2768,33 @@ window.saveDataToFirebase = async function () {
         <p class="small" style="margin:-6px 0 14px">Отвори само секцията, която ти трябва.</p>
         <div class="manage-accordion">
 
-            <div class="mg-section" id="mgGames">
-                <button type="button" class="mg-head" onclick="toggleMgSection('mgGames')">
-                    <span>🎲 Управление на игри</span><span class="mg-chevron">▼</span>
+            <div class="mg-section" id="mgProfile">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgProfile')">
+                    <span>👤 Лични настройки</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
-                    <div class="small">Добавяй нови игри и избирай дали са PvP или Co-op.</div>
-                    <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
-                    <select id="gameTypeInput"><option value="pvp">⚔️ PvP</option><option value="coop">🤝 Co-op</option></select>
-                    <button onclick="addGame()">Добави игра</button>
+                    <div class="small">Профил, род за поздрава, акцент-цвят и фигурка.</div>
+                    <div id="manageProfileList" class="player-pref-list"></div>
+                </div>
+            </div>
+
+            <div class="mg-section" id="mgSystem">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgSystem')">
+                    <span>🎛️ Предпочитания</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Тема и поведение на началния екран.</div>
+                    <div class="theme-toggle-row">
+                        <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
+                        <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
+                        <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+                    </div>
                 </div>
             </div>
 
             <div class="mg-section" id="mgPlayers">
                 <button type="button" class="mg-head" onclick="toggleMgSection('mgPlayers')">
-                    <span>👥 Управление на играчи</span><span class="mg-chevron">▼</span>
+                    <span>👥 Играчи</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
                     <div class="small">Добавяй или премахвай играчи.</div>
@@ -3333,61 +2804,40 @@ window.saveDataToFirebase = async function () {
                 </div>
             </div>
 
-            <div class="mg-section" id="mgProfile">
-                <button type="button" class="mg-head" onclick="toggleMgSection('mgProfile')">
-                    <span>👤 Лични настройки</span><span class="mg-chevron">▼</span>
+            <div class="mg-section" id="mgGames">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgGames')">
+                    <span>🎲 Игри</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
-                    <div class="small">Профил, род за поздрава и акцент-цвят. Аватарът горе води към твоята статистика.</div>
-                    <div id="manageProfileList" class="player-pref-list"></div>
-                </div>
-            </div>
-
-            <div class="mg-section" id="mgSystem">
-                <button type="button" class="mg-head" onclick="toggleMgSection('mgSystem')">
-                    <span>⚙️ Системни настройки</span><span class="mg-chevron">▼</span>
-                </button>
-                <div class="mg-body">
-                    <div class="small">Светъл, тъмен или според телефона.</div>
-                    <div class="theme-toggle-row">
-                        <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
-                        <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
-                        <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
-                    </div>
-                    <div class="setting-toggle-row">
-                      <div class="st-text">
-                        <div class="st-title">✨ Интерактивен home</div>
-                        <div class="st-desc">Докосване на трите иконки. По подразбиране изключено.</div>
-                      </div>
-                      <button type="button" class="setting-switch" id="heroInteractiveToggle" onclick="toggleHeroInteractive()" aria-label="Интерактивен home"></button>
-                    </div>
-                    <div class="setting-toggle-row">
-                      <div class="st-text">
-                        <div class="st-title">♟️ Фигурки в двубоя</div>
-                        <div class="st-desc">Показва избраните фигурки над имената в H2H.</div>
-                      </div>
-                      <button type="button" class="setting-switch on" id="figuresToggle" onclick="toggleFiguresVisible()" aria-label="Фигурки"></button>
-                    </div>
-                    <div class="small" style="margin-top:14px">Импорт / експорт на данни</div>
-                    <input type="file" id="csvFileInput" accept=".csv,.txt">
-                    <div class="manage-actions">
-                        <button class="btn-info" onclick="importCsvData()">📤 Зареди CSV</button>
-                        <button class="btn-info" onclick="exportCsvData()">📥 Изтегли CSV</button>
-                        <button class="btn-info" onclick="exportData()">💾 Архивирай JSON</button>
-                        <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
-                        <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">📥 Възстанови JSON</button>
-                    </div>
+                    <div class="small">Добавяй нови игри (PvP или Co-op).</div>
+                    <input type="text" id="gameInput" placeholder="Име на нова игра..." onkeydown="if(event.key==='Enter')addGame()">
+                    <select id="gameTypeInput"><option value="pvp">⚔️ PvP</option><option value="coop">🤝 Co-op</option></select>
+                    <button onclick="addGame()">Добави игра</button>
                 </div>
             </div>
 
             <div class="mg-section danger-sec" id="mgDanger">
                 <button type="button" class="mg-head" onclick="toggleMgSection('mgDanger')">
-                    <span>⚠️ Опасни действия</span><span class="mg-chevron">▼</span>
+                    <span>⚠️ Изтриване и нулиране</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
                     <div class="small">Тези действия могат да променят или изтрият данни.</div>
                     <button class="btn-secondary" onclick="resetToDefaultGames()">Върни стандартните игри</button>
                     <button class="btn-danger" onclick="clearAllLogs()">Изтрий цялата история</button>
+                    <details class="advanced-data-details">
+                      <summary>▸ Разширени · импорт / експорт</summary>
+                      <div class="adv-body">
+                        <div class="small" style="margin-bottom:8px">За архив или прехвърляне между устройства.</div>
+                        <input type="file" id="csvFileInput" accept=".csv,.txt">
+                        <div class="manage-actions">
+                          <button class="btn-info" onclick="importCsvData()">📤 Зареди CSV</button>
+                          <button class="btn-info" onclick="exportCsvData()">📥 Изтегли CSV</button>
+                          <button class="btn-info" onclick="exportData()">💾 Архивирай JSON</button>
+                          <input type="file" id="backupFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
+                          <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">📥 Възстанови JSON</button>
+                        </div>
+                      </div>
+                    </details>
                 </div>
             </div>
 
@@ -3396,16 +2846,6 @@ window.saveDataToFirebase = async function () {
 
 
     <!-- COMPANIONS -->
-    
-    <div id="reports" class="tab-content">
-        <h2>📅 Отчети</h2>
-        <div class="report-tabs">
-            <button type="button" class="active" id="reportWeekBtn" onclick="setReportPeriod('week')">Седмица</button>
-            <button type="button" id="reportMonthBtn" onclick="setReportPeriod('month')">Месец</button>
-        </div>
-        <div id="reportsOutput"></div>
-    </div>
-
     <div id="companions" class="tab-content">
         <div class="comp-page-hero">
             <div class="art">🌲🏎️🏰✈️🏯🏝️</div>
@@ -3526,70 +2966,11 @@ const SECTION_TITLES = {
   randomizer: '🎲 Рандомайзер',
   stats: '📊 Статистика',
   companions: '🎮 Companion apps',
-  manage: '⚙️ Настройки',
-  reports: '📅 Отчети'
+  manage: '⚙️ Настройки'
 };
-
-
-
-
-function runHomeIntro(){
-  const splash = document.getElementById('homeSplash');
-  const home = document.getElementById('home');
-  if(!home) return;
-  clearTimeout(window._homeIntroT1);
-  clearTimeout(window._homeIntroT2);
-  clearTimeout(window._homeIntroT3);
-
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const seen = sessionStorage.getItem('bgHomeIntroSeen') === '1';
-
-  function finish(){
-    if(splash){
-      splash.classList.add('is-done');
-      splash.setAttribute('aria-hidden', 'true');
-    }
-    home.classList.add('home-ready');
-    try { sessionStorage.setItem('bgHomeIntroSeen', '1'); } catch(e){}
-  }
-
-  if(!splash || seen || reduce){
-    if(splash){
-      splash.classList.add('is-done');
-      splash.setAttribute('aria-hidden', 'true');
-    }
-    home.classList.add('home-ready');
-    return;
-  }
-
-  splash.classList.remove('is-done', 'is-play');
-  splash.setAttribute('aria-hidden', 'false');
-  home.classList.remove('home-ready');
-
-  // shuffle splash dice from HERO_SETS if available
-  try {
-    if(typeof HERO_SETS !== 'undefined'){
-      const set = HERO_SETS[Math.floor(Math.random()*HERO_SETS.length)].slice();
-      for(let i=set.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [set[i],set[j]]=[set[j],set[i]]; }
-      ['sd0','sd1','sd2'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.textContent=set[i]||'🎲'; });
-    }
-  } catch(e){}
-
-  void splash.offsetWidth;
-  splash.classList.add('is-play');
-  // spin middle die mid-way
-  window._homeIntroT1 = setTimeout(function(){
-    const mid = document.getElementById('sd1');
-    if(mid) mid.classList.add('spin');
-  }, 400);
-
-  window._homeIntroT2 = setTimeout(finish, 2600);
-}
-
 
 function goHome(){
   goTo('home');
-  setTimeout(runHomeIntro, 50);
 }
 
 function toggleQuickMenu(){
@@ -3618,7 +2999,7 @@ function openTab(evt, tabName){
 }
 
 function goTo(tabName){
-  const valid = ['home','log','randomizer','stats','companions','manage','reports'];
+  const valid = ['home','log','randomizer','stats','companions','manage'];
   if(!valid.includes(tabName)) tabName = 'home';
 
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -3646,8 +3027,7 @@ function goTo(tabName){
     }
   } catch(e){}
 
-  if(tabName === 'reports'){ if(typeof renderReports==='function') renderReports(); }
-  else if(tabName === 'stats'){
+  if(tabName === 'stats'){
     const out = document.getElementById('statsOverviewOutput');
     if(out && !out.dataset.loaded){
       out.innerHTML = '<div class="stats-skeleton"><div class="sk-row"><div class="sk-line lg"></div><div class="sk-line lg"></div></div><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>';
@@ -3661,14 +3041,13 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); applyHeroInteractive(); applyFiguresVisible(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); }
   else { updateUI(); }
 }
 
 function refreshHomeStats(){
   try {
     updateProfileUI();
-    if(document.getElementById('home')?.classList.contains('active')) runHomeIntro();
     const me = getActivePlayer();
     const allLogs = gameLogs || [];
 
@@ -3774,45 +3153,14 @@ function refreshHomeStats(){
       const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
       if(sa) sa.classList.toggle('lead', wa.a > wa.b);
       if(sb) sb.classList.toggle('lead', wa.b > wa.a);
-      const showFig = typeof isFiguresVisible !== 'function' || isFiguresVisible();
-      set('hhFigA', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(a) : '');
-      set('hhFigB', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(b) : '');
-      h2hBox.classList.toggle('hh-no-figs', !showFig);
-      const colA = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(a) : '#60a5fa';
-      const colB = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(b) : '#a78bfa';
-      h2hBox.style.setProperty('--hh-color-a', colA);
-      h2hBox.style.setProperty('--hh-color-b', colB);
-      const total = wa.a + wa.b;
-      const pctA = total ? (wa.a / total * 100) : 50;
-      const pctB = total ? (wa.b / total * 100) : 50;
-      const fa = document.getElementById('hhFillA');
-      const fb = document.getElementById('hhFillB');
-      if(fa){ fa.style.width = pctA + '%'; fa.style.background = colA; }
-      if(fb){ fb.style.width = pctB + '%'; fb.style.background = colB; }
-      const pa = document.getElementById('hhPctA');
-      const pb = document.getElementById('hhPctB');
-      if(pa) pa.textContent = total && pctA >= 18 ? (Math.round(pctA) + '%') : '';
-      if(pb) pb.textContent = total && pctB >= 18 ? (Math.round(pctB) + '%') : '';
-      const diff = wa.a - wa.b;
-      const tokenPct = total ? pctA : 50;
-      const token = document.getElementById('hhToken');
-      if(token){
-        token.style.left = tokenPct + '%';
-        if(wa.a === wa.b) token.textContent = '⚖️';
-        else if(showFig && typeof getPlayerFigureEmoji==='function')
-          token.textContent = wa.a > wa.b ? getPlayerFigureEmoji(a) : getPlayerFigureEmoji(b);
-        else token.textContent = wa.a > wa.b ? '◀' : '▶';
-      }
-      const la = document.getElementById('hhLeadA');
-      const lb = document.getElementById('hhLeadB');
-      const lm = document.getElementById('hhLeadMid');
-      if(la) la.textContent = wa.a > wa.b ? ('▲ +' + diff) : (wa.a === wa.b ? '' : '');
-      if(lb) lb.textContent = wa.b > wa.a ? ('▲ +' + (wa.b - wa.a)) : (wa.a === wa.b ? '' : '');
-      if(lm) lm.textContent = wa.a === wa.b ? 'равенство' : '';
+      const total = wa.a + wa.b || 1;
+      const ba = document.getElementById('hhBarA'), bb = document.getElementById('hhBarB');
+      if(ba) ba.style.width = (wa.a / total * 100) + '%';
+      if(bb) bb.style.width = (wa.b / total * 100) + '%';
       const meta = document.getElementById('hhMeta');
       if(meta){
-        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b;
-        else meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b + ' · води ' + (wa.a > wa.b ? a : b);
+        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
+        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa.a > wa.b ? a : b);
       }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
@@ -3948,35 +3296,6 @@ function soleLeader(wins){
 /* ===== Active player profile ===== */
 
 
-
-const PLAYER_FIGURE_PRESETS = [
-  {id:'pawn',emoji:'♟️',label:'Пешка'},{id:'knight',emoji:'♞',label:'Кон'},
-  {id:'rook',emoji:'♜',label:'Топ'},{id:'queen',emoji:'♛',label:'Царица'},
-  {id:'king',emoji:'♚',label:'Цар'},{id:'car',emoji:'🏎️',label:'Кола'},
-  {id:'hat',emoji:'🎩',label:'Шапка'},{id:'dog',emoji:'🐕',label:'Куче'},
-  {id:'ship',emoji:'⛵',label:'Кораб'},{id:'boot',emoji:'👢',label:'Ботуш'},
-  {id:'dragon',emoji:'🐉',label:'Дракон'},{id:'wizard',emoji:'🧙',label:'Магьосник'},
-  {id:'robot',emoji:'🤖',label:'Робот'},{id:'cat',emoji:'🐱',label:'Котка'},
-  {id:'fox',emoji:'🦊',label:'Лисица'},{id:'star',emoji:'⭐',label:'Звезда'}
-];
-function getPlayerFiguresMap(){ try{return JSON.parse(localStorage.getItem('bgPlayerFigures')||'{}');}catch(e){return{};} }
-function setPlayerFigure(name,figId){
-  if(!name)return; const m=getPlayerFiguresMap(); m[name]=figId;
-  try{localStorage.setItem('bgPlayerFigures',JSON.stringify(m));}catch(e){}
-  if(typeof updateProfileUI==='function')updateProfileUI();
-  if(typeof refreshHomeStats==='function')refreshHomeStats();
-}
-function getPlayerFigureEmoji(name){
-  const m=getPlayerFiguresMap(); const p=PLAYER_FIGURE_PRESETS.find(x=>x.id===m[name]);
-  if(p)return p.emoji;
-  const players=(typeof myPlayers!=='undefined')?myPlayers:[];
-  return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].emoji;
-}
-function getPlayerFigureId(name){
-  const m=getPlayerFiguresMap(); if(m[name])return m[name];
-  const players=(typeof myPlayers!=='undefined')?myPlayers:[];
-  return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].id;
-}
 const PLAYER_COLOR_PRESETS = [
   { id: 'blue', hex: '#60a5fa', label: 'Син' },
   { id: 'pink', hex: '#f472b6', label: 'Розов' },
@@ -4152,10 +3471,6 @@ function renderManageProfileList(){
     const hex = getPlayerAccentHex(p);
     const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     const initial = (p.trim().charAt(0) || '?').toUpperCase();
-    const figId = getPlayerFigureId(p);
-    const figures = PLAYER_FIGURE_PRESETS.map(pf =>
-      '<button type="button" class="figure-swatch'+(pf.id===figId?' on':'')+'" title="'+pf.label+'" data-fig-for="'+safe+'" data-fig="'+pf.id+'">'+pf.emoji+'</button>'
-    ).join('');
     const swatches = PLAYER_COLOR_PRESETS.map(pc =>
       '<button type="button" class="color-swatch'+(pc.id===colorId?' on':'')+'" style="background:'+pc.hex+'" title="'+pc.label+'" data-color-for="'+safe+'" data-color="'+pc.id+'"></button>'
     ).join('');
@@ -4170,7 +3485,6 @@ function renderManageProfileList(){
         '<button type="button" class="'+(g==='m'?'on':'')+'" data-gender-for="'+safe+'" data-gender="m">♂ Мъж</button>'+
       '</div></div>'+
       '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
-      '<div class="player-pref-row"><span class="player-pref-label">Фигура</span><div class="figure-seg">'+figures+'</div></div>'+
     '</div>';
   }).join('') +
   '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="width:100%;margin:0">'+
@@ -4191,13 +3505,6 @@ function renderManageProfileList(){
       e.stopPropagation();
       setPlayerColor(btn.getAttribute('data-color-for'), btn.getAttribute('data-color'));
       showToast('🎨 Цветът е сменен', 'info');
-    };
-  });
-  list.querySelectorAll('[data-fig-for]').forEach(btn => {
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      setPlayerFigure(btn.getAttribute('data-fig-for'), btn.getAttribute('data-fig'));
-      showToast('♟️ Фигурата е сменена', 'info');
     };
   });
 }
@@ -4309,66 +3616,7 @@ const HERO_LINES = [
   'Успех, командире!'
 ];
 
-
-function isHeroInteractive(){
-  try { return localStorage.getItem('bgHeroInteractive') === '1'; } catch(e){ return false; }
-}
-function setHeroInteractive(on){
-  try { localStorage.setItem('bgHeroInteractive', on ? '1' : '0'); } catch(e){}
-  applyHeroInteractive();
-  if(typeof showToast==='function') showToast(on ? '✨ Интерактивен home: включен' : 'Интерактивен home: изключен', 'info');
-}
-function toggleHeroInteractive(){ setHeroInteractive(!isHeroInteractive()); }
-function applyHeroInteractive(){
-  const on = isHeroInteractive();
-  const stage = document.getElementById('heroStage');
-  const hint = document.getElementById('heroHint');
-  const tog = document.getElementById('heroInteractiveToggle');
-  if(tog) tog.classList.toggle('on', on);
-  if(!stage) return;
-  stage.classList.toggle('hero-locked', !on);
-  if(on){
-    stage.setAttribute('onclick', 'playHeroShow()');
-    stage.title = 'Докосни за изненада!';
-    if(hint) hint.textContent = '✨ докосни за изненада';
-  } else {
-    stage.removeAttribute('onclick');
-    stage.title = '';
-    if(hint) hint.textContent = '';
-  }
-}
-function isFiguresVisible(){
-  try {
-    const v = localStorage.getItem('bgFiguresVisible');
-    if(v === null || v === '') return true; /* default ON */
-    return v === '1';
-  } catch(e){ return true; }
-}
-function setFiguresVisible(on){
-  try { localStorage.setItem('bgFiguresVisible', on ? '1' : '0'); } catch(e){}
-  applyFiguresVisible();
-  if(typeof showToast==='function') showToast(on ? '♟️ Фигурки: включени' : 'Фигурки: изключени', 'info');
-}
-function toggleFiguresVisible(){ setFiguresVisible(!isFiguresVisible()); }
-function applyFiguresVisible(){
-  const on = isFiguresVisible();
-  const tog = document.getElementById('figuresToggle');
-  if(tog) tog.classList.toggle('on', on);
-  document.querySelectorAll('.home-h2h').forEach(el => el.classList.toggle('hh-no-figs', !on));
-}
-function shuffleHeroIcons(){
-  const icons = [document.getElementById('hi0'), document.getElementById('hi1'), document.getElementById('hi2')];
-  if(!icons[0] || typeof HERO_SETS === 'undefined') return;
-  const set = HERO_SETS[Math.floor(Math.random() * HERO_SETS.length)].slice();
-  for(let i = set.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [set[i], set[j]] = [set[j], set[i]];
-  }
-  icons.forEach((el, i) => { if(el) el.textContent = set[i] || '🎲'; });
-}
-
 function playHeroShow(){
-  if(typeof isHeroInteractive === 'function' && !isHeroInteractive()) return;
   const stage = document.getElementById('heroStage');
   const result = document.getElementById('heroResult');
   const hint = document.getElementById('heroHint');
@@ -4998,76 +4246,6 @@ function toggleStatExpand(id, el){
 /* =========================================================
    ОБЩА СТАТИСТИКА
    ========================================================= */
-
-
-let reportPeriod = 'week';
-function setReportPeriod(p){
-  reportPeriod = p === 'month' ? 'month' : 'week';
-  const wb = document.getElementById('reportWeekBtn');
-  const mb = document.getElementById('reportMonthBtn');
-  if(wb) wb.classList.toggle('active', reportPeriod==='week');
-  if(mb) mb.classList.toggle('active', reportPeriod==='month');
-  renderReports();
-}
-function renderReports(){
-  const out = document.getElementById('reportsOutput');
-  if(!out) return;
-  const all = gameLogs || [];
-  const now = Date.now();
-  const span = reportPeriod==='month' ? 30*24*60*60*1000 : 7*24*60*60*1000;
-  const label = reportPeriod==='month' ? 'Последните 30 дни' : 'Последните 7 дни';
-  const logs = all.filter(x => { const t=new Date(x.date||0).getTime(); return !isNaN(t)&&(now-t)<=span; })
-    .sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
-  const pvp = logs.filter(l=>l.type!=='coop');
-  const coop = logs.filter(l=>l.type==='coop');
-  const wins={};
-  pvp.forEach(log=>{
-    const ws=(typeof getPvpWinners==='function')?getPvpWinners(log):(log.winners||(log.winner?[log.winner]:[]));
-    ws.forEach(w=>{wins[w]=(wins[w]||0)+1;});
-  });
-  const byGame={};
-  logs.forEach(l=>{
-    if(!l.game)return;
-    if(!byGame[l.game]) byGame[l.game]={n:0,pvp:0,coop:0,coopW:0};
-    byGame[l.game].n++;
-    if(l.type==='coop'){ byGame[l.game].coop++; if(l.coopResult==='win') byGame[l.game].coopW++; }
-    else byGame[l.game].pvp++;
-  });
-  let html='<div class="small" style="margin-bottom:10px">'+esc(label)+'</div>';
-  html+='<div class="report-summary">';
-  html+='<div class="rs-card"><div class="rs-num">'+logs.length+'</div><div class="rs-label">Партии</div></div>';
-  html+='<div class="rs-card"><div class="rs-num">'+pvp.length+'</div><div class="rs-label">PvP</div></div>';
-  html+='<div class="rs-card"><div class="rs-num">'+coop.length+'</div><div class="rs-label">Co-op</div></div>';
-  html+='</div>';
-  if(!logs.length){ out.innerHTML=html+'<div class="empty">Няма партии в този период.</div>'; return; }
-  if(Object.keys(wins).length){
-    html+='<div class="game-stats-box"><h3>🏆 Победи (PvP)</h3><div class="mobile-stat-list">';
-    Object.entries(wins).sort((a,b)=>b[1]-a[1]).forEach(([p,n])=>{
-      html+='<div class="mobile-stat-item"><div class="top"><b>'+esc(p)+'</b><b>'+n+'</b></div></div>';
-    });
-    html+='</div></div>';
-  }
-  html+='<div class="game-stats-box"><h3>🎲 По игри</h3><div class="mobile-stat-list">';
-  Object.entries(byGame).sort((a,b)=>b[1].n-a[1].n).forEach(([g,d])=>{
-    let meta=d.n+(d.n===1?' партия':' партии');
-    if(d.pvp) meta+=' · PvP '+d.pvp;
-    if(d.coop) meta+=' · co-op '+d.coopW+'/'+d.coop;
-    html+='<div class="mobile-stat-item"><div class="top"><b>'+esc(g)+'</b></div><div class="meta"><span class="pill">'+meta+'</span></div></div>';
-  });
-  html+='</div></div><div class="game-stats-box"><h3>🕒 Хронология</h3><div class="mobile-stat-list">';
-  logs.forEach(l=>{
-    if(l.type==='coop'){
-      const ok=l.coopResult==='win';
-      html+='<div class="recent-result"><div class="date">'+(typeof formatDate==='function'?formatDate(l.date):'')+'</div><div><div class="game">'+esc(l.game)+'</div><div class="score">'+esc((l.participants||[]).join(', '))+'</div></div><div class="'+(ok?'success':'error')+'">'+(ok?'🏆 Успех':'❌ Неуспех')+'</div></div>';
-    } else {
-      const ws=(typeof getPvpWinners==='function')?getPvpWinners(l):(l.winners||[]);
-      const scores=Object.entries(l.scores||{}).map(([p,s])=>p+': '+s).join(' · ');
-      html+='<div class="recent-result"><div class="date">'+(typeof formatDate==='function'?formatDate(l.date):'')+'</div><div><div class="game">'+esc(l.game)+'</div><div class="score">'+esc(scores)+'</div></div><div class="success">🏆 '+esc(ws.join(' & ')||'—')+'</div></div>';
-    }
-  });
-  html+='</div></div>';
-  out.innerHTML=html;
-}
 
 function showStats(){
     const out = document.getElementById('statsOverviewOutput');
@@ -6115,7 +5293,7 @@ function parseCsvLine(text){
 /* Deep link: #randomizer / #stats / #manage / #log */
 function applyHashTab(){
   const h = (location.hash || '').replace('#','').toLowerCase();
-  const map = { randomizer: 'randomizer', random: 'randomizer', stats: 'stats', manage: 'manage', log: 'log', home: 'home', companions: 'companions', apps: 'companions', companion: 'companions', reports: 'reports', report: 'reports' };
+  const map = { randomizer: 'randomizer', random: 'randomizer', stats: 'stats', manage: 'manage', log: 'log', home: 'home', companions: 'companions', apps: 'companions', companion: 'companions' };
   const tab = map[h] || 'home';
   goTo(tab);
 }
@@ -6138,11 +5316,7 @@ updateUI();
 
 applyHashTab();
 
-shuffleHeroIcons();
-applyHeroInteractive();
-applyFiguresVisible();
 updateProfileUI();
-setTimeout(runHomeIntro, 100);
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
   try { reg.update(); } catch(e){}
