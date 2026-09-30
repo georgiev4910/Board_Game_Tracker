@@ -2689,6 +2689,280 @@ html[data-theme="light"] .report-summary .rs-num { color: #15803d !important; }
 html[data-theme="light"] .pill { color: #334155; }
 html[data-theme="light"] .qm-badge { background: #15803d; color: #fff; }
 
+
+/* ========== HOME 2.0 ========== */
+#home.tab-content {
+  position: relative;
+  min-height: min(70vh, 640px);
+}
+.home-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  transition: opacity .55s cubic-bezier(.22,1,.36,1), visibility .55s, transform .55s cubic-bezier(.22,1,.36,1);
+}
+.home-splash.is-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(1.04);
+}
+.splash-bg { position: absolute; inset: 0; overflow: hidden; }
+.splash-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: .45;
+  animation: blobFloat 6s ease-in-out infinite;
+}
+.splash-blob.b1 {
+  width: 180px; height: 180px; left: -20%; top: 10%;
+  background: #22c55e;
+}
+.splash-blob.b2 {
+  width: 160px; height: 160px; right: -15%; top: 40%;
+  background: #60a5fa;
+  animation-delay: -2s;
+}
+.splash-blob.b3 {
+  width: 120px; height: 120px; left: 30%; bottom: -10%;
+  background: #a78bfa;
+  animation-delay: -4s;
+}
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(12px,-16px) scale(1.08); }
+}
+.splash-stage {
+  position: relative;
+  text-align: center;
+  padding: 24px;
+  z-index: 1;
+}
+.splash-dice-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+.splash-die {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  display: grid; place-items: center;
+  font-size: 30px;
+  background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 12px 28px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.12);
+  opacity: 0;
+  transform: translateY(20px) rotate(-8deg) scale(.8);
+}
+.home-splash.is-play .splash-die {
+  animation: dieIn .7s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.home-splash.is-play .splash-die:nth-child(1) { animation-delay: .08s; }
+.home-splash.is-play .splash-die:nth-child(2) { animation-delay: .18s; }
+.home-splash.is-play .splash-die:nth-child(3) { animation-delay: .28s; }
+.home-splash.is-play .splash-die.spin {
+  animation: dieIn .7s cubic-bezier(.34,1.56,.64,1) forwards, dieSpin .55s ease .45s;
+}
+@keyframes dieIn {
+  to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+}
+@keyframes dieSpin {
+  0% { transform: rotate(0) scale(1); }
+  40% { transform: rotate(180deg) scale(1.12); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+.splash-brand { opacity: 0; transform: translateY(12px); }
+.home-splash.is-play .splash-brand {
+  animation: brandIn .65s cubic-bezier(.22,1,.36,1) .55s forwards;
+}
+@keyframes brandIn {
+  to { opacity: 1; transform: none; }
+}
+.splash-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.splash-title {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1;
+  background: linear-gradient(120deg, #fff 10%, #a5b4fc 40%, #4ade80 70%, #60a5fa 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: introShimmer 2.4s ease infinite;
+}
+html[data-theme="light"] .splash-title {
+  background: linear-gradient(120deg, #0f172a 0%, #1e40af 45%, #166534 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.splash-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Main content hidden until splash done */
+.home-main {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition: opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);
+}
+#home.home-ready .home-main {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+#home.home-ready .home-main .home-you,
+#home.home-ready .home-main .hero-stage,
+#home.home-ready .home-main .home-stats-row,
+#home.home-ready .home-main .home-h2h,
+#home.home-ready .home-main .home-nav-grid {
+  animation: homeCascade .5s cubic-bezier(.22,1,.36,1) both;
+}
+#home.home-ready .home-main .home-you { animation-delay: .04s; }
+#home.home-ready .home-main .hero-stage { animation-delay: .1s; }
+#home.home-ready .home-main .home-stats-row { animation-delay: .16s; }
+#home.home-ready .home-main .home-h2h { animation-delay: .22s; }
+#home.home-ready .home-main .home-nav-grid { animation-delay: .28s; }
+
+/* Nav tiles 2.0 */
+.home-nav-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  margin-top: 14px !important;
+}
+.home-nav-card {
+  position: relative;
+  min-height: 96px !important;
+  padding: 16px 14px !important;
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
+  transition: transform .2s cubic-bezier(.34,1.4,.64,1), box-shadow .2s ease !important;
+}
+.home-nav-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -40% auto;
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  pointer-events: none;
+}
+.home-nav-card:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 14px 32px rgba(0,0,0,.18) !important;
+}
+.home-nav-card:active {
+  transform: scale(.97) !important;
+}
+.home-nav-card .hn-icon {
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 22px !important;
+  border-radius: 14px !important;
+  margin-bottom: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+.home-nav-card .hn-title {
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em;
+}
+.home-nav-card .hn-desc {
+  font-size: 11px !important;
+  opacity: .85;
+}
+
+/* Stats chips */
+.home-stats-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  margin: 12px 0 !important;
+}
+.home-stat {
+  text-align: center;
+  padding: 12px 8px !important;
+  border-radius: 16px !important;
+  background: var(--card-2) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+.home-stat .hs-num {
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.03em;
+}
+.home-stat .hs-label {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+/* Hero tiles polish */
+.hero-stage {
+  margin: 8px auto 4px !important;
+  padding: 12px !important;
+  border-radius: 20px !important;
+}
+.hero-icons .hi {
+  width: 52px !important;
+  height: 52px !important;
+  font-size: 28px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  transition: transform .25s cubic-bezier(.34,1.4,.64,1);
+}
+.hero-stage:not(.hero-locked) .hi:hover {
+  transform: translateY(-4px) scale(1.06);
+}
+
+/* Greeting card */
+.home-you {
+  border-radius: 16px !important;
+  padding: 12px 14px !important;
+  margin-bottom: 8px !important;
+}
+
+/* H2H card */
+.home-h2h {
+  border-radius: 18px !important;
+  padding: 14px !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-blob, .splash-die, .splash-brand, .splash-title,
+  #home.home-ready .home-main * {
+    animation: none !important;
+  }
+  .home-splash.is-done { transition: opacity .2s; }
+  .home-main { transition: opacity .2s; }
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2850,12 +3124,34 @@ window.saveDataToFirebase = async function () {
     </div>
 
     <!-- HOME -->
-    <div id="home" class="tab-content active home-await">
-        <div class="home-hero">
+    <div id="home" class="tab-content active">
+        <!-- Splash overlay: only this during intro -->
+        <div class="home-splash" id="homeSplash" aria-hidden="false">
+            <div class="splash-bg">
+                <span class="splash-blob b1"></span>
+                <span class="splash-blob b2"></span>
+                <span class="splash-blob b3"></span>
+            </div>
+            <div class="splash-stage">
+                <div class="splash-dice-row" id="splashDice">
+                    <span class="splash-die" id="sd0">🎲</span>
+                    <span class="splash-die" id="sd1">♟️</span>
+                    <span class="splash-die" id="sd2">🃏</span>
+                </div>
+                <div class="splash-brand">
+                    <div class="splash-kicker">Board Game</div>
+                    <div class="splash-title">Suite</div>
+                    <div class="splash-sub">играй · записвай · побеждавай</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="home-main" id="homeMain">
             <div class="home-you" id="homeYouBox" style="display:none">
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
             </div>
+
             <div class="hero-stage hero-locked" id="heroStage" title="">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
@@ -2866,16 +3162,13 @@ window.saveDataToFirebase = async function () {
                 <div class="hero-hint" id="heroHint"></div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
-            <div class="home-intro" id="homeIntro" aria-hidden="false">
-                <div class="intro-kicker">Board games</div>
-                <h2 class="home-intro-title">Suite</h2>
-                <p class="home-intro-sub">Запис · статистики · companion apps</p>
-            </div>
+
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
             </div>
+
             <div class="home-h2h" id="homeH2H" style="display:none">
                 <div class="hh-label">Директен двубой</div>
                 <div class="hh-arena">
@@ -2905,33 +3198,33 @@ window.saveDataToFirebase = async function () {
                 </div>
                 <div class="hh-meta" id="hhMeta"></div>
             </div>
-        </div>
 
-        <div class="home-nav-grid">
-            <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
-                <span class="hn-icon">📝</span>
-                <span class="hn-title">Запис</span>
-                <span class="hn-desc">Резултат от партия</span>
-            </button>
-            <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
-                <span class="hn-icon">🎲</span>
-                <span class="hn-title">Рандом</span>
-                <span class="hn-desc">Случайна игра</span>
-            </button>
-            <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
-                <span class="hn-icon">📊</span>
-                <span class="hn-title">Статистика</span>
-                <span class="hn-desc">Win rate, серии, head-to-head</span>
-            </button>
-            <button type="button" class="home-nav-card hn-apps" onclick="goTo('reports')">
-                <span class="hn-icon">📅</span>
-                <span class="hn-title">Отчети</span>
-                <span class="hn-desc">Седмица и месец</span>
-            </button>
+            <div class="home-nav-grid">
+                <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
+                    <span class="hn-icon">📝</span>
+                    <span class="hn-title">Запис</span>
+                    <span class="hn-desc">Резултат от партия</span>
+                </button>
+                <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
+                    <span class="hn-icon">🎲</span>
+                    <span class="hn-title">Рандом</span>
+                    <span class="hn-desc">Случайна игра</span>
+                </button>
+                <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
+                    <span class="hn-icon">📊</span>
+                    <span class="hn-title">Статистика</span>
+                    <span class="hn-desc">H2H и история</span>
+                </button>
+                <button type="button" class="home-nav-card hn-apps" onclick="goTo('reports')">
+                    <span class="hn-icon">📅</span>
+                    <span class="hn-title">Отчети</span>
+                    <span class="hn-desc">Седмица и месец</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- ТАБ: ЗАПИСВАНЕ -->
+<!-- ТАБ: ЗАПИСВАНЕ -->
     <div id="log" class="tab-content">
         <h2>Запиши партия</h2>
         <label>Тип игра</label>
@@ -3239,10 +3532,11 @@ const SECTION_TITLES = {
 
 
 
+
 function runHomeIntro(){
-  const intro = document.getElementById('homeIntro');
+  const splash = document.getElementById('homeSplash');
   const home = document.getElementById('home');
-  if(!intro) return;
+  if(!home) return;
   clearTimeout(window._homeIntroT1);
   clearTimeout(window._homeIntroT2);
   clearTimeout(window._homeIntroT3);
@@ -3250,41 +3544,48 @@ function runHomeIntro(){
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const seen = sessionStorage.getItem('bgHomeIntroSeen') === '1';
 
-  intro.classList.remove('phase-in', 'phase-out', 'phase-done', 'home-intro-hide');
-  if(home){
-    home.classList.remove('home-reveal');
-    home.classList.add('home-await');
+  function finish(){
+    if(splash){
+      splash.classList.add('is-done');
+      splash.setAttribute('aria-hidden', 'true');
+    }
+    home.classList.add('home-ready');
+    try { sessionStorage.setItem('bgHomeIntroSeen', '1'); } catch(e){}
   }
 
-  if(seen || reduce){
-    intro.classList.add('phase-done');
-    intro.setAttribute('aria-hidden', 'true');
-    if(home){
-      home.classList.remove('home-await');
-      home.classList.add('home-reveal');
+  if(!splash || seen || reduce){
+    if(splash){
+      splash.classList.add('is-done');
+      splash.setAttribute('aria-hidden', 'true');
     }
+    home.classList.add('home-ready');
     return;
   }
 
-  intro.setAttribute('aria-hidden', 'false');
-  void intro.offsetWidth;
-  intro.classList.add('phase-in');
+  splash.classList.remove('is-done', 'is-play');
+  splash.setAttribute('aria-hidden', 'false');
+  home.classList.remove('home-ready');
 
-  window._homeIntroT1 = setTimeout(function(){
-    intro.classList.add('phase-out');
-    intro.classList.remove('phase-in');
-  }, 2400);
-
-  window._homeIntroT2 = setTimeout(function(){
-    intro.classList.add('phase-done');
-    intro.setAttribute('aria-hidden', 'true');
-    try { sessionStorage.setItem('bgHomeIntroSeen', '1'); } catch(e){}
-    if(home){
-      home.classList.remove('home-await');
-      home.classList.add('home-reveal');
+  // shuffle splash dice from HERO_SETS if available
+  try {
+    if(typeof HERO_SETS !== 'undefined'){
+      const set = HERO_SETS[Math.floor(Math.random()*HERO_SETS.length)].slice();
+      for(let i=set.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [set[i],set[j]]=[set[j],set[i]]; }
+      ['sd0','sd1','sd2'].forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.textContent=set[i]||'🎲'; });
     }
-  }, 2950);
+  } catch(e){}
+
+  void splash.offsetWidth;
+  splash.classList.add('is-play');
+  // spin middle die mid-way
+  window._homeIntroT1 = setTimeout(function(){
+    const mid = document.getElementById('sd1');
+    if(mid) mid.classList.add('spin');
+  }, 400);
+
+  window._homeIntroT2 = setTimeout(finish, 2600);
 }
+
 
 function goHome(){
   goTo('home');
