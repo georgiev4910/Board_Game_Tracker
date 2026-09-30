@@ -2449,6 +2449,145 @@ html[data-theme="light"] .h2h-card .num.lead {
   .tab-content.active:not(#home) { animation: none; }
 }
 
+
+/* === Restored: splash, figures, toggles === */
+.home-splash {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 18px; overflow: hidden;
+  background: var(--bg-soft);
+  transition: opacity .55s cubic-bezier(.22,1,.36,1), visibility .55s, transform .55s cubic-bezier(.22,1,.36,1);
+}
+.home-splash.is-done {
+  opacity: 0; visibility: hidden; pointer-events: none; transform: scale(1.04);
+}
+.splash-bg { position: absolute; inset: 0; overflow: hidden; }
+.splash-blob {
+  position: absolute; border-radius: 50%; filter: blur(40px); opacity: .45;
+  animation: blobFloat 6s ease-in-out infinite;
+}
+.splash-blob.b1 { width: 180px; height: 180px; left: -20%; top: 10%; background: #22c55e; }
+.splash-blob.b2 { width: 160px; height: 160px; right: -15%; top: 40%; background: #60a5fa; animation-delay: -2s; }
+.splash-blob.b3 { width: 120px; height: 120px; left: 30%; bottom: -10%; background: #a78bfa; animation-delay: -4s; }
+@keyframes blobFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(12px,-16px) scale(1.08); }
+}
+.splash-stage { position: relative; text-align: center; padding: 24px; z-index: 1; }
+.splash-dice-row { display: flex; gap: 14px; justify-content: center; margin-bottom: 22px; }
+.splash-die {
+  width: 56px; height: 56px; border-radius: 16px;
+  display: grid; place-items: center; font-size: 30px;
+  background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+  opacity: 0; transform: translateY(20px) rotate(-8deg) scale(.8);
+}
+.home-splash.is-play .splash-die {
+  animation: dieIn .7s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.home-splash.is-play .splash-die:nth-child(1) { animation-delay: .08s; }
+.home-splash.is-play .splash-die:nth-child(2) { animation-delay: .18s; }
+.home-splash.is-play .splash-die:nth-child(3) { animation-delay: .28s; }
+@keyframes dieIn { to { opacity: 1; transform: translateY(0) rotate(0) scale(1); } }
+.splash-brand { opacity: 0; transform: translateY(12px); }
+.home-splash.is-play .splash-brand {
+  animation: brandIn .65s cubic-bezier(.22,1,.36,1) .55s forwards;
+}
+@keyframes brandIn { to { opacity: 1; transform: none; } }
+.splash-kicker {
+  font-size: 11px; font-weight: 800; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.splash-title {
+  font-size: 36px; font-weight: 900; letter-spacing: -.04em;
+  background: linear-gradient(120deg, #fff 10%, #a5b4fc 40%, #4ade80 70%, #60a5fa 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: splashShim 2.4s ease infinite;
+}
+html[data-theme="light"] .splash-title {
+  background: linear-gradient(120deg, #0f172a, #1e40af 50%, #166534);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+}
+@keyframes splashShim {
+  0% { background-position: 0% center; }
+  100% { background-position: 100% center; }
+}
+.splash-sub { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--muted); }
+#home.tab-content { position: relative; min-height: min(62vh, 560px); }
+.home-main {
+  opacity: 0; transform: translateY(14px); pointer-events: none;
+  transition: opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);
+}
+#home.home-ready .home-main {
+  opacity: 1; transform: none; pointer-events: auto;
+}
+#home.home-ready .home-main > * {
+  animation: homeCascade .45s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes homeCascade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.hero-stage.hero-locked { cursor: default; pointer-events: none; }
+.hero-stage.hero-locked .hero-hint { opacity: 0; height: 0; overflow: hidden; }
+.setting-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; margin: 8px 0; border-radius: 12px;
+  background: var(--bg-soft); border: 1px solid var(--border);
+}
+.setting-toggle-row .st-title { font-weight: 800; font-size: 13px; }
+.setting-toggle-row .st-desc { font-size: 11px; color: var(--muted); margin-top: 2px; font-weight: 600; }
+.setting-switch {
+  position: relative; width: 48px; height: 28px; flex-shrink: 0;
+  border-radius: 999px; background: rgba(255,255,255,.12);
+  border: 1px solid var(--border); cursor: pointer; transition: .2s;
+  padding: 0; margin: 0; box-shadow: none;
+}
+.setting-switch.on {
+  background: color-mix(in srgb, var(--green, #22c55e) 55%, transparent);
+  border-color: rgba(34,197,94,.45);
+}
+.setting-switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%; background: #fff;
+  transition: transform .2s; box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.setting-switch.on::after { transform: translateX(20px); }
+.figure-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.figure-swatch {
+  width: 36px; height: 36px; margin: 0; padding: 0; border-radius: 10px;
+  font-size: 18px; background: var(--bg-soft); border: 2px solid var(--border);
+  box-shadow: none; display: grid; place-items: center;
+}
+.figure-swatch.on {
+  border-color: var(--pref-color, #60a5fa);
+  background: color-mix(in srgb, var(--pref-color, #60a5fa) 22%, transparent);
+}
+.hh-arena { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; margin-bottom: 6px; }
+.hh-side { width: 58px; text-align: center; flex-shrink: 0; }
+.hh-fig { font-size: 26px; line-height: 1; margin-bottom: 2px; }
+.home-h2h.hh-no-figs .hh-fig { display: none; }
+.hh-track-wrap {
+  position: relative; height: 22px; margin: 4px 0 6px;
+  border-radius: 999px; background: rgba(255,255,255,.07); border: 1px solid var(--border); overflow: hidden;
+}
+.hh-track-fill-a { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px 0 0 999px; }
+.hh-track-fill-b { position: absolute; right: 0; top: 0; bottom: 0; border-radius: 0 999px 999px 0; }
+.hh-track-mid { position: absolute; top: -2px; bottom: -2px; left: 50%; width: 2px; margin-left: -1px; background: rgba(255,255,255,.5); z-index: 2; }
+.hh-track-token {
+  position: absolute; top: 50%; left: 50%; width: 22px; height: 22px;
+  margin: -11px 0 0 -11px; border-radius: 50%; background: var(--card);
+  border: 2px solid rgba(255,255,255,.55); display: grid; place-items: center;
+  font-size: 11px; z-index: 3; transition: left .4s ease;
+}
+.hh-track-labels { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; }
+@media (prefers-reduced-motion: reduce) {
+  .splash-blob, .splash-die, .splash-brand { animation: none !important; }
+}
+
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
 <script type="module">
@@ -2610,76 +2749,95 @@ window.saveDataToFirebase = async function () {
 
     <!-- HOME -->
     <div id="home" class="tab-content active">
-        <div class="home-hero">
+        <div class="home-splash" id="homeSplash" aria-hidden="false">
+            <div class="splash-bg">
+                <span class="splash-blob b1"></span>
+                <span class="splash-blob b2"></span>
+                <span class="splash-blob b3"></span>
+            </div>
+            <div class="splash-stage">
+                <div class="splash-dice-row">
+                    <span class="splash-die" id="sd0">🎲</span>
+                    <span class="splash-die" id="sd1">♟️</span>
+                    <span class="splash-die" id="sd2">🃏</span>
+                </div>
+                <div class="splash-brand">
+                    <div class="splash-kicker">Board Game</div>
+                    <div class="splash-title">Suite</div>
+                    <div class="splash-sub">играй · записвай · побеждавай</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="home-main" id="homeMain">
             <div class="home-you" id="homeYouBox" style="display:none">
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
             </div>
-            <div class="hero-stage" id="heroStage" onclick="playHeroShow()" title="Докосни!">
+            <div class="hero-stage hero-locked" id="heroStage" title="">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
                     <span class="hi" id="hi0">🎲</span>
                     <span class="hi" id="hi1">♟️</span>
                     <span class="hi" id="hi2">🃏</span>
                 </div>
-                <div class="hero-hint" id="heroHint">✨ докосни за изненада</div>
+                <div class="hero-hint" id="heroHint"></div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
-            <h2>Board Game Suite</h2>
-            <p>Записвай партии, следи статистики и ползвай companion apps за любимите игри.</p>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
             </div>
-            <div class="home-last" id="homeLastSession" onclick="onLastSessionTap()" title="Към статистика">
-                <div class="hl-label">Последна партия</div>
-                <div class="hl-game" id="homeLastGame">Все още няма записи</div>
-                <div class="hl-meta" id="homeLastMeta"></div>
-            </div>
-            <div class="home-week" id="homeWeekBox">
-                <div class="hw-label">Тази седмица</div>
-                <div class="hw-text" id="homeWeekText">Няма партии последните 7 дни</div>
-            </div>
             <div class="home-h2h" id="homeH2H" style="display:none">
                 <div class="hh-label">Директен двубой</div>
-                <div class="hh-row">
-                    <div class="hh-player">
+                <div class="hh-arena">
+                    <div class="hh-side">
+                        <div class="hh-fig" id="hhFigA">♟️</div>
                         <div class="hh-name" id="hhNameA">—</div>
                         <div class="hh-score" id="hhScoreA">0</div>
                     </div>
-                    <div class="hh-vs">VS</div>
-                    <div class="hh-player">
+                    <div class="hh-side">
+                        <div class="hh-fig" id="hhFigB">♟️</div>
                         <div class="hh-name" id="hhNameB">—</div>
                         <div class="hh-score" id="hhScoreB">0</div>
                     </div>
                 </div>
-                <div class="hh-bar"><span id="hhBarA" style="width:50%"></span><span id="hhBarB" style="width:50%"></span></div>
+                <div class="hh-track-wrap">
+                    <div class="hh-track-fill-a" id="hhFillA" style="width:50%"></div>
+                    <div class="hh-track-fill-b" id="hhFillB" style="width:50%"></div>
+                    <div class="hh-track-mid"></div>
+                    <div class="hh-track-token" id="hhToken">⚖️</div>
+                </div>
+                <div class="hh-track-labels">
+                    <span class="hh-lead-a" id="hhLeadA"></span>
+                    <span class="hh-lead-mid" id="hhLeadMid"></span>
+                    <span class="hh-lead-b" id="hhLeadB"></span>
+                </div>
                 <div class="hh-meta" id="hhMeta"></div>
             </div>
-        </div>
-
-        <div class="home-nav-grid">
-            <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
-                <span class="hn-icon">📝</span>
-                <span class="hn-title">Запис</span>
-                <span class="hn-desc">Въведи резултат от PvP или Co-op партия</span>
-            </button>
-            <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
-                <span class="hn-icon">🎲</span>
-                <span class="hn-title">Рандом</span>
-                <span class="hn-desc">Избери случайна игра</span>
-            </button>
-            <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
-                <span class="hn-icon">📊</span>
-                <span class="hn-title">Статистика</span>
-                <span class="hn-desc">Win rate, серии, head-to-head</span>
-            </button>
-            <button type="button" class="home-nav-card hn-apps" onclick="goTo('companions')">
-                <span class="hn-icon">🎮</span>
-                <span class="hn-title">Companions</span>
-                <span class="hn-desc">6 помощни апа · setup</span>
-            </button>
+            <div class="home-nav-grid">
+                <button type="button" class="home-nav-card hn-log" onclick="goTo('log')">
+                    <span class="hn-icon">📝</span>
+                    <span class="hn-title">Запис</span>
+                    <span class="hn-desc">Резултат от партия</span>
+                </button>
+                <button type="button" class="home-nav-card hn-rand" onclick="goTo('randomizer')">
+                    <span class="hn-icon">🎲</span>
+                    <span class="hn-title">Рандом</span>
+                    <span class="hn-desc">Случайна игра</span>
+                </button>
+                <button type="button" class="home-nav-card hn-stats" onclick="goTo('stats')">
+                    <span class="hn-icon">📊</span>
+                    <span class="hn-title">Статистика</span>
+                    <span class="hn-desc">H2H и история</span>
+                </button>
+                <button type="button" class="home-nav-card hn-apps" onclick="goTo('companions')">
+                    <span class="hn-icon">🎮</span>
+                    <span class="hn-title">Apps</span>
+                    <span class="hn-desc">Companion апове</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2788,6 +2946,20 @@ window.saveDataToFirebase = async function () {
                         <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
                         <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
                         <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+                    </div>
+                    <div class="setting-toggle-row">
+                      <div class="st-text">
+                        <div class="st-title">✨ Интерактивен home</div>
+                        <div class="st-desc">Докосване на трите иконки. По подразбиране изключено.</div>
+                      </div>
+                      <button type="button" class="setting-switch" id="heroInteractiveToggle" onclick="toggleHeroInteractive()" aria-label="Интерактивен home"></button>
+                    </div>
+                    <div class="setting-toggle-row">
+                      <div class="st-text">
+                        <div class="st-title">♟️ Фигурки в двубоя</div>
+                        <div class="st-desc">Показва избраните фигурки над имената в H2H.</div>
+                      </div>
+                      <button type="button" class="setting-switch on" id="figuresToggle" onclick="toggleFiguresVisible()" aria-label="Фигурки"></button>
                     </div>
                 </div>
             </div>
@@ -2971,6 +3143,7 @@ const SECTION_TITLES = {
 
 function goHome(){
   goTo('home');
+  setTimeout(runHomeIntro, 50);
 }
 
 function toggleQuickMenu(){
@@ -3041,7 +3214,7 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof renderManageProfileList==='function')renderManageProfileList(); }
   else { updateUI(); }
 }
 
@@ -3150,17 +3323,34 @@ function refreshHomeStats(){
       const set = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
       set('hhNameA', a); set('hhNameB', b);
       set('hhScoreA', wa.a); set('hhScoreB', wa.b);
+      const showFig = typeof isFiguresVisible !== 'function' || isFiguresVisible();
+      set('hhFigA', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(a) : '');
+      set('hhFigB', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(b) : '');
+      h2hBox.classList.toggle('hh-no-figs', !showFig);
       const sa = document.getElementById('hhScoreA'), sb = document.getElementById('hhScoreB');
       if(sa) sa.classList.toggle('lead', wa.a > wa.b);
       if(sb) sb.classList.toggle('lead', wa.b > wa.a);
-      const total = wa.a + wa.b || 1;
-      const ba = document.getElementById('hhBarA'), bb = document.getElementById('hhBarB');
-      if(ba) ba.style.width = (wa.a / total * 100) + '%';
-      if(bb) bb.style.width = (wa.b / total * 100) + '%';
+      const colA = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(a) : '#60a5fa';
+      const colB = typeof getPlayerAccentHex==='function' ? getPlayerAccentHex(b) : '#a78bfa';
+      const total = wa.a + wa.b;
+      const pctA = total ? (wa.a / total * 100) : 50;
+      const pctB = total ? (wa.b / total * 100) : 50;
+      const fa = document.getElementById('hhFillA'), fb = document.getElementById('hhFillB');
+      if(fa){ fa.style.width = pctA + '%'; fa.style.background = colA; }
+      if(fb){ fb.style.width = pctB + '%'; fb.style.background = colB; }
+      const token = document.getElementById('hhToken');
+      if(token){
+        token.style.left = (total ? pctA : 50) + '%';
+        token.textContent = wa.a===wa.b ? '⚖️' : (showFig ? (wa.a>wa.b?getPlayerFigureEmoji(a):getPlayerFigureEmoji(b)) : (wa.a>wa.b?'◀':'▶'));
+      }
+      const la=document.getElementById('hhLeadA'), lb=document.getElementById('hhLeadB'), lm=document.getElementById('hhLeadMid');
+      if(la) la.textContent = wa.a>wa.b ? ('▲ +'+(wa.a-wa.b)) : '';
+      if(lb) lb.textContent = wa.b>wa.a ? ('▲ +'+(wa.b-wa.a)) : '';
+      if(lm) lm.textContent = wa.a===wa.b ? 'равенство' : '';
       const meta = document.getElementById('hhMeta');
       if(meta){
-        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · равенство';
-        else meta.textContent = h2hLogs.length + ' директни · води ' + (wa.a > wa.b ? a : b);
+        if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b;
+        else meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b + ' · води ' + (wa.a > wa.b ? a : b);
       }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
@@ -3471,6 +3661,10 @@ function renderManageProfileList(){
     const hex = getPlayerAccentHex(p);
     const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     const initial = (p.trim().charAt(0) || '?').toUpperCase();
+    const figId = getPlayerFigureId(p);
+    const figures = PLAYER_FIGURE_PRESETS.map(pf =>
+      '<button type="button" class="figure-swatch'+(pf.id===figId?' on':'')+'" title="'+pf.label+'" data-fig-for="'+safe+'" data-fig="'+pf.id+'">'+pf.emoji+'</button>'
+    ).join('');
     const swatches = PLAYER_COLOR_PRESETS.map(pc =>
       '<button type="button" class="color-swatch'+(pc.id===colorId?' on':'')+'" style="background:'+pc.hex+'" title="'+pc.label+'" data-color-for="'+safe+'" data-color="'+pc.id+'"></button>'
     ).join('');
@@ -3485,6 +3679,7 @@ function renderManageProfileList(){
         '<button type="button" class="'+(g==='m'?'on':'')+'" data-gender-for="'+safe+'" data-gender="m">♂ Мъж</button>'+
       '</div></div>'+
       '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
+      '<div class="player-pref-row"><span class="player-pref-label">Фигура</span><div class="figure-seg">'+figures+'</div></div>'+
     '</div>';
   }).join('') +
   '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="width:100%;margin:0">'+
@@ -3507,6 +3702,14 @@ function renderManageProfileList(){
       showToast('🎨 Цветът е сменен', 'info');
     };
   });
+  list.querySelectorAll('[data-fig-for]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      setPlayerFigure(btn.getAttribute('data-fig-for'), btn.getAttribute('data-fig'));
+      if(typeof showToast==='function') showToast('♟️ Фигурата е сменена', 'info');
+    };
+  });
+
 }
 function goToMyPlayerStats(){
   const me = getActivePlayer();
@@ -3595,6 +3798,122 @@ function rollDiceLogo(){
   }, 55);
 }
 
+
+/* Restored figures, hero toggle, splash */
+const PLAYER_FIGURE_PRESETS = [
+  {id:'pawn',emoji:'♟️',label:'Пешка'},{id:'knight',emoji:'♞',label:'Кон'},
+  {id:'rook',emoji:'♜',label:'Топ'},{id:'queen',emoji:'♛',label:'Царица'},
+  {id:'king',emoji:'♚',label:'Цар'},{id:'car',emoji:'🏎️',label:'Кола'},
+  {id:'hat',emoji:'🎩',label:'Шапка'},{id:'dog',emoji:'🐕',label:'Куче'},
+  {id:'ship',emoji:'⛵',label:'Кораб'},{id:'boot',emoji:'👢',label:'Ботуш'},
+  {id:'dragon',emoji:'🐉',label:'Дракон'},{id:'wizard',emoji:'🧙',label:'Магьосник'},
+  {id:'robot',emoji:'🤖',label:'Робот'},{id:'cat',emoji:'🐱',label:'Котка'},
+  {id:'fox',emoji:'🦊',label:'Лисица'},{id:'star',emoji:'⭐',label:'Звезда'}
+];
+function getPlayerFiguresMap(){ try{return JSON.parse(localStorage.getItem('bgPlayerFigures')||'{}');}catch(e){return{};} }
+function setPlayerFigure(name,figId){
+  if(!name)return; const m=getPlayerFiguresMap(); m[name]=figId;
+  try{localStorage.setItem('bgPlayerFigures',JSON.stringify(m));}catch(e){}
+  if(typeof updateProfileUI==='function')updateProfileUI();
+  if(typeof refreshHomeStats==='function')refreshHomeStats();
+  if(typeof renderManageProfileList==='function')renderManageProfileList();
+}
+function getPlayerFigureEmoji(name){
+  const m=getPlayerFiguresMap(); const p=PLAYER_FIGURE_PRESETS.find(x=>x.id===m[name]);
+  if(p)return p.emoji;
+  const players=(typeof myPlayers!=='undefined')?myPlayers:[];
+  return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].emoji;
+}
+function getPlayerFigureId(name){
+  const m=getPlayerFiguresMap(); if(m[name])return m[name];
+  const players=(typeof myPlayers!=='undefined')?myPlayers:[];
+  return PLAYER_FIGURE_PRESETS[Math.max(0,players.indexOf(name))%PLAYER_FIGURE_PRESETS.length].id;
+}
+function isHeroInteractive(){
+  try{return localStorage.getItem('bgHeroInteractive')==='1';}catch(e){return false;}
+}
+function setHeroInteractive(on){
+  try{localStorage.setItem('bgHeroInteractive',on?'1':'0');}catch(e){}
+  applyHeroInteractive();
+  if(typeof showToast==='function')showToast(on?'✨ Интерактивен home: включен':'Интерактивен home: изключен','info');
+}
+function toggleHeroInteractive(){ setHeroInteractive(!isHeroInteractive()); }
+function applyHeroInteractive(){
+  const on=isHeroInteractive();
+  const stage=document.getElementById('heroStage');
+  const hint=document.getElementById('heroHint');
+  const tog=document.getElementById('heroInteractiveToggle');
+  if(tog)tog.classList.toggle('on',on);
+  if(!stage)return;
+  stage.classList.toggle('hero-locked',!on);
+  if(on){
+    stage.setAttribute('onclick','playHeroShow()');
+    stage.title='Докосни за изненада!';
+    if(hint)hint.textContent='✨ докосни за изненада';
+  } else {
+    stage.removeAttribute('onclick');
+    stage.title='';
+    if(hint)hint.textContent='';
+  }
+}
+function isFiguresVisible(){
+  try{ const v=localStorage.getItem('bgFiguresVisible'); if(v===null||v==='')return true; return v==='1'; }
+  catch(e){return true;}
+}
+function setFiguresVisible(on){
+  try{localStorage.setItem('bgFiguresVisible',on?'1':'0');}catch(e){}
+  applyFiguresVisible();
+  if(typeof refreshHomeStats==='function')refreshHomeStats();
+  if(typeof showToast==='function')showToast(on?'♟️ Фигурки: включени':'Фигурки: изключени','info');
+}
+function toggleFiguresVisible(){ setFiguresVisible(!isFiguresVisible()); }
+function applyFiguresVisible(){
+  const on=isFiguresVisible();
+  const tog=document.getElementById('figuresToggle');
+  if(tog)tog.classList.toggle('on',on);
+  document.querySelectorAll('.home-h2h').forEach(el=>el.classList.toggle('hh-no-figs',!on));
+}
+function shuffleHeroIcons(){
+  const icons=[document.getElementById('hi0'),document.getElementById('hi1'),document.getElementById('hi2')];
+  if(!icons[0]||typeof HERO_SETS==='undefined')return;
+  const set=HERO_SETS[Math.floor(Math.random()*HERO_SETS.length)].slice();
+  for(let i=set.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[set[i],set[j]]=[set[j],set[i]];}
+  icons.forEach((el,i)=>{if(el)el.textContent=set[i]||'🎲';});
+}
+function runHomeIntro(){
+  const splash=document.getElementById('homeSplash');
+  const home=document.getElementById('home');
+  if(!home)return;
+  clearTimeout(window._homeIntroT1);
+  clearTimeout(window._homeIntroT2);
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const seen=sessionStorage.getItem('bgHomeIntroSeen')==='1';
+  function finish(){
+    if(splash){ splash.classList.add('is-done'); splash.setAttribute('aria-hidden','true'); }
+    home.classList.add('home-ready');
+    try{sessionStorage.setItem('bgHomeIntroSeen','1');}catch(e){}
+  }
+  if(!splash||seen||reduce){
+    if(splash){ splash.classList.add('is-done'); splash.setAttribute('aria-hidden','true'); }
+    home.classList.add('home-ready');
+    return;
+  }
+  splash.classList.remove('is-done','is-play');
+  splash.setAttribute('aria-hidden','false');
+  home.classList.remove('home-ready');
+  try{
+    if(typeof HERO_SETS!=='undefined'){
+      const set=HERO_SETS[Math.floor(Math.random()*HERO_SETS.length)].slice();
+      for(let i=set.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[set[i],set[j]]=[set[j],set[i]];}
+      ['sd0','sd1','sd2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=set[i]||'🎲';});
+    }
+  }catch(e){}
+  void splash.offsetWidth;
+  splash.classList.add('is-play');
+  window._homeIntroT2=setTimeout(finish,2600);
+}
+
+
 const HERO_SETS = [
   ['🎲','♟️','🃏'],
   ['🎯','🏆','🎲'],
@@ -3617,6 +3936,7 @@ const HERO_LINES = [
 ];
 
 function playHeroShow(){
+  if(typeof isHeroInteractive==='function' && !isHeroInteractive()) return;
   const stage = document.getElementById('heroStage');
   const result = document.getElementById('heroResult');
   const hint = document.getElementById('heroHint');
@@ -5316,6 +5636,10 @@ updateUI();
 
 applyHashTab();
 
+shuffleHeroIcons();
+applyHeroInteractive();
+applyFiguresVisible();
+setTimeout(runHomeIntro, 80);
 updateProfileUI();
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
