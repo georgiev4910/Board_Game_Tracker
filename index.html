@@ -5083,7 +5083,7 @@ function showStats(){
       return;
     }
     const scopeNote = me
-      ? '<div class="scope-banner"><span>📊 Само партии с <b>'+esc(me)+'</b></span><button type="button" onclick="goTo('manage')">Профил</button></div>'
+      ? '<div class="scope-banner"><span>📊 Само партии с <b>'+esc(me)+'</b></span><button type="button" onclick="goTo(\'manage\')">Профил</button></div>'
       : '';
 
     const pvpLogs=getModeLogs('pvp', scoped), coopLogs=getModeLogs('coop', scoped);
@@ -6263,6 +6263,24 @@ updateProfileUI();
   }, { passive: true });
 })();
 
+
+
+/* Splash failsafe: never stay stuck */
+(function homeSplashFailsafe(){
+  setTimeout(function(){
+    try {
+      var home = document.getElementById('home');
+      var splash = document.getElementById('homeSplash');
+      if(home && !home.classList.contains('home-ready')){
+        home.classList.add('home-ready');
+      }
+      if(splash && !splash.classList.contains('is-done')){
+        splash.classList.add('is-done');
+        splash.setAttribute('aria-hidden','true');
+      }
+    } catch(e){}
+  }, 4000);
+})();
 
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(function(reg){
