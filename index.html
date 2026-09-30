@@ -2488,40 +2488,129 @@ html[data-theme="light"] .hh-track-wrap { background: rgba(15,23,42,.07); }
 }
 
 
+
+/* Cinematic home intro — once per session, then content leads */
 .home-intro {
+  position: relative;
   text-align: center;
-  margin: 4px 0 8px;
-  max-height: 80px;
+  margin: 2px auto 10px;
+  padding: 10px 12px 12px;
+  max-width: 320px;
+  border-radius: 18px;
   overflow: hidden;
-  transition: max-height .55s ease, opacity .5s ease, margin .5s ease, transform .5s ease;
+  transform-origin: center top;
+  transition:
+    opacity .55s cubic-bezier(.22,1,.36,1),
+    transform .55s cubic-bezier(.22,1,.36,1),
+    max-height .55s cubic-bezier(.22,1,.36,1),
+    padding .45s ease,
+    margin .45s ease,
+    filter .45s ease;
+  max-height: 120px;
 }
-.home-intro.home-intro-hide {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
-  transform: translateY(-8px);
+.home-intro::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120px 60px at 50% 0%, rgba(96,165,250,.2), transparent 70%),
+    radial-gradient(100px 50px at 30% 100%, rgba(34,197,94,.12), transparent 70%);
   pointer-events: none;
+  opacity: .9;
+}
+.home-intro .intro-kicker {
+  position: relative;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+  opacity: 0;
+  transform: translateY(8px);
 }
 .home-intro-title {
+  position: relative;
   margin: 0 !important;
-  font-size: 20px !important;
-  animation: introTitleIn .7s ease both;
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.03em;
+  line-height: 1.15;
+  background: linear-gradient(120deg, #fff 0%, #a5b4fc 40%, #4ade80 75%, #60a5fa 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  transform: translateY(10px) scale(.98);
+  filter: blur(4px);
+}
+html[data-theme="light"] .home-intro-title {
+  background: linear-gradient(120deg, #1e293b 0%, #4f46e5 45%, #16a34a 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 .home-intro-sub {
-  margin: 4px 0 0 !important;
+  position: relative;
+  margin: 6px 0 0 !important;
   font-size: 12px !important;
+  font-weight: 600;
   color: var(--muted);
-  animation: introSubIn .8s .15s ease both;
+  opacity: 0;
+  transform: translateY(6px);
 }
-@keyframes introTitleIn {
-  from { opacity: 0; letter-spacing: .12em; transform: translateY(6px); }
-  to { opacity: 1; letter-spacing: -.02em; transform: none; }
+/* choreography phases */
+.home-intro.phase-in .intro-kicker {
+  animation: introRise .55s cubic-bezier(.22,1,.36,1) .05s both;
 }
-@keyframes introSubIn {
-  from { opacity: 0; transform: translateY(4px); }
+.home-intro.phase-in .home-intro-title {
+  animation: introTitleBloom .7s cubic-bezier(.22,1,.36,1) .12s both,
+             introShimmer 2.2s ease .5s both;
+}
+.home-intro.phase-in .home-intro-sub {
+  animation: introRise .55s cubic-bezier(.22,1,.36,1) .28s both;
+}
+.home-intro.phase-out {
+  opacity: 0;
+  transform: translateY(-12px) scale(.96);
+  filter: blur(6px);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0 auto;
+  pointer-events: none;
+}
+.home-intro.phase-done { display: none; }
+@keyframes introRise {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }
 }
-.home-hero-compact .home-stats-row { margin-top: 4px !important; }
+@keyframes introTitleBloom {
+  from { opacity: 0; transform: translateY(12px) scale(.96); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes introShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 100% center; }
+}
+/* content cascade after intro */
+#home.home-reveal .home-stats-row,
+#home.home-reveal .home-h2h,
+#home.home-reveal .home-nav-grid {
+  animation: homeCascade .5s cubic-bezier(.22,1,.36,1) both;
+}
+#home.home-reveal .home-stats-row { animation-delay: .05s; }
+#home.home-reveal .home-h2h { animation-delay: .12s; }
+#home.home-reveal .home-nav-grid { animation-delay: .18s; }
+@keyframes homeCascade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-intro, .home-intro * { animation: none !important; transition: opacity .2s ease !important; filter: none !important; }
+  .home-intro.phase-out, .home-intro.phase-done { opacity: 0; max-height: 0; display: none; }
+}
+
 
 </style>
 <!-- Firebase App (Core) и Firestore (База данни) -->
@@ -2700,9 +2789,10 @@ window.saveDataToFirebase = async function () {
                 <div class="hero-hint" id="heroHint"></div>
                 <div class="hero-result" id="heroResult"></div>
             </div>
-            <div class="home-intro" id="homeIntro">
-                <h2 class="home-intro-title">Board Game Suite</h2>
-                <p class="home-intro-sub">Партии · статистики · companion apps</p>
+            <div class="home-intro" id="homeIntro" aria-hidden="false">
+                <div class="intro-kicker">Board games</div>
+                <h2 class="home-intro-title">Suite</h2>
+                <p class="home-intro-sub">Запис · статистики · companion apps</p>
             </div>
             <div class="home-stats-row" id="homeQuickStats">
                 <div class="home-stat"><div class="hs-num" id="homeGamesCount">–</div><div class="hs-label">Игри</div></div>
@@ -3071,15 +3161,46 @@ const SECTION_TITLES = {
 };
 
 
+
 function runHomeIntro(){
   const intro = document.getElementById('homeIntro');
+  const home = document.getElementById('home');
   if(!intro) return;
-  intro.classList.remove('home-intro-hide');
-  clearTimeout(window._homeIntroTimer);
-  window._homeIntroTimer = setTimeout(function(){
-    intro.classList.add('home-intro-hide');
-  }, 3200);
+  clearTimeout(window._homeIntroT1);
+  clearTimeout(window._homeIntroT2);
+  clearTimeout(window._homeIntroT3);
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const seen = sessionStorage.getItem('bgHomeIntroSeen') === '1';
+
+  intro.classList.remove('phase-in', 'phase-out', 'phase-done', 'home-intro-hide');
+  if(home) home.classList.remove('home-reveal');
+
+  if(seen || reduce){
+    intro.classList.add('phase-done');
+    intro.setAttribute('aria-hidden', 'true');
+    if(home) home.classList.add('home-reveal');
+    return;
+  }
+
+  intro.setAttribute('aria-hidden', 'false');
+  // force reflow then enter
+  void intro.offsetWidth;
+  intro.classList.add('phase-in');
+
+  window._homeIntroT1 = setTimeout(function(){
+    intro.classList.add('phase-out');
+    intro.classList.remove('phase-in');
+  }, 2400);
+
+  window._homeIntroT2 = setTimeout(function(){
+    intro.classList.add('phase-done');
+    intro.setAttribute('aria-hidden', 'true');
+    try { sessionStorage.setItem('bgHomeIntroSeen', '1'); } catch(e){}
+    if(home) home.classList.add('home-reveal');
+  }, 3000);
 }
+
 function goHome(){
   goTo('home');
   setTimeout(runHomeIntro, 50);
