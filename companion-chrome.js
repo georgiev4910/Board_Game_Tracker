@@ -1,4 +1,4 @@
-/*! Board Game Tracker — companion chrome + shared lang (v2.5) */
+/*! Board Game Tracker — companion chrome + shared lang (v2.6) */
 (function () {
   var LANG_KEY = 'bgCompanionLang';
 
@@ -26,15 +26,31 @@
     };
   }
 
-  window.bgtToggleLanguage = function () {
-    var next = (window.currentLang === 'bg') ? 'en' : 'bg';
-    window.currentLang = next;
-    setLang(next);
+  function syncLangLabel() {
+    var lang = getLang();
+    window.currentLang = lang;
     var el = document.getElementById('bgt-lang-label');
-    if (el) el.textContent = next.toUpperCase();
+    if (el) el.textContent = lang.toUpperCase();
     var el2 = document.getElementById('lang-btn-text');
-    if (el2) el2.textContent = next.toUpperCase();
-    document.documentElement.lang = next;
+    if (el2) el2.textContent = lang.toUpperCase();
+    document.documentElement.lang = lang;
+  }
+
+  window.bgtToggleLanguage = function () {
+    /* Prefer each app's own toggleLanguage so local `currentLang` stays in sync */
+    var appToggle = window.toggleLanguage;
+    if (typeof appToggle === 'function' && appToggle !== window.bgtToggleLanguage) {
+      try {
+        appToggle();
+        syncLangLabel();
+        return;
+      } catch (e) {}
+    }
+
+    var next = (getLang() === 'bg') ? 'en' : 'bg';
+    setLang(next);
+    window.currentLang = next;
+    syncLangLabel();
     document.querySelectorAll('[data-i18n-bg]').forEach(function (node) {
       var bg = node.getAttribute('data-i18n-bg');
       var en = node.getAttribute('data-i18n-en') || bg;
@@ -53,28 +69,36 @@
     var old = document.getElementById('suite-chrome');
     if (old && old.parentNode) old.parentNode.removeChild(old);
 
-    var bar = document.createElement('div');
+    var bar = document.createElement('nav');
     bar.id = 'bgt-chrome';
     bar.setAttribute('role', 'navigation');
     bar.setAttribute('aria-label', 'Board Game Tracker');
     var lang = getLang();
     var isEn = lang === 'en';
     bar.innerHTML =
-      '<a class="bgt-home" href="./index.html" title="Home">' +
+      '<a class="bgt-home" href="./index.html" title="Home / Начало">' +
         '🏠 <span data-i18n-bg="Начало" data-i18n-en="Home">' + (isEn ? 'Home' : 'Начало') + '</span></a>' +
-      '<a class="bgt-log" href="./index.html#log" title="Log">' +
+      '<a class="bgt-apps" href="./index.html#companions" title="Companions / Апове">' +
+        '🎮 <span data-i18n-bg="Апове" data-i18n-en="Apps">' + (isEn ? 'Apps' : 'Апове') + '</span></a>' +
+      '<a class="bgt-log" href="./index.html#log" title="Log / Запис">' +
         '📝 <span data-i18n-bg="Запис" data-i18n-en="Log">' + (isEn ? 'Log' : 'Запис') + '</span></a>' +
-      '<a class="bgt-rand" href="./index.html#randomizer" title="Randomizer">' +
-        '🎲 <span data-i18n-bg="Рандом" data-i18n-en="Random">' + (isEn ? 'Random' : 'Рандом') + '</span></a>' +
-      '<button type="button" class="bgt-lang" id="bgt-lang-btn" title="Language">' +
+      '<button type="button" class="bgt-lang" id="bgt-lang-btn" title="Language / Език">' +
         '🌐 <span id="bgt-lang-label">' + lang.toUpperCase() + '</span></button>';
     document.body.appendChild(bar);
+
     var langBtn = document.getElementById('bgt-lang-btn');
     if (langBtn) {
       langBtn.addEventListener('click', function () {
         window.bgtToggleLanguage();
       });
     }
+
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n-bg]').forEach(function (node) {
+      var bg = node.getAttribute('data-i18n-bg');
+      var en = node.getAttribute('data-i18n-en') || bg;
+      node.textContent = lang === 'en' ? en : bg;
+    });
   }
 
   if (document.readyState === 'loading') {
