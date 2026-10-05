@@ -1,4 +1,5 @@
-/* Board Game Tracker — companion shell + top bar (v2.7) */
+/* Board Game Tracker — companion top bar only (v2.8)
+   Top bar matches content shell width. No bottom chrome. */
 
 :root {
   --bgt-shell-max: 480px;
@@ -6,8 +7,6 @@
   --bgt-radius-lg: 16px;
   --bgt-btn-h: 44px;
   --bgt-accent: #22c55e;
-  --bgt-chrome-bg: rgba(12, 16, 28, 0.94);
-  --bgt-chrome-border: rgba(255, 255, 255, 0.12);
 }
 
 html {
@@ -25,10 +24,11 @@ body {
   box-sizing: border-box;
   padding-left: max(0px, env(safe-area-inset-left, 0px)) !important;
   padding-right: max(0px, env(safe-area-inset-right, 0px)) !important;
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
   padding-top: 0 !important;
 }
 
+/* Content shell — same width for all companions */
 body > .container,
 body > main,
 body > #app,
@@ -44,14 +44,14 @@ body > div[class*="max-w-"] {
   box-sizing: border-box !important;
   flex: 1 1 auto;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 @media (min-width: 640px) {
   body {
     padding-top: 16px !important;
-    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: 24px !important;
   }
   body > .container,
   body > main,
@@ -66,28 +66,35 @@ body > div[class*="max-w-"] {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     max-height: min(92dvh, 900px);
   }
+  body > .container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
-/* Hide legacy in-app headers — replaced by #bgt-top */
-.bgt-old-header-hidden,
-body.bgt-has-top > .top-header,
-body.bgt-has-top .top-header.bgt-old-header-hidden {
+/* Hide legacy headers + bottom chrome */
+.bgt-old-header-hidden {
+  display: none !important;
+}
+#bgt-chrome,
+#suite-chrome {
   display: none !important;
 }
 
-/* ===== Unified TOP bar ===== */
+/* ===== Unified TOP bar — inside shell, same width ===== */
 #bgt-top {
   width: 100%;
+  max-width: 100%;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   min-height: 52px;
   padding: 10px 12px;
   padding-top: max(10px, env(safe-area-inset-top, 0px));
   box-sizing: border-box;
-  background: linear-gradient(180deg, rgba(18, 22, 36, 0.98), rgba(18, 22, 36, 0.92));
+  background: linear-gradient(180deg, rgba(18, 22, 36, 0.98), rgba(18, 22, 36, 0.94));
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: saturate(1.15) blur(14px);
   -webkit-backdrop-filter: saturate(1.15) blur(14px);
@@ -102,7 +109,7 @@ body.bgt-has-top .top-header.bgt-old-header-hidden {
   gap: 6px;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   padding-right: 10px;
-  margin-right: 2px;
+  flex-shrink: 0;
 }
 
 #bgt-top .bgt-top-btn {
@@ -124,18 +131,15 @@ body.bgt-has-top .top-header.bgt-old-header-hidden {
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
-#bgt-top .bgt-top-btn:active {
-  transform: scale(0.96);
-}
-
-#bgt-top .bgt-top-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
+#bgt-top .bgt-top-btn:active { transform: scale(0.96); }
+#bgt-top .bgt-top-btn:hover { background: rgba(255, 255, 255, 0.12); }
 
 #bgt-top .bgt-top-btn.home { color: #4ade80; }
 #bgt-top .bgt-top-btn.back { color: #60a5fa; }
 #bgt-top .bgt-top-btn.log { color: #f472b6; }
+#bgt-top .bgt-top-btn.apps { color: #a78bfa; }
 #bgt-top .bgt-top-btn.extra { color: #fbbf24; }
+#bgt-top .bgt-top-btn.lang { color: #fcd34d; font-size: 11px; font-weight: 800; width: auto; min-width: 40px; padding: 0 8px; }
 
 #bgt-top .bgt-top-brand {
   display: flex;
@@ -155,8 +159,8 @@ body.bgt-has-top .top-header.bgt-old-header-hidden {
   justify-content: center;
   font-size: 16px;
   color: #fff;
-  background: linear-gradient(135deg, var(--bgt-accent), color-mix(in srgb, var(--bgt-accent) 70%, #000));
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--bgt-accent) 40%, transparent);
+  background: linear-gradient(135deg, var(--bgt-accent), color-mix(in srgb, var(--bgt-accent) 65%, #000));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--bgt-accent) 35%, transparent);
   flex-shrink: 0;
 }
 
@@ -183,7 +187,6 @@ body.bgt-has-top .top-header.bgt-old-header-hidden {
   white-space: nowrap;
 }
 
-/* Primary buttons unified */
 button.btn,
 a.btn,
 .btn,
@@ -209,71 +212,8 @@ input[type="submit"] {
   border-radius: var(--bgt-radius-lg) !important;
 }
 
-/* Hide in-header language (only bottom chrome) */
 header button[onclick*="toggleLanguage"],
 header button:has(#lang-btn-text),
 .top-header button[onclick*="toggleLanguage"] {
-  display: none !important;
-}
-
-/* ===== Bottom chrome ===== */
-#bgt-chrome {
-  position: fixed;
-  bottom: max(10px, env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 7px 8px;
-  max-width: min(var(--bgt-shell-max), calc(100vw - 20px));
-  border-radius: 18px;
-  background: var(--bgt-chrome-bg);
-  border: 1px solid var(--bgt-chrome-border);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-#bgt-chrome a,
-#bgt-chrome button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 42px;
-  height: 40px;
-  padding: 0 10px;
-  border-radius: var(--bgt-radius);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f1f5f9;
-  font: 800 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
-  text-decoration: none;
-  cursor: pointer;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#bgt-chrome a:active,
-#bgt-chrome button:active {
-  transform: scale(0.96);
-}
-
-#bgt-chrome .bgt-home { color: #4ade80; }
-#bgt-chrome .bgt-apps { color: #a78bfa; }
-#bgt-chrome .bgt-log { color: #f472b6; }
-#bgt-chrome .bgt-lang { color: #fcd34d; min-width: 48px; }
-
-@media (max-width: 380px) {
-  #bgt-chrome a span:not(#bgt-lang-label),
-  #bgt-chrome button span:not(#bgt-lang-label) {
-    display: none;
-  }
-}
-
-#suite-chrome {
   display: none !important;
 }
