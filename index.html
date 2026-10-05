@@ -3014,6 +3014,45 @@ function ensureLogId(log) {
   return 'old_' + Math.abs(hash).toString(36);
 }
 
+function collectPlayerPrefs() {
+  let colors = {}, figures = {}, gender = {}, activePlayer = '';
+  try { colors = JSON.parse(localStorage.getItem('bgPlayerColors') || '{}'); } catch (e) {}
+  try { figures = JSON.parse(localStorage.getItem('bgPlayerFigures') || '{}'); } catch (e) {}
+  try { gender = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}'); } catch (e) {}
+  try { activePlayer = localStorage.getItem('bgActivePlayer') || ''; } catch (e) {}
+  return { colors, figures, gender, activePlayer };
+}
+
+function applyPlayerPrefs(prefs, opts) {
+  if (!prefs || typeof prefs !== 'object') return;
+  const silent = opts && opts.silent;
+  try {
+    if (prefs.colors && typeof prefs.colors === 'object') {
+      localStorage.setItem('bgPlayerColors', JSON.stringify(prefs.colors));
+    }
+    if (prefs.figures && typeof prefs.figures === 'object') {
+      localStorage.setItem('bgPlayerFigures', JSON.stringify(prefs.figures));
+    }
+    if (prefs.gender && typeof prefs.gender === 'object') {
+      localStorage.setItem('bgPlayerGender', JSON.stringify(prefs.gender));
+    }
+    if (typeof prefs.activePlayer === 'string') {
+      if (prefs.activePlayer) localStorage.setItem('bgActivePlayer', prefs.activePlayer);
+      else localStorage.removeItem('bgActivePlayer');
+    }
+  } catch (e) {}
+  if (!silent) {
+    try {
+      if (typeof updateProfileUI === 'function') updateProfileUI();
+      if (typeof refreshHomeStats === 'function') refreshHomeStats();
+      if (typeof renderManageProfileList === 'function') renderManageProfileList();
+    } catch (e) {}
+  }
+}
+
+window.collectPlayerPrefs = collectPlayerPrefs;
+window.applyPlayerPrefs = applyPlayerPrefs;
+
 async function loadDataFromFirebase() {
   try {
     const snap = await getDoc(docRef);
@@ -3026,8 +3065,18 @@ async function loadDataFromFirebase() {
       window.gameLogs = logsWithId; gameLogs = logsWithId;
       localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
     }
+    if (cloud.playerPrefs) {
+      applyPlayerPrefs(cloud.playerPrefs, { silent: true });
+    } else {
+      /* First time: upload local player prefs so other devices get them */
+      setTimeout(function(){
+        try { if (typeof window.saveDataToFirebase === 'function') window.saveDataToFirebase(); } catch(e){}
+      }, 800);
+    }
     lastKnownUpdated = cloud.lastUpdated || '';
     if (typeof updateUI === 'function') updateUI();
+    if (typeof updateProfileUI === 'function') updateProfileUI();
+    if (typeof refreshHomeStats === 'function') refreshHomeStats();
     if (typeof showStats === 'function') showStats();
     return true;
   } catch (error) {
@@ -3049,6 +3098,7 @@ onSnapshot(docRef, (docSnap) => {
     window.gameLogs = logsWithId; gameLogs = logsWithId;
     localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
   }
+  if (cloud.playerPrefs) applyPlayerPrefs(cloud.playerPrefs);
   lastKnownUpdated = cloudUpdated;
   if (typeof updateUI === 'function') updateUI();
   if (typeof showStats === 'function') showStats();
@@ -3063,6 +3113,7 @@ window.saveDataToFirebase = async function () {
       myGamesObj: myGamesObj,
       myPlayers: myPlayers,
       gameLogs: logsWithId,
+      playerPrefs: collectPlayerPrefs(),
       lastUpdated: new Date().toISOString()
     };
     await setDoc(docRef, payload, { merge: true });
@@ -4039,6 +4090,13 @@ const PLAYER_COLOR_PRESETS = [
 function getPlayerColorsMap(){
   try { return JSON.parse(localStorage.getItem('bgPlayerColors') || '{}'); } catch(e){ return {}; }
 }
+function schedulePrefsSync(){
+  if (typeof window.saveDataToFirebase !== 'function') return;
+  clearTimeout(window._prefsSyncT);
+  window._prefsSyncT = setTimeout(function(){
+    try { window.saveDataToFirebase(); } catch(e){}
+  }, 450);
+}
 function setPlayerColor(name, colorId){
   if(!name) return;
   const map = getPlayerColorsMap();
@@ -4046,6 +4104,7 @@ function setPlayerColor(name, colorId){
   try { localStorage.setItem('bgPlayerColors', JSON.stringify(map)); } catch(e){}
   updateProfileUI();
   refreshHomeStats();
+  schedulePrefsSync();
 }
 function getPlayerAccentHex(name){
   if(!name) return '#60a5fa';
@@ -4090,6 +4149,8 @@ function setPlayerGender(name, gender){
     localStorage.setItem('bgPlayerGender', JSON.stringify(map));
   } catch(e){}
   refreshHomeStats();
+  if(typeof renderManageProfileList==='function') renderManageProfileList();
+  schedulePrefsSync();
 }
 function pickGreetingLine(name){
   const f = guessPlayerGender(name) === 'f';
@@ -4123,8 +4184,10 @@ function setActivePlayer(name){
   } catch(e){}
   updateProfileUI();
   refreshHomeStats();
+  if(typeof renderManageProfileList==='function') renderManageProfileList();
   if(name) showToast('👤 Профил: ' + name, 'info');
   else showToast('👀 Общ изглед', 'info');
+  schedulePrefsSync();
 }
 function updateProfileUI(){
   const name = getActivePlayer();
@@ -4357,6 +4420,7 @@ function setPlayerFigure(name,figId){
   if(typeof updateProfileUI==='function')updateProfileUI();
   if(typeof refreshHomeStats==='function')refreshHomeStats();
   if(typeof renderManageProfileList==='function')renderManageProfileList();
+  if(typeof schedulePrefsSync==='function') schedulePrefsSync();
 }
 function getPlayerFigureEmoji(name){
   const m=getPlayerFiguresMap(); const p=PLAYER_FIGURE_PRESETS.find(x=>x.id===m[name]);
