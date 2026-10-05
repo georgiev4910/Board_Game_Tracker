@@ -17,7 +17,13 @@
         if (typeof window.openFlightLog === 'function') window.openFlightLog();
       }}
     },
-    'castles.html': { title: 'BURGUNDY', sub: 'Castles', icon: '🏯', accent: '#e11d48' },
+    'castles.html': {
+      title: 'BURGUNDY', sub: 'Castles', icon: '🏯', accent: '#e11d48',
+      extra: { title: "Зарове", icon: '🎲', run: function () {
+        if (typeof window.goToDiceScreen === 'function') window.goToDiceScreen();
+        else if (typeof goToDiceScreen === 'function') goToDiceScreen();
+      }}
+    },
     'spirit_island.html': { title: 'SPIRIT ISLAND', sub: 'Companion', icon: '🏝️', accent: '#14b8a6' }
   };
 
