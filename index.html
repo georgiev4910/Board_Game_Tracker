@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="BG Tracker">
 <meta name="bgt-version" content="2.5.0">
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.oаrg/2000/svg' viewBox='0 0 100 100'%3E%3Crect rx='22' width='100' height='100' fill='%2322c55e'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='58'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect rx='22' width='100' height='100' fill='%2322c55e'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='58'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
 <title>Board Game Tracker</title>
 <style>
 :root {
@@ -3102,11 +3102,29 @@ body:not(.bgt-admin) #mgDanger {
 .home-stats-row .home-stat {
   border-radius: 16px;
 }
-.hh-opp-row {
-  margin: 8px 0 4px;
+.hh-name-select {
+  width: 100%;
+  max-width: 120px;
+  margin: 4px auto 0;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: center;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  appearance: none;
+  text-align-last: center;
 }
-.hh-opp-row select {
-  width: 100%; padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 13px;
+.qm-tables-body {
+  padding: 8px 10px 12px !important;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.qm-tables-body .table-chip {
+  padding: 8px 10px;
+  font-size: 13px;
 }
 .onboard-overlay {
   position: fixed; inset: 0; z-index: 30000;
@@ -3476,6 +3494,27 @@ onAuthStateChanged(auth, async (user) => {
                   </div>
                 </div>
 
+                <div class="qm-section" id="qmSecTables">
+                  <button type="button" class="qm-section-head" onclick="toggleQmSection('qmSecTables'); renderTableGroupList();">
+                    <span>🪑 Маси</span>
+                    <span class="qm-chevron">▼</span>
+                  </button>
+                  <div class="qm-section-body qm-tables-body">
+                    <div class="small" style="margin:0 0 8px;padding:0 4px">Активната маса определя играчите при Запис.</div>
+                    <select id="activeTableSelect" onchange="setActiveTable(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700;margin-bottom:8px"></select>
+                    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+                      <input type="text" id="newTableNameInput" placeholder="Нова маса…" style="flex:1;min-width:100px;padding:8px 10px;border-radius:10px" onkeydown="if(event.key==='Enter')createTable()">
+                      <button type="button" class="btn-secondary" onclick="createTable()" style="margin:0;padding:8px 12px">＋</button>
+                    </div>
+                    <div id="tableGroupList" class="table-group-list"></div>
+                    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                      <input type="text" id="tableInviteInput" placeholder="Играч…" style="flex:1;min-width:100px;padding:8px 10px;border-radius:10px" onkeydown="if(event.key==='Enter')inviteToTable()">
+                      <button type="button" class="btn-blue" onclick="inviteToTable()" style="margin:0;padding:8px 12px">➕</button>
+                    </div>
+                    <div class="small" style="margin-top:8px" id="tableGroupHint"></div>
+                  </div>
+                </div>
+
                 <button type="button" class="qm-flat" data-nav="manage" onclick="goTo('manage')">⚙️ Настройки</button>
             </div>
         </div>
@@ -3530,18 +3569,15 @@ onAuthStateChanged(auth, async (user) => {
             </div>
 <div class="home-h2h" id="homeH2H" style="display:none" hidden>
                 <div class="hh-label">Директен двубой</div>
-                <div class="hh-opp-row" id="homeH2HOppHome" style="display:none">
-                  <select id="homeH2HOpponentSelect2" onchange="setHomeH2HOpponent(this.value)"></select>
-                </div>
                 <div class="hh-arena">
                     <div class="hh-side">
                         <div class="hh-fig" id="hhFigA">♟️</div>
-                        <div class="hh-name" id="hhNameA">—</div>
+                        <select class="hh-name-select" id="hhSelectA" onchange="setH2HSide('left', this.value)" aria-label="Ляв играч"></select>
                         <div class="hh-score" id="hhScoreA">0</div>
                     </div>
                     <div class="hh-side">
                         <div class="hh-fig" id="hhFigB">♟️</div>
-                        <div class="hh-name" id="hhNameB">—</div>
+                        <select class="hh-name-select" id="hhSelectB" onchange="setH2HSide('right', this.value)" aria-label="Десен играч"></select>
                         <div class="hh-score" id="hhScoreB">0</div>
                     </div>
                 </div>
@@ -3751,10 +3787,8 @@ onAuthStateChanged(auth, async (user) => {
                       </div>
                       <button type="button" class="setting-switch" id="homeH2HToggle" onclick="toggleHomeH2H()" aria-label="H2H на home"></button>
                     </div>
-                    <div id="homeH2HOppWrap" style="display:none;margin:8px 0 12px">
-                      <label class="small" style="display:block;margin-bottom:6px">Противник за H2H</label>
-                      <select id="homeH2HOpponentSelect" onchange="setHomeH2HOpponent(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700"></select>
-                    </div>
+
+
                     <div class="setting-toggle-row">
                       <div class="st-text">
                         <div class="st-title">✨ Интерактивен home</div>
@@ -3779,27 +3813,7 @@ onAuthStateChanged(auth, async (user) => {
                 </div>
             </div>
 
-            <div class="mg-section" id="mgTable">
-                <button type="button" class="mg-head" onclick="toggleMgSection('mgTable')">
-                    <span>🪑 Маси</span><span class="mg-chevron">▼</span>
-                </button>
-                <div class="mg-body">
-                    <div class="small">Няколко маси (напр. Дома, Петък). Активната маса зарежда играчите при <b>Запис</b>. Синхронизира се в облака.</div>
-                    <label class="small" style="display:block;margin:10px 0 6px">Активна маса</label>
-                    <select id="activeTableSelect" onchange="setActiveTable(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700;margin-bottom:8px"></select>
-                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-                      <input type="text" id="newTableNameInput" placeholder="Име на нова маса…" style="flex:1;min-width:120px" onkeydown="if(event.key==='Enter')createTable()">
-                      <button type="button" class="btn-secondary" onclick="createTable()" style="margin:0">＋ Маса</button>
-                    </div>
-                    <div class="small" style="margin-bottom:6px">Играчи на активната маса</div>
-                    <div id="tableGroupList" class="table-group-list"></div>
-                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-                      <input type="text" id="tableInviteInput" placeholder="Име на играч…" style="flex:1;min-width:140px" onkeydown="if(event.key==='Enter')inviteToTable()">
-                      <button type="button" class="btn-blue" onclick="inviteToTable()" style="margin:0">➕ На масата</button>
-                    </div>
-                    <div class="small" style="margin-top:8px" id="tableGroupHint"></div>
-                </div>
-            </div>
+
 
             <div class="mg-section" id="mgGames">
                 <button type="button" class="mg-head" onclick="toggleMgSection('mgGames')">
@@ -4285,15 +4299,18 @@ function refreshHomeStats(){
     if(!loggedIn || !linkedMe || !h2hOn || (typeof canViewStats === 'function' && !canViewStats())){
       if(h2hBox){ h2hBox.style.display = 'none'; h2hBox.setAttribute('hidden','true'); }
     } else if(h2hBox){
+      const others = (typeof getH2HOpponentsFor === 'function' ? getH2HOpponentsFor(linkedMe) : (myPlayers||[]).filter(p => p !== linkedMe));
+      const pool = [linkedMe].concat(others);
+      const sides = (typeof ensureH2HSides === 'function') ? ensureH2HSides(linkedMe, others) : { left: linkedMe, right: others[0] || '' };
+      const a = sides.left, b = sides.right;
+      if(!a || !b || a === b){
+        h2hBox.style.display = 'none'; h2hBox.setAttribute('hidden','true');
+      } else {
       h2hBox.removeAttribute('hidden');
-      const a = linkedMe;
-      const others = (typeof getH2HOpponentsFor === 'function' ? getH2HOpponentsFor(a) : (myPlayers||[]).filter(p => p !== a));
-      let b = typeof getHomeH2HOpponent === 'function' ? getHomeH2HOpponent() : '';
-      if(b && !others.includes(b)) b = '';
-      if(!b && others.length) b = others[0];
-      if(typeof populateHomeH2HOpponentSelects === 'function') populateHomeH2HOpponentSelects(a, others, b);
-      if(!b){ h2hBox.style.display = 'none'; h2hBox.setAttribute('hidden','true'); }
-      else {
+      if(typeof fillH2HNameSelect === 'function'){
+        fillH2HNameSelect(document.getElementById('hhSelectA'), pool, a);
+        fillH2HNameSelect(document.getElementById('hhSelectB'), pool, b);
+      }
       const h2hLogs = allLogs.filter(l => {
         if(l.type === 'coop') return false;
         const keys = Object.keys(l.scores || {});
@@ -4305,9 +4322,8 @@ function refreshHomeStats(){
         if(ws.includes(a)) wa.a++;
         if(ws.includes(b)) wa.b++;
       });
-      h2hBox.style.display = h2hLogs.length ? 'block' : 'none';
+      h2hBox.style.display = 'block';
       const set = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
-      set('hhNameA', a); set('hhNameB', b);
       set('hhScoreA', wa.a); set('hhScoreB', wa.b);
       const showFig = typeof isFiguresVisible !== 'function' || isFiguresVisible();
       set('hhFigA', showFig && typeof getPlayerFigureEmoji==='function' ? getPlayerFigureEmoji(a) : '');
@@ -4338,7 +4354,7 @@ function refreshHomeStats(){
         if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b;
         else meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b + ' · води ' + (wa.a > wa.b ? a : b);
       }
-      } /* end else b */
+      }
     } else if(h2hBox){
       h2hBox.style.display = 'none';
     }
@@ -4531,14 +4547,6 @@ function setHomeH2H(on){
   if(typeof showToast === 'function') showToast(on ? '⚔️ H2H на началото: вкл.' : 'H2H на началото: изкл.', 'info');
 }
 function toggleHomeH2H(){ setHomeH2H(!isHomeH2HOn()); }
-function getHomeH2HOpponent(){
-  try { return localStorage.getItem('bgHomeH2HOpponent') || ''; } catch(e){ return ''; }
-}
-function setHomeH2HOpponent(name){
-  try { localStorage.setItem('bgHomeH2HOpponent', name || ''); } catch(e){}
-  if(typeof currentH2HOpponent !== 'undefined') currentH2HOpponent = name || '';
-  if(typeof refreshHomeStats === 'function') refreshHomeStats();
-}
 function getH2HOpponentsFor(me){
   const set = new Set();
   (gameLogs || []).forEach(l => {
@@ -4549,27 +4557,62 @@ function getH2HOpponentsFor(me){
     }
   });
   (myPlayers || []).forEach(p => { if(p !== me) set.add(p); });
+  getTableGroup().forEach(p => { if(p !== me) set.add(p); });
   return Array.from(set).sort((a,b) => a.localeCompare(b, 'bg'));
+}
+function getH2HSide(side){
+  try { return localStorage.getItem(side === 'left' ? 'bgH2HLeft' : 'bgH2HRight') || ''; } catch(e){ return ''; }
+}
+function setH2HSide(side, name){
+  try { localStorage.setItem(side === 'left' ? 'bgH2HLeft' : 'bgH2HRight', name || ''); } catch(e){}
+  const other = side === 'left' ? 'right' : 'left';
+  const otherName = getH2HSide(other);
+  if(name && otherName === name){
+    /* swap if same picked */
+    const prev = getH2HSide(side);
+    try { localStorage.setItem(other === 'left' ? 'bgH2HLeft' : 'bgH2HRight', prev || ''); } catch(e){}
+  }
+  if(typeof refreshHomeStats === 'function') refreshHomeStats();
+}
+function getHomeH2HOpponent(){
+  /* legacy helper: the side that is not me */
+  const me = getMyLinkedPlayer();
+  const L = getH2HSide('left'), R = getH2HSide('right');
+  if(L && L !== me) return L;
+  if(R && R !== me) return R;
+  return '';
+}
+function setHomeH2HOpponent(name){
+  const me = getMyLinkedPlayer();
+  if(!me || !name) return;
+  const L = getH2HSide('left');
+  if(L === me) setH2HSide('right', name);
+  else setH2HSide('left', name);
+}
+function ensureH2HSides(me, others){
+  let L = getH2HSide('left'), R = getH2HSide('right');
+  const pool = [me].concat(others || []).filter(Boolean);
+  if(!L || !pool.includes(L)) L = me || pool[0] || '';
+  if(!R || !pool.includes(R) || R === L){
+    R = (others && others[0]) || pool.find(p => p !== L) || '';
+  }
+  try {
+    localStorage.setItem('bgH2HLeft', L || '');
+    localStorage.setItem('bgH2HRight', R || '');
+  } catch(e){}
+  return { left: L, right: R };
+}
+function fillH2HNameSelect(el, pool, selected){
+  if(!el) return;
+  el.innerHTML = (pool || []).map(p =>
+    '<option value="'+String(p).replace(/"/g,'&quot;')+'"'+(p===selected?' selected':'')+'>'+(typeof esc==='function'?esc(p):p)+'</option>'
+  ).join('');
 }
 function applyHomeH2HToggleUI(){
   const tog = document.getElementById('homeH2HToggle');
   if(tog) tog.classList.toggle('on', isHomeH2HOn());
   const wrap = document.getElementById('homeH2HOppWrap');
-  if(wrap) wrap.style.display = (isHomeH2HOn() && canViewStats()) ? 'block' : 'none';
-  const me = getMyLinkedPlayer();
-  if(me) populateHomeH2HOpponentSelects(me, getH2HOpponentsFor(me), getHomeH2HOpponent());
-}
-function populateHomeH2HOpponentSelects(me, others, selected){
-  const opts = (others || []).map(p =>
-    '<option value="'+String(p).replace(/"/g,'&quot;')+'"'+(p===selected?' selected':'')+'>'+(typeof esc==='function'?esc(p):p)+'</option>'
-  ).join('');
-  const html = '<option value="">— Избери противник —</option>' + opts;
-  ['homeH2HOpponentSelect','homeH2HOpponentSelect2'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.innerHTML = html;
-  });
-  const homeRow = document.getElementById('homeH2HOppHome');
-  if(homeRow) homeRow.style.display = (others && others.length) ? 'block' : 'none';
+  if(wrap) wrap.style.display = 'none'; /* opponent chosen on home via name selects */
 }
 function getAdmins(){
   try {
@@ -7411,8 +7454,12 @@ function onboardNext(){
   }
   if(onboardStep === 2){
     finishOnboarding();
-    goTo('manage');
-    try { toggleMgSection('mgTable'); } catch(e){}
+    try {
+      const m = document.getElementById('quickMenu');
+      if(m) m.classList.add('open');
+      toggleQmSection('qmSecTables');
+      renderTableGroupList();
+    } catch(e){}
     return;
   }
   if(onboardStep >= 3){
