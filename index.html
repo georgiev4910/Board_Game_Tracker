@@ -3045,6 +3045,16 @@ body.auth-locked .container { visibility: hidden; pointer-events: none; }
   font-size: 12px; font-weight: 700; color: var(--muted);
   margin: 8px 0; word-break: break-all;
 }
+/* Hard lock: no stats / H2H without Firebase auth + linked player */
+body:not(.bgt-authed) #homeH2H,
+body:not(.bgt-linked) #homeH2H {
+  display: none !important;
+}
+body:not(.bgt-authed) #stats .stats-nav,
+body:not(.bgt-authed) #stats .stats-panel {
+  opacity: 0.35;
+  pointer-events: none;
+}
 
 </style>
 <!-- Firebase App + Auth + Firestore -->
@@ -3196,16 +3206,24 @@ function stopCloudListener() {
 }
 
 function setAuthUI(user) {
-  /* App always usable — no full-screen lock */
   document.body.classList.remove('auth-locked');
   const gate = document.getElementById('authGate');
   if (gate) gate.classList.add('hidden');
+  window.__bgtAuthUser = user || null;
+  document.body.classList.toggle('bgt-authed', !!user);
+  let linked = '';
+  try {
+    if (user && typeof window.__bgtGetLinkedName === 'function') linked = window.__bgtGetLinkedName(user) || '';
+  } catch (e) {}
+  document.body.classList.toggle('bgt-linked', !!(user && linked));
   try {
     if (typeof updateAuthStatusUI === 'function') updateAuthStatusUI(user);
-    if (typeof showStats === 'function') {
-      const statsTab = document.getElementById('stats');
-      if (statsTab && statsTab.classList.contains('active')) showStats();
-    }
+    if (typeof clearStatsUI === 'function') clearStatsUI();
+    if (typeof showStats === 'function') showStats();
+    if (typeof renderDetailedStats === 'function') renderDetailedStats();
+    if (typeof renderPlayerStats === 'function') renderPlayerStats();
+    if (typeof renderReports === 'function') renderReports();
+    if (typeof refreshHomeStats === 'function') refreshHomeStats();
   } catch (e) {}
 }
 
@@ -3254,15 +3272,27 @@ window.authSignOut = async function () {
   await signOut(auth);
 };
 window.getAuthUser = function () {
-  return auth.currentUser;
+  return auth.currentUser || window.__bgtAuthUser || null;
+};
+window.__bgtAuthUser = null;
+window.__bgtGetLinkedName = function (user) {
+  if (!user) return '';
+  let links = {};
+  try { links = JSON.parse(localStorage.getItem('bgAccountLinks') || '{}'); } catch (e) {}
+  if (links[user.uid]) return links[user.uid];
+  const em = (user.email || '').toLowerCase();
+  if (em && links['email:' + em]) return links['email:' + em];
+  return '';
 };
 
 onAuthStateChanged(auth, async (user) => {
   authReady = true;
+  window.__bgtAuthUser = user || null;
   setAuthUI(user);
   if (user) {
     startCloudListener();
     try { await loadDataFromFirebase(); } catch (e) {}
+    setAuthUI(user); /* refresh linked class after prefs applied */
   } else {
     stopCloudListener();
   }
@@ -3952,11 +3982,23 @@ function goTo(tabName){
   } catch(e){}
 
   if(tabName === 'stats'){
-    const out = document.getElementById('statsOverviewOutput');
-    if(out && !out.dataset.loaded){
-      out.innerHTML = '<div class="stats-skeleton"><div class="sk-row"><div class="sk-line lg"></div><div class="sk-line lg"></div></div><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>';
+    if(typeof canViewStats === 'function' && !canViewStats()){
+      if(typeof clearStatsUI === 'function') clearStatsUI();
+      else if(typeof showStats === 'function') showStats();
+    } else {
+      const out = document.getElementById('statsOverviewOutput');
+      if(out && !out.dataset.loaded){
+        out.innerHTML = '<div class="stats-skeleton"><div class="sk-row"><div class="sk-line lg"></div><div class="sk-line lg"></div></div><div class="sk-line"></div><div class="sk-line"></div><div class="sk-line" style="width:70%"></div></div>';
+      }
+      setTimeout(function(){
+        showStats();
+        if(typeof renderDetailedStats === 'function') renderDetailedStats();
+        if(typeof renderPlayerStats === 'function') renderPlayerStats();
+        if(typeof populateDetailGameSelect === 'function') populateDetailGameSelect();
+        const o=document.getElementById('statsOverviewOutput');
+        if(o && canViewStats()) o.dataset.loaded='1';
+      }, 120);
     }
-    setTimeout(function(){ showStats(); populateDetailGameSelect(); const o=document.getElementById('statsOverviewOutput'); if(o) o.dataset.loaded='1'; }, 120);
   }
   else if(tabName === 'randomizer'){ renderRandomizer(); }
   else if(tabName === 'home'){
@@ -4003,18 +4045,24 @@ function refreshHomeStats(){
       youBox.style.display = 'none';
     }
 
-    /* Last session — always global */
+    /* Last session — results only when logged in */
     const box = document.getElementById('homeLastSession');
     const gEl = document.getElementById('homeLastGame');
     const mEl = document.getElementById('homeLastMeta');
     if(gEl){
-      if(!allLogs.length){
+      if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+        if(box) box.classList.add('empty');
+        gEl.textContent = 'Влез за резултати';
+        if(mEl) mEl.textContent = 'Настройки → 🔐 Акаунт';
+      } else if(!allLogs.length){
         if(box) box.classList.add('empty');
         gEl.textContent = 'Все още няма записи';
         if(mEl) mEl.textContent = '';
       } else {
         if(box) box.classList.remove('empty');
-        const last = [...allLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
+        const scopeLogs = (typeof getScopedLogs === 'function' ? getScopedLogs() : allLogs);
+        const useLogs = scopeLogs.length ? scopeLogs : allLogs;
+        const last = [...useLogs].sort((a,b)=> new Date(b.date||0) - new Date(a.date||0))[0];
         gEl.textContent = last.game || '—';
         let meta = '';
         if(last.type === 'coop'){
@@ -4060,10 +4108,19 @@ function refreshHomeStats(){
       }
     }
 
-    /* H2H first two players — global */
+    /* H2H — only when logged in with linked player */
     const h2hBox = document.getElementById('homeH2H');
-    if(h2hBox && myPlayers && myPlayers.length >= 2){
-      const a = myPlayers[0], b = myPlayers[1];
+    const loggedIn = typeof isLoggedIn === 'function' && isLoggedIn();
+    const linkedMe = typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
+    if(!loggedIn || !linkedMe || (typeof canViewStats === 'function' && !canViewStats())){
+      if(h2hBox){ h2hBox.style.display = 'none'; h2hBox.setAttribute('hidden','true'); }
+    } else if(h2hBox && myPlayers && myPlayers.length >= 2){
+      h2hBox.removeAttribute('hidden');
+      const a = linkedMe;
+      const others = myPlayers.filter(p => p !== a);
+      const b = (typeof currentH2HOpponent === 'string' && others.includes(currentH2HOpponent)) ? currentH2HOpponent : (others[0] || myPlayers.find(p => p !== a));
+      if(!b){ h2hBox.style.display = 'none'; }
+      else {
       const h2hLogs = allLogs.filter(l => {
         if(l.type === 'coop') return false;
         const keys = Object.keys(l.scores || {});
@@ -4108,6 +4165,7 @@ function refreshHomeStats(){
         if(wa.a === wa.b) meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b;
         else meta.textContent = h2hLogs.length + ' директни · ' + wa.a + '–' + wa.b + ' · води ' + (wa.a > wa.b ? a : b);
       }
+      } /* end else b */
     } else if(h2hBox){
       h2hBox.style.display = 'none';
     }
@@ -4263,17 +4321,31 @@ function schedulePrefsSync(){
   }, 450);
 }
 function isLoggedIn(){
-  try { return !!(typeof window.getAuthUser === 'function' && window.getAuthUser()); } catch(e){ return false; }
+  try {
+    if (window.__bgtAuthUser) return true;
+    if (typeof window.getAuthUser === 'function') return !!window.getAuthUser();
+    return false;
+  } catch(e){ return false; }
 }
 function getAccountLinks(){
   try { return JSON.parse(localStorage.getItem('bgAccountLinks') || '{}'); } catch(e){ return {}; }
 }
 function getMyLinkedPlayer(){
   if(!isLoggedIn()) return '';
-  const u = window.getAuthUser();
+  const u = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
   if(!u) return '';
+  if (typeof window.__bgtGetLinkedName === 'function') {
+    const n = window.__bgtGetLinkedName(u);
+    if (n) return n;
+  }
   const links = getAccountLinks();
-  return links[u.uid] || '';
+  if(links[u.uid]) return links[u.uid];
+  const em = (u.email || '').toLowerCase();
+  if(em && links['email:' + em]) return links['email:' + em];
+  return '';
+}
+function canViewStats(){
+  return isLoggedIn() && !!getMyLinkedPlayer();
 }
 function canEditPlayerPrefs(name){
   if(!name || !isLoggedIn()) return false;
@@ -4285,15 +4357,29 @@ function linkAccountToPlayer(playerName){
   const u = window.getAuthUser();
   if(!u) return;
   const links = getAccountLinks();
-  if(playerName) links[u.uid] = playerName;
-  else delete links[u.uid];
+  const em = (u.email || '').toLowerCase();
+  if(playerName){
+    links[u.uid] = playerName;
+    if(em) links['email:' + em] = playerName;
+  } else {
+    delete links[u.uid];
+    if(em) delete links['email:' + em];
+  }
   try { localStorage.setItem('bgAccountLinks', JSON.stringify(links)); } catch(e){}
-  if(playerName) setActivePlayer(playerName);
-  else if(typeof updateProfileUI==='function') updateProfileUI();
+  if(playerName){
+    try { localStorage.setItem('bgActivePlayer', playerName); } catch(e){}
+  }
+  document.body.classList.toggle('bgt-linked', !!playerName);
+  document.body.classList.add('bgt-authed');
+  if(typeof updateProfileUI==='function') updateProfileUI();
   if(typeof renderManageProfileList==='function') renderManageProfileList();
   if(typeof updateAuthStatusUI==='function') updateAuthStatusUI(u);
+  if(typeof showStats==='function') showStats();
+  if(typeof renderDetailedStats==='function') renderDetailedStats();
+  if(typeof renderPlayerStats==='function') renderPlayerStats();
+  if(typeof refreshHomeStats==='function') refreshHomeStats();
   schedulePrefsSync();
-  showToast(playerName ? ('Профил свързан: ' + playerName) : 'Връзката е махната', 'info');
+  showToast(playerName ? ('Акаунтът е свързан с ' + playerName) : 'Връзката е махната', 'info');
 }
 function setPlayerColor(name, colorId){
   if(!name) return;
@@ -4381,10 +4467,27 @@ function pickGreetingLine(name){
 }
 
 function getActivePlayer(){
-  try { return localStorage.getItem('bgActivePlayer') || ''; } catch(e){ return ''; }
+  /* Logged-in users are locked to their linked player name */
+  try {
+    if(typeof isLoggedIn === 'function' && isLoggedIn()){
+      const linked = typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
+      return linked || '';
+    }
+    return localStorage.getItem('bgActivePlayer') || '';
+  } catch(e){ return ''; }
 }
 function setActivePlayer(name){
   try {
+    if(typeof isLoggedIn === 'function' && isLoggedIn()){
+      const linked = typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
+      if(linked && name && name !== linked){
+        showToast('Профилът е заключен към ' + linked, 'info');
+        name = linked;
+      }
+      if(!linked && name){
+        /* allow first set via linkAccountToPlayer only */
+      }
+    }
     if(name) localStorage.setItem('bgActivePlayer', name);
     else localStorage.removeItem('bgActivePlayer');
   } catch(e){}
@@ -4469,46 +4572,36 @@ function renderManageProfileList(){
     return;
   }
   if(!mine){
-    list.innerHTML = '<div class="empty"><div class="empty-title">Избери „Аз съм“</div>В 🔐 Акаунт посочи кой играч си — редактираш само своя цвят, род и фигурка.</div>';
+    list.innerHTML = '<div class="empty"><div class="empty-title">Избери „Аз съм“</div>В 🔐 Акаунт посочи кой играч си — акаунтът се връзва с името ти.</div>';
     return;
   }
-  list.innerHTML = players.map(p => {
-    const isMine = p === mine;
-    const active = p === cur;
-    const g = guessPlayerGender(p);
-    const colorId = getPlayerColorId(p);
-    const hex = getPlayerAccentHex(p);
-    const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    const initial = (p.trim().charAt(0) || '?').toUpperCase();
-    const figId = getPlayerFigureId(p);
-    if(!isMine){
-      return '<div class="player-pref-card" style="--pref-color:'+hex+';opacity:.75">'+
-        '<div class="player-pref-top">'+
-          '<div class="player-pref-avatar">'+initial+'</div>'+
-          '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+'</div>'+
-          '<span class="small">преглед</span></div>'+
-        '<div class="small" style="margin-top:6px">Само собственикът променя цвят / род / фигурка.</div></div>';
-    }
-    const figures = PLAYER_FIGURE_PRESETS.map(pf =>
-      '<button type="button" class="figure-swatch'+(pf.id===figId?' on':'')+'" title="'+pf.label+'" data-fig-for="'+safe+'" data-fig="'+pf.id+'">'+pf.emoji+'</button>'
-    ).join('');
-    const swatches = PLAYER_COLOR_PRESETS.map(pc =>
-      '<button type="button" class="color-swatch'+(pc.id===colorId?' on':'')+'" style="background:'+pc.hex+'" title="'+pc.label+'" data-color-for="'+safe+'" data-color="'+pc.id+'"></button>'
-    ).join('');
-    return '<div class="player-pref-card'+(active?' active-pref':'')+'" style="--pref-color:'+hex+'">'+
-      '<div class="player-pref-top">'+
-        '<div class="player-pref-avatar">'+initial+'</div>'+
-        '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+' · ти</div>'+
-        '<button type="button" class="player-pref-use" data-player="'+safe+'">'+(active?'✓ Активен':'Избери')+'</button>'+
-      '</div>'+
-      '<div class="player-pref-row"><span class="player-pref-label">Род</span><div class="gender-seg">'+
-        '<button type="button" class="'+(g==='f'?'on':'')+'" data-gender-for="'+safe+'" data-gender="f">♀ Жена</button>'+
-        '<button type="button" class="'+(g==='m'?'on':'')+'" data-gender-for="'+safe+'" data-gender="m">♂ Мъж</button>'+
-      '</div></div>'+
-      '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
-      '<div class="player-pref-row"><span class="player-pref-label">Фигура</span><div class="figure-seg">'+figures+'</div></div>'+
-    '</div>';
-  }).join('');
+  /* Only own profile card — no switching to other players */
+  const p = mine;
+  const g = guessPlayerGender(p);
+  const colorId = getPlayerColorId(p);
+  const hex = getPlayerAccentHex(p);
+  const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  const initial = (p.trim().charAt(0) || '?').toUpperCase();
+  const figId = getPlayerFigureId(p);
+  const figures = PLAYER_FIGURE_PRESETS.map(pf =>
+    '<button type="button" class="figure-swatch'+(pf.id===figId?' on':'')+'" title="'+pf.label+'" data-fig-for="'+safe+'" data-fig="'+pf.id+'">'+pf.emoji+'</button>'
+  ).join('');
+  const swatches = PLAYER_COLOR_PRESETS.map(pc =>
+    '<button type="button" class="color-swatch'+(pc.id===colorId?' on':'')+'" style="background:'+pc.hex+'" title="'+pc.label+'" data-color-for="'+safe+'" data-color="'+pc.id+'"></button>'
+  ).join('');
+  list.innerHTML = '<div class="player-pref-card active-pref" style="--pref-color:'+hex+'">'+
+    '<div class="player-pref-top">'+
+      '<div class="player-pref-avatar">'+initial+'</div>'+
+      '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+'</div>'+
+      '<span class="small">✓ твой профил</span>'+
+    '</div>'+
+    '<div class="player-pref-row"><span class="player-pref-label">Род</span><div class="gender-seg">'+
+      '<button type="button" class="'+(g==='f'?'on':'')+'" data-gender-for="'+safe+'" data-gender="f">♀ Жена</button>'+
+      '<button type="button" class="'+(g==='m'?'on':'')+'" data-gender-for="'+safe+'" data-gender="m">♂ Мъж</button>'+
+    '</div></div>'+
+    '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
+    '<div class="player-pref-row"><span class="player-pref-label">Фигура</span><div class="figure-seg">'+figures+'</div></div>'+
+  '</div>';
 
   list.querySelectorAll('[data-player]').forEach(btn => {
     btn.onclick = () => setActivePlayer(btn.getAttribute('data-player') || '');
@@ -4570,10 +4663,33 @@ function playerWonLog(log, player){
   return ws.includes(player);
 }
 function getScopedLogs(){
-  const me = getActivePlayer();
-  const all = gameLogs || [];
-  if(!me) return all;
-  return all.filter(l => playerInLog(l, me));
+  /* Stats always personal: only when logged in + linked player */
+  if(typeof isLoggedIn === 'function' && !isLoggedIn()) return [];
+  const me = (typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '') || '';
+  if(!me) return [];
+  return (gameLogs || []).filter(l => playerInLog(l, me));
+}
+function clearStatsUI(){
+  const needLogin = !isLoggedIn();
+  const msg = (typeof emptyState === 'function')
+    ? emptyState(
+        needLogin ? 'Статистиката изисква вход' : 'Свържи акаунта с играч',
+        needLogin ? 'Настройки → 🔐 Акаунт → Вход, после „Аз съм“.' : '🔐 Акаунт → „Аз съм“.',
+        needLogin ? '🔐' : '👤'
+      )
+    : '<div class="empty">Няма достъп до статистика</div>';
+  ['statsOverviewOutput','statsDetailOutput','statsPlayerOutput','reportsOutput'].forEach(function(id){
+    const el = document.getElementById(id);
+    if(el){
+      el.innerHTML = msg;
+      delete el.dataset.loaded;
+    }
+  });
+  const h2h = document.getElementById('homeH2H');
+  if(h2h){
+    h2h.style.display = 'none';
+    h2h.setAttribute('hidden', 'true');
+  }
 }
 
 function onLastSessionTap(){
@@ -5588,26 +5704,31 @@ function h2hBlockHtml(a, b, wa, wb, nLogs, extraSelectHtml){
 function showStats(){
     const out = document.getElementById('statsOverviewOutput');
     if(!out) return;
-    if(typeof isLoggedIn === 'function' && !isLoggedIn()){
-      out.innerHTML = emptyState('Статистиката изисква вход', 'Настройки → 🔐 Акаунт → Вход. Без акаунт записът и рандомът работят локално.', '🔐');
-      const detail = document.getElementById('statsDetailOutput');
-      if(detail) detail.innerHTML = '';
-      const playerOut = document.getElementById('statsPlayerOutput');
-      if(playerOut) playerOut.innerHTML = '';
+    if(typeof canViewStats === 'function' && !canViewStats()){
+      const needLogin = typeof isLoggedIn === 'function' && !isLoggedIn();
+      out.innerHTML = emptyState(
+        needLogin ? 'Статистиката изисква вход' : 'Свържи акаунта с играч',
+        needLogin ? 'Настройки → 🔐 Акаунт → Вход.' : 'Настройки → 🔐 Акаунт → „Аз съм“.',
+        needLogin ? '🔐' : '👤'
+      );
+      ['statsDetailOutput','statsPlayerOutput','reportsOutput'].forEach(function(id){
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = out.innerHTML;
+      });
+      const h2h = document.getElementById('homeH2H');
+      if(h2h){ h2h.style.display = 'none'; h2h.setAttribute('hidden','true'); }
+      document.body.classList.toggle('bgt-linked', false);
       return;
     }
+    const me = getMyLinkedPlayer();
+    document.body.classList.add('bgt-authed', 'bgt-linked');
     try {
-    const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : gameLogs;
-    const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
+    const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : [];
     if(!scoped.length){
-      out.innerHTML = me
-        ? emptyState('Няма партии с '+esc(me), 'Запиши първата от таб Запис или смени профила.', '👤')
-        : emptyState('Все още няма записи', 'Първата партия се записва за секунди в „Запис“.', '🎲');
+      out.innerHTML = emptyState('Няма твои партии още', 'Нов акаунт / няма записани игри с '+esc(me)+'.', '👤');
       return;
     }
-    const scopeNote = me
-      ? '<div class="scope-banner"><span>📊 Само партии с <b>'+esc(me)+'</b></span><button type="button" onclick="goTo(\'manage\')">Профил</button></div>'
-      : '';
+    const scopeNote = '<div class="scope-banner"><span>📊 Само игри на <b>'+esc(me)+'</b></span></div>';
 
     const pvpLogs=getModeLogs('pvp', scoped), coopLogs=getModeLogs('coop', scoped);
     const uniqueGames=new Set(scoped.map(log=>log.game).filter(Boolean)).size;
@@ -5716,87 +5837,21 @@ function renderDetailedCoop(logs,out){
    ========================================================= */
 
 function populatePlayerSelector(){
-
-    const bar =
-        document.getElementById(
-            'playerSelectorBar'
-        );
-
-
-    if(!bar){
-        return;
+    const bar = document.getElementById('playerSelectorBar');
+    if(!bar) return;
+    if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+      bar.innerHTML = '<span class="small">Влез в акаунт.</span>';
+      selectedStatPlayer = null;
+      return;
     }
-
-
-    const players =
-        getAllPlayersList();
-
-
-    if(!players.length){
-
-        bar.innerHTML =
-            '<span class="small">Няма намерени играчи.</span>';
-
-        selectedStatPlayer = null;
-
-        return;
+    const me = typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
+    if(!me){
+      bar.innerHTML = '<span class="small">Свържи акаунта: Аз съм →</span>';
+      selectedStatPlayer = null;
+      return;
     }
-
-
-    if(
-        !selectedStatPlayer ||
-        !players.includes(selectedStatPlayer)
-    ){
-
-        selectedStatPlayer =
-            players[0];
-
-    }
-
-
-    bar.innerHTML =
-        players
-            .map(player => `
-
-                <button
-                    type="button"
-                    class="
-                        player-filter-btn
-                        ${
-                            player === selectedStatPlayer
-                            ? 'active'
-                            : ''
-                        }
-                    "
-                    data-player="${esc(player)}">
-
-                    ${esc(player)}
-
-                </button>
-
-            `)
-            .join('');
-
-
-    bar
-        .querySelectorAll(
-            '.player-filter-btn'
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                'click',
-                () => {
-
-                    setStatPlayer(
-                        button.dataset.player
-                    );
-
-                }
-            );
-
-        });
-
+    selectedStatPlayer = me;
+    bar.innerHTML = '<button type="button" class="player-filter-btn active" disabled>' + esc(me) + '</button>';
 }
 
 
@@ -6083,13 +6138,20 @@ function populateDetailGameSelect(){
 function renderDetailedStats(){
     const out = document.getElementById('statsDetailOutput');
     if(!out){ return; }
+    if(typeof canViewStats === 'function' && !canViewStats()){
+      const needLogin = typeof isLoggedIn === 'function' && !isLoggedIn();
+      out.innerHTML = emptyState(
+        needLogin ? 'Статистиката изисква вход' : 'Свържи акаунта с играч',
+        needLogin ? 'Настройки → 🔐 Акаунт' : '🔐 Акаунт → Аз съм',
+        needLogin ? '🔐' : '👤'
+      );
+      return;
+    }
     try {
-    const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : gameLogs;
-    const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
+    const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : [];
+    const me = (typeof getMyLinkedPlayer === 'function') ? getMyLinkedPlayer() : '';
     if(!scoped.length){
-        out.innerHTML = me
-            ? '<div class="empty">Няма партии с участие на '+esc(me)+'.</div>'
-            : '<div class="empty">Все още няма записани партии.</div>';
+        out.innerHTML = '<div class="empty">Няма партии с участие на '+esc(me)+'.</div>';
         return;
     }
 
@@ -6308,8 +6370,19 @@ function renderDetailedPvp(logs,out){
 function renderPlayerStats(){
     const out=document.getElementById('statsPlayerOutput');
     if(!out) return;
-    const player=selectedStatPlayer;
-    if(!player){out.innerHTML='<div class="empty">Избери играч.</div>';out.classList.remove('has-accent');return;}
+    if(typeof canViewStats === 'function' && !canViewStats()){
+      const needLogin = typeof isLoggedIn === 'function' && !isLoggedIn();
+      out.innerHTML = emptyState(
+        needLogin ? 'Статистиката изисква вход' : 'Свържи акаунта с играч',
+        needLogin ? 'Настройки → 🔐 Акаунт' : '🔐 Акаунт → Аз съм',
+        needLogin ? '🔐' : '👤'
+      );
+      out.classList.remove('has-accent');
+      return;
+    }
+    const player = getMyLinkedPlayer();
+    selectedStatPlayer = player;
+    if(!player){out.innerHTML=emptyState('Свържи акаунта с играч', '🔐 Акаунт → Аз съм', '👤');out.classList.remove('has-accent');return;}
 
     if(typeof getPlayerAccentHex === 'function'){
       const hex = getPlayerAccentHex(player);
@@ -6384,7 +6457,16 @@ function setReportPeriod(p){
 function renderReports(){
   const out = document.getElementById('reportsOutput');
   if(!out) return;
-  const all = gameLogs || [];
+  if(typeof canViewStats === 'function' && !canViewStats()){
+    const needLogin = typeof isLoggedIn === 'function' && !isLoggedIn();
+    out.innerHTML = emptyState(
+      needLogin ? 'Отчетите изискват вход' : 'Свържи акаунта с играч',
+      needLogin ? 'Настройки → 🔐 Акаунт' : '🔐 Акаунт → Аз съм',
+      needLogin ? '🔐' : '👤'
+    );
+    return;
+  }
+  const all = (typeof getScopedLogs === 'function' ? getScopedLogs() : []) || [];
   const now = Date.now();
   const span = reportPeriod === 'month' ? 30*24*60*60*1000 : 7*24*60*60*1000;
   const label = reportPeriod === 'month' ? 'Последните 30 дни' : 'Последните 7 дни';
