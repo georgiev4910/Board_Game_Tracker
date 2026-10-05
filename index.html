@@ -3045,6 +3045,35 @@ body.auth-locked .container { visibility: hidden; pointer-events: none; }
   font-size: 12px; font-weight: 700; color: var(--muted);
   margin: 8px 0; word-break: break-all;
 }
+.home-guest-hint {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 12px; padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(96,165,250,.14), rgba(167,139,250,.1));
+  border: 1px solid rgba(96,165,250,.28);
+  cursor: pointer;
+  font-size: 13px; font-weight: 600;
+}
+.home-guest-hint .hg-ico { font-size: 20px; }
+.home-guest-hint .hg-text { flex: 1; color: var(--text); line-height: 1.35; }
+.home-guest-hint .hg-go { color: #60a5fa; font-weight: 800; white-space: nowrap; }
+.profile-chip.is-guest {
+  background: rgba(148,163,184,.2) !important;
+  color: var(--muted) !important;
+  border: 1px dashed var(--border);
+}
+.table-group-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.table-chip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 14px;
+  background: var(--bg-soft); border: 1px solid var(--border);
+}
+.table-chip.on { border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.08); }
+.table-chip .tc-name { flex: 1; font-weight: 800; }
+.table-chip .tc-tag { font-size: 11px; font-weight: 700; color: var(--muted); }
+.table-chip button {
+  margin: 0; padding: 6px 10px; font-size: 12px; border-radius: 10px;
+}
 /* Hard lock: no stats / H2H without Firebase auth + linked player */
 body:not(.bgt-authed) #homeH2H,
 body:not(.bgt-linked) #homeH2H {
@@ -3097,13 +3126,15 @@ function ensureLogId(log) {
 }
 
 function collectPlayerPrefs() {
-  let colors = {}, figures = {}, gender = {}, activePlayer = '', accountLinks = {};
+  let colors = {}, figures = {}, gender = {}, activePlayer = '', accountLinks = {}, tableGroup = [];
   try { colors = JSON.parse(localStorage.getItem('bgPlayerColors') || '{}'); } catch (e) {}
   try { figures = JSON.parse(localStorage.getItem('bgPlayerFigures') || '{}'); } catch (e) {}
   try { gender = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}'); } catch (e) {}
   try { activePlayer = localStorage.getItem('bgActivePlayer') || ''; } catch (e) {}
   try { accountLinks = JSON.parse(localStorage.getItem('bgAccountLinks') || '{}'); } catch (e) {}
-  return { colors, figures, gender, activePlayer, accountLinks };
+  try { tableGroup = JSON.parse(localStorage.getItem('bgTableGroup') || '[]'); } catch (e) {}
+  if (!Array.isArray(tableGroup)) tableGroup = [];
+  return { colors, figures, gender, activePlayer, accountLinks, tableGroup };
 }
 
 function applyPlayerPrefs(prefs, opts) {
@@ -3121,6 +3152,9 @@ function applyPlayerPrefs(prefs, opts) {
     }
     if (prefs.accountLinks && typeof prefs.accountLinks === 'object') {
       localStorage.setItem('bgAccountLinks', JSON.stringify(prefs.accountLinks));
+    }
+    if (Array.isArray(prefs.tableGroup)) {
+      localStorage.setItem('bgTableGroup', JSON.stringify(prefs.tableGroup));
     }
     if (typeof prefs.activePlayer === 'string') {
       if (prefs.activePlayer) localStorage.setItem('bgActivePlayer', prefs.activePlayer);
@@ -3383,6 +3417,11 @@ onAuthStateChanged(auth, async (user) => {
                 <div class="hy-hello" id="homeYouHello">Здравей!</div>
                 <div class="hy-line" id="homeYouLine"></div>
             </div>
+            <div class="home-guest-hint" id="homeGuestHint" style="display:none" onclick="goTo('manage');try{toggleMgSection('mgAccount')}catch(e){}">
+                <span class="hg-ico">👤</span>
+                <span class="hg-text"><b>Гост режим</b> · Влез в акаунт, за да видиш своите статистики и масата</span>
+                <span class="hg-go">Вход →</span>
+            </div>
             <div class="hero-stage hero-locked" id="heroStage" title="">
                 <div class="hero-glow"></div>
                 <div class="hero-icons" id="heroIcons">
@@ -3632,15 +3671,18 @@ onAuthStateChanged(auth, async (user) => {
                 </div>
             </div>
 
-            <div class="mg-section" id="mgPlayers">
-                <button type="button" class="mg-head" onclick="toggleMgSection('mgPlayers')">
-                    <span>👥 Играчи</span><span class="mg-chevron">▼</span>
+            <div class="mg-section" id="mgTable">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgTable')">
+                    <span>🪑 Играчи на масата</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
-                    <div class="small">Добавяй или премахвай играчи.</div>
-                    <input type="text" id="playerInput" placeholder="Име на нов играч..." onkeydown="if(event.key==='Enter')addPlayer()">
-                    <button onclick="addPlayer()">Добави играч</button>
-                    <div id="managePlayersList"></div>
+                    <div class="small">Кой участва в партиите. Тези имена излизат при <b>Запис</b>. Кани регистрирани играчи (свързани с акаунт) или добави име за масата.</div>
+                    <div id="tableGroupList" class="table-group-list"></div>
+                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                      <input type="text" id="tableInviteInput" placeholder="Име на играч…" style="flex:1;min-width:140px" onkeydown="if(event.key==='Enter')inviteToTable()">
+                      <button type="button" class="btn-blue" onclick="inviteToTable()" style="margin:0">➕ На масата</button>
+                    </div>
+                    <div class="small" style="margin-top:8px" id="tableGroupHint"></div>
                 </div>
             </div>
 
@@ -4007,7 +4049,7 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof applySoundToggle==='function')applySoundToggle(); if(typeof renderManageProfileList==='function')renderManageProfileList(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof applySoundToggle==='function')applySoundToggle(); if(typeof renderManageProfileList==='function')renderManageProfileList(); if(typeof renderTableGroupList==='function')renderTableGroupList(); }
   else { updateUI(); }
 }
 
@@ -4021,23 +4063,34 @@ function refreshHomeStats(){
     updateHomeDigestExtras();
     const me = getActivePlayer();
     const allLogs = gameLogs || [];
-
-    /* Always global counters on home */
-    const g = Object.keys(myGamesObj || {}).length;
-    const l = allLogs.length;
-    const p = (myPlayers || []).length;
+    const canStats = typeof canViewStats === 'function' && canViewStats();
+    const scoped = canStats && typeof getScopedLogs === 'function' ? getScopedLogs() : [];
     const el = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
-    el('homeGamesCount', g);
-    el('homeLogsCount', l);
-    el('homePlayersCount', p);
+
+    /* Counters: only for logged-in linked player */
+    const guestHint = document.getElementById('homeGuestHint');
+    if(canStats){
+      if(guestHint) guestHint.style.display = 'none';
+      const g = new Set(scoped.map(l => l.game).filter(Boolean)).size;
+      const l = scoped.length;
+      const p = (typeof getTableGroup === 'function' ? getTableGroup() : myPlayers || []).length || (myPlayers || []).length;
+      el('homeGamesCount', g);
+      el('homeLogsCount', l);
+      el('homePlayersCount', p);
+    } else {
+      if(guestHint) guestHint.style.display = 'flex';
+      el('homeGamesCount', '–');
+      el('homeLogsCount', '–');
+      el('homePlayersCount', '–');
+    }
     const logsLabel = document.querySelector('#homeQuickStats .home-stat:nth-child(2) .hs-label');
     if(logsLabel) logsLabel.textContent = 'Партии';
 
-    /* Greeting only */
+    /* Greeting only when linked */
     const youBox = document.getElementById('homeYouBox');
     const hello = document.getElementById('homeYouHello');
     const line = document.getElementById('homeYouLine');
-    if(me && youBox){
+    if(me && canStats && youBox){
       youBox.style.display = 'block';
       if(hello) hello.textContent = 'Здравей, ' + me + '!';
       if(line) line.textContent = pickGreetingLine(me);
@@ -4347,6 +4400,119 @@ function getMyLinkedPlayer(){
 function canViewStats(){
   return isLoggedIn() && !!getMyLinkedPlayer();
 }
+function getTableGroup(){
+  try {
+    const arr = JSON.parse(localStorage.getItem('bgTableGroup') || '[]');
+    return Array.isArray(arr) ? arr.filter(Boolean) : [];
+  } catch(e){ return []; }
+}
+function setTableGroup(arr){
+  const clean = Array.from(new Set((arr || []).map(s => String(s).trim()).filter(Boolean)));
+  try { localStorage.setItem('bgTableGroup', JSON.stringify(clean)); } catch(e){}
+  /* keep myPlayers in sync for log/forms */
+  if(clean.length){
+    myPlayers = clean.slice();
+    window.myPlayers = myPlayers;
+    try { localStorage.setItem('myPlayers', JSON.stringify(myPlayers)); } catch(e){}
+  }
+  if(typeof schedulePrefsSync === 'function') schedulePrefsSync();
+  if(typeof saveAll === 'function') {
+    try {
+      localStorage.setItem('myPlayers', JSON.stringify(myPlayers));
+      if(typeof window.saveDataToFirebase === 'function' && isLoggedIn()) window.saveDataToFirebase();
+    } catch(e){}
+  }
+  renderTableGroupList();
+  if(typeof updateUI === 'function') updateUI();
+}
+function getRegisteredNames(){
+  const set = new Set();
+  const links = getAccountLinks();
+  Object.keys(links).forEach(k => {
+    if(k.indexOf('email:') === 0 || k.length > 20){ /* uid or email key */
+      if(links[k]) set.add(links[k]);
+    } else if(links[k]) set.add(links[k]);
+  });
+  Object.values(links).forEach(v => { if(typeof v === 'string' && v) set.add(v); });
+  (myPlayers || []).forEach(p => set.add(p));
+  getTableGroup().forEach(p => set.add(p));
+  return Array.from(set).sort((a,b) => a.localeCompare(b, 'bg'));
+}
+function getLogPlayers(){
+  const tg = getTableGroup();
+  if(tg.length) return tg.slice();
+  return (myPlayers || []).slice();
+}
+function inviteToTable(){
+  if(!isLoggedIn()){
+    showToast('Влез в акаунт, за да управляваш масата', 'info');
+    goTo('manage');
+    try { toggleMgSection('mgAccount'); } catch(e){}
+    return;
+  }
+  const input = document.getElementById('tableInviteInput');
+  let name = input ? String(input.value || '').trim() : '';
+  if(!name){
+    showToast('Въведи име', 'info');
+    return;
+  }
+  const tg = getTableGroup();
+  if(tg.includes(name)){
+    showToast(name + ' вече е на масата', 'info');
+    return;
+  }
+  tg.push(name);
+  setTableGroup(tg);
+  if(input) input.value = '';
+  showToast('🪑 ' + name + ' е на масата', 'info');
+}
+function removeFromTable(name){
+  const me = getMyLinkedPlayer();
+  if(me && name === me){
+    showToast('Не можеш да махнеш себе си от масата', 'info');
+    return;
+  }
+  setTableGroup(getTableGroup().filter(p => p !== name));
+  showToast('Махнат от масата: ' + name, 'info');
+}
+function renderTableGroupList(){
+  const list = document.getElementById('tableGroupList');
+  const hint = document.getElementById('tableGroupHint');
+  if(!list) return;
+  if(!isLoggedIn()){
+    list.innerHTML = '<div class="small">Влез в акаунт, за да настроиш масата.</div>';
+    if(hint) hint.textContent = '';
+    return;
+  }
+  const me = getMyLinkedPlayer();
+  let tg = getTableGroup();
+  if(me && !tg.includes(me)){
+    tg = [me].concat(tg);
+    setTableGroup(tg);
+    return; /* will re-render */
+  }
+  if(!tg.length){
+    list.innerHTML = '<div class="small">Масата е празна. Добави играчи по-долу.</div>';
+  } else {
+    list.innerHTML = tg.map(p => {
+      const isMe = p === me;
+      return '<div class="table-chip on">'+
+        '<span class="tc-name">'+(typeof esc==='function'?esc(p):p)+(isMe?' · ти':'')+'</span>'+
+        (isMe ? '<span class="tc-tag">ти</span>' :
+          '<button type="button" class="btn-secondary" data-rm="'+String(p).replace(/"/g,'&quot;')+'">Махни</button>')+
+      '</div>';
+    }).join('');
+    list.querySelectorAll('[data-rm]').forEach(btn => {
+      btn.onclick = () => removeFromTable(btn.getAttribute('data-rm'));
+    });
+  }
+  if(hint){
+    const reg = getRegisteredNames();
+    hint.textContent = reg.length
+      ? ('Известни имена: ' + reg.join(', '))
+      : 'След като някой се регистрира и избере „Аз съм“, името му влиза в списъка.';
+  }
+}
 function canEditPlayerPrefs(name){
   if(!name || !isLoggedIn()) return false;
   const mine = getMyLinkedPlayer();
@@ -4368,6 +4534,12 @@ function linkAccountToPlayer(playerName){
   try { localStorage.setItem('bgAccountLinks', JSON.stringify(links)); } catch(e){}
   if(playerName){
     try { localStorage.setItem('bgActivePlayer', playerName); } catch(e){}
+    /* ensure self is on the table */
+    const tg = getTableGroup();
+    if(!tg.includes(playerName)){
+      tg.unshift(playerName);
+      setTableGroup(tg);
+    }
   }
   document.body.classList.toggle('bgt-linked', !!playerName);
   document.body.classList.add('bgt-authed');
@@ -4467,13 +4639,12 @@ function pickGreetingLine(name){
 }
 
 function getActivePlayer(){
-  /* Logged-in users are locked to their linked player name */
+  /* Only linked account player — never a stale local name when guest */
   try {
     if(typeof isLoggedIn === 'function' && isLoggedIn()){
-      const linked = typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
-      return linked || '';
+      return (typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '') || '';
     }
-    return localStorage.getItem('bgActivePlayer') || '';
+    return '';
   } catch(e){ return ''; }
 }
 function setActivePlayer(name){
@@ -4502,24 +4673,38 @@ function updateProfileUI(){
   const name = getActivePlayer();
   const chip = document.getElementById('profileChip');
   const initialEl = document.getElementById('profileChipInitial');
-  if(name){
+  const logged = typeof isLoggedIn === 'function' && isLoggedIn();
+  if(name && logged){
     document.documentElement.setAttribute('data-has-player', '1');
     const hex = getPlayerAccentHex(name);
     document.documentElement.style.setProperty('--player-accent', hex);
     if(chip){
       chip.style.display = 'inline-flex';
+      chip.classList.remove('is-guest');
       chip.title = name + ' — моята статистика';
+      chip.onclick = function(){ goToMyPlayerStats(); };
       if(initialEl) initialEl.textContent = (name.trim().charAt(0) || '?').toUpperCase();
     }
   } else {
     document.documentElement.removeAttribute('data-has-player');
     document.documentElement.style.removeProperty('--player-accent');
-    if(chip) chip.style.display = 'none';
+    if(chip){
+      chip.style.display = 'inline-flex';
+      chip.classList.add('is-guest');
+      chip.title = 'Гост — влез в акаунт';
+      chip.onclick = function(){
+        goTo('manage');
+        try { toggleMgSection('mgAccount'); } catch(e){}
+        showToast('Влез в акаунта си', 'info');
+      };
+      if(initialEl) initialEl.textContent = '👤';
+    }
   }
   const myBtn = document.getElementById('menuMyStatsBtn');
   if(myBtn) myBtn.style.display = name ? '' : 'none';
   updateMenuStatsBadge();
-  renderManageProfileList();
+  if(typeof renderManageProfileList === 'function') renderManageProfileList();
+  if(typeof renderTableGroupList === 'function') renderTableGroupList();
 }
 
 function toggleMgSection(id){
@@ -5180,23 +5365,13 @@ function updateUI(){
     renderPlayersForm(); renderManagePlayers(); onGameSelected();
 }
 function renderManagePlayers(){
-    const el=document.getElementById('managePlayersList');
-    el.innerHTML = myPlayers.length ? myPlayers.map(p => `
-    <div class="manage-list-item">
-        <span>${esc(p)}</span>
-        <button class="btn-danger delete-player-btn" data-player="${esc(p)}">Изтрий</button>
-    </div>
-`).join('') : '<span class="small">Няма добавени играчи.</span>';
+    /* legacy — players managed via table group */
+    if(typeof renderTableGroupList === 'function') renderTableGroupList();
 }
-document.getElementById('managePlayersList').addEventListener('click', (e) => {
-    if (e.target.classList.contains('delete-player-btn')) {
-        const playerName = e.target.getAttribute('data-player');
-        removePlayer(playerName);
-    }
-});
 function getSelection(){
     const checked={}; const scores={};
-    myPlayers.forEach(p=>{
+    const list = (typeof getLogPlayers === 'function' ? getLogPlayers() : myPlayers) || [];
+    list.forEach(p=>{
         const key=idSafe(p), card=document.getElementById('card_'+key);
         if(card){
             const cb=card.querySelector('input[type=checkbox]'), scr=document.getElementById('score_'+key);
@@ -5208,9 +5383,14 @@ function getSelection(){
 }
 function renderPlayersForm(){
     const container=document.getElementById('playersCheckboxContainer');
-    if(!myPlayers.length){container.innerHTML='<span class="small">Няма добавени играчи още.</span>';return}
+    if(!container) return;
+    const list = (typeof getLogPlayers === 'function' ? getLogPlayers() : myPlayers) || [];
+    if(!list.length){
+      container.innerHTML='<span class="small">Няма играчи на масата. Настройки → 🪑 Играчи на масата.</span>';
+      return;
+    }
     const {checked,scores}=getSelection(), coop=currentLogFilter==='coop';
-    container.innerHTML=myPlayers.map(p=>{
+    container.innerHTML=list.map(p=>{
         const key=idSafe(p), yes=!!checked[p];
         if(coop)return `<div class="player-card ${yes?'selected':''}" id="card_${key}" onclick="togglePlayerCard('${esc(p)}','coop')"><div class="player-info"><input type="checkbox" ${yes?'checked':''} onchange="togglePlayerCard('${esc(p)}','coop',event)"><span class="player-name">${esc(p)}</span></div></div>`;
         const val=scores[p]??'';
