@@ -4564,18 +4564,26 @@ function getH2HSide(side){
   try { return localStorage.getItem(side === 'left' ? 'bgH2HLeft' : 'bgH2HRight') || ''; } catch(e){ return ''; }
 }
 function setH2HSide(side, name){
-  try { localStorage.setItem(side === 'left' ? 'bgH2HLeft' : 'bgH2HRight', name || ''); } catch(e){}
-  const other = side === 'left' ? 'right' : 'left';
-  const otherName = getH2HSide(other);
+  const key = side === 'left' ? 'bgH2HLeft' : 'bgH2HRight';
+  const otherKey = side === 'left' ? 'bgH2HRight' : 'bgH2HLeft';
+  /* read BOTH before write — otherwise swap overwrites and both become same */
+  const prevThis = getH2HSide(side);
+  const otherName = getH2HSide(side === 'left' ? 'right' : 'left');
+  try { localStorage.setItem(key, name || ''); } catch(e){}
   if(name && otherName === name){
-    /* swap if same picked */
-    const prev = getH2HSide(side);
-    try { localStorage.setItem(other === 'left' ? 'bgH2HLeft' : 'bgH2HRight', prev || ''); } catch(e){}
+    try { localStorage.setItem(otherKey, prevThis || ''); } catch(e){}
+  }
+  /* safety: never leave both sides equal */
+  const L = getH2HSide('left'), R = getH2HSide('right');
+  if(L && R && L === R){
+    const me = getMyLinkedPlayer();
+    const others = getH2HOpponentsFor(me);
+    const alt = others.find(p => p !== L) || (me !== L ? me : '');
+    if(alt) try { localStorage.setItem(otherKey, alt); } catch(e){}
   }
   if(typeof refreshHomeStats === 'function') refreshHomeStats();
 }
 function getHomeH2HOpponent(){
-  /* legacy helper: the side that is not me */
   const me = getMyLinkedPlayer();
   const L = getH2HSide('left'), R = getH2HSide('right');
   if(L && L !== me) return L;
@@ -4592,9 +4600,13 @@ function setHomeH2HOpponent(name){
 function ensureH2HSides(me, others){
   let L = getH2HSide('left'), R = getH2HSide('right');
   const pool = [me].concat(others || []).filter(Boolean);
-  if(!L || !pool.includes(L)) L = me || pool[0] || '';
-  if(!R || !pool.includes(R) || R === L){
-    R = (others && others[0]) || pool.find(p => p !== L) || '';
+  const uniq = Array.from(new Set(pool));
+  if(!L || !uniq.includes(L)) L = me || uniq[0] || '';
+  if(!R || !uniq.includes(R) || R === L){
+    R = uniq.find(p => p !== L) || (others && others[0]) || '';
+  }
+  if(L && R && L === R){
+    R = uniq.find(p => p !== L) || '';
   }
   try {
     localStorage.setItem('bgH2HLeft', L || '');
