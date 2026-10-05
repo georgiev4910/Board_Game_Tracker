@@ -1,4 +1,4 @@
-const CACHE = 'bg-tracker-v29';
+const CACHE = 'bg-tracker-v30';
 const PRECACHE = [
   './',
   './index.html',
