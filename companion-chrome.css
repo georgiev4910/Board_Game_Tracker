@@ -1,4 +1,142 @@
-/* Board Game Tracker — shared companion chrome */
+/* Board Game Tracker — unified companion shell (v2.5)
+   Same frame, nav, button shape. Only accent colors differ per game. */
+
+:root {
+  --bgt-shell-max: 480px;
+  --bgt-radius: 12px;
+  --bgt-radius-lg: 16px;
+  --bgt-btn-h: 44px;
+  --bgt-chrome-bg: rgba(12, 16, 28, 0.94);
+  --bgt-chrome-border: rgba(255, 255, 255, 0.12);
+}
+
+/* ----- Page shell: center + fixed width like one app ----- */
+html {
+  height: 100%;
+}
+body {
+  margin: 0 !important;
+  min-height: 100dvh;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  box-sizing: border-box;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Main content column — same width everywhere */
+body > .container,
+body > main,
+body > #app,
+body > .app,
+body > .content,
+body > .wrapper,
+body > div.w-full,
+body > div[class*="max-w-"] {
+  width: 100% !important;
+  max-width: var(--bgt-shell-max) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Desktop: floating card frame */
+@media (min-width: 640px) {
+  body {
+    padding-top: 16px;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  body > .container,
+  body > main,
+  body > #app,
+  body > .app,
+  body > .content,
+  body > .wrapper,
+  body > div.w-full,
+  body > div[class*="max-w-"] {
+    border-radius: 20px !important;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    max-height: min(92dvh, 900px);
+  }
+  /* classic .container pages that scroll inside */
+  body > .container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Top headers — same height & button geometry */
+.top-header,
+header.sticky,
+header[class*="sticky"],
+header[class*="border-b"] {
+  width: 100% !important;
+  max-width: var(--bgt-shell-max) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  padding-top: max(10px, env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px;
+  backdrop-filter: saturate(1.15) blur(14px) !important;
+  -webkit-backdrop-filter: saturate(1.15) blur(14px) !important;
+}
+
+.top-header .nav-btn,
+.top-header .nav-btns a,
+header .nav-btn,
+header button.bg-surfaceContainer,
+header button[class*="rounded-xl"],
+header a[class*="rounded-xl"] {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  border-radius: var(--bgt-radius) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font-size: 14px !important;
+}
+
+/* Primary action buttons — same shape/size */
+button.btn,
+a.btn,
+.btn,
+.btn-blue,
+.btn-info,
+.btn-secondary,
+.btn-danger,
+button[class*="btn-"],
+input[type="submit"] {
+  min-height: var(--bgt-btn-h) !important;
+  border-radius: var(--bgt-radius) !important;
+  font-weight: 700 !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  box-sizing: border-box;
+}
+
+/* Cards / sections */
+.section-box,
+.card,
+.panel,
+.box,
+.game-card {
+  border-radius: var(--bgt-radius-lg) !important;
+}
+
+/* ----- Shared bottom navigation (matches tracker chrome) ----- */
 #bgt-chrome {
   position: fixed;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
@@ -6,43 +144,74 @@
   transform: translateX(-50%);
   z-index: 10000;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
   padding: 8px;
+  width: auto;
+  max-width: calc(var(--bgt-shell-max) - 24px);
   border-radius: 18px;
-  background: rgba(12, 16, 28, 0.92);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--bgt-chrome-bg);
+  border: 1px solid var(--bgt-chrome-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
-#bgt-chrome a, #bgt-chrome button {
+
+#bgt-chrome a,
+#bgt-chrome button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 44px;
   height: 40px;
   padding: 0 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.06);
+  border-radius: var(--bgt-radius);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
   color: #f1f5f9;
-  font: 800 12px/1 system-ui, -apple-system, sans-serif;
+  font: 800 12px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
   text-decoration: none;
   cursor: pointer;
-  transition: transform .15s ease, background .15s ease;
+  white-space: nowrap;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
-#bgt-chrome a:active, #bgt-chrome button:active {
+
+#bgt-chrome a:active,
+#bgt-chrome button:active {
   transform: scale(0.96);
 }
+
+#bgt-chrome a:hover,
+#bgt-chrome button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#bgt-chrome .bgt-home {
+  color: #4ade80;
+}
+
+#bgt-chrome .bgt-log {
+  color: #f472b6;
+}
+
+#bgt-chrome .bgt-rand {
+  color: #60a5fa;
+}
+
 #bgt-chrome .bgt-lang {
   color: #fcd34d;
   min-width: 52px;
 }
-#bgt-chrome a:hover, #bgt-chrome button:hover {
-  background: rgba(255,255,255,0.12);
-}
-body { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+
 @media (prefers-reduced-motion: reduce) {
-  #bgt-chrome a, #bgt-chrome button { transition: none; }
+  #bgt-chrome a,
+  #bgt-chrome button {
+    transition: none;
+  }
+}
+
+/* Hide legacy suite chrome if any */
+#suite-chrome {
+  display: none !important;
 }
