@@ -1,13 +1,13 @@
-/* Board Game Tracker — unified companion shell (v2.6 polish) */
+/* Board Game Tracker — companion shell + top bar (v2.7) */
 
 :root {
   --bgt-shell-max: 480px;
   --bgt-radius: 12px;
   --bgt-radius-lg: 16px;
   --bgt-btn-h: 44px;
+  --bgt-accent: #22c55e;
   --bgt-chrome-bg: rgba(12, 16, 28, 0.94);
   --bgt-chrome-border: rgba(255, 255, 255, 0.12);
-  --bgt-header-h: 52px;
 }
 
 html {
@@ -44,6 +44,8 @@ body > div[class*="max-w-"] {
   box-sizing: border-box !important;
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 640px) {
@@ -64,86 +66,124 @@ body > div[class*="max-w-"] {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     max-height: min(92dvh, 900px);
   }
-  body > .container {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 }
 
-.top-header,
-header.sticky,
-header[class*="sticky"],
-header[class*="border-b"],
-header[class*="backdrop"] {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  box-sizing: border-box !important;
-  min-height: var(--bgt-header-h);
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-  padding-top: max(10px, env(safe-area-inset-top, 0px)) !important;
-  padding-bottom: 10px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px;
-  backdrop-filter: saturate(1.15) blur(14px) !important;
-  -webkit-backdrop-filter: saturate(1.15) blur(14px) !important;
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-  flex-shrink: 0 !important;
-}
-
-.top-header .nav-btn,
-.top-header .nav-btns a,
-.top-header .nav-btns button,
-header .nav-btn,
-header button.bg-surfaceContainer,
-header a.bg-surfaceContainer,
-header button[class*="rounded-xl"],
-header a[class*="rounded-xl"] {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  min-height: 40px !important;
-  max-width: 40px !important;
-  padding: 0 !important;
-  border-radius: var(--bgt-radius) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  font-size: 14px !important;
-  flex-shrink: 0;
-}
-
-header button.bg-gradient-to-r,
-header button[class*="from-emerald"],
-header button[class*="from-red"],
-header button[onclick*="openScore"],
-header button[onclick*="Calculator"] {
-  height: 40px !important;
-  min-height: 40px !important;
-  border-radius: var(--bgt-radius) !important;
-  padding-left: 12px !important;
-  padding-right: 12px !important;
-  width: auto !important;
-  max-width: none !important;
-}
-
-/* Language only in bottom bar */
-header button[onclick*="toggleLanguage"],
-header button[onclick*="bgtToggleLanguage"],
-.top-header button[onclick*="toggleLanguage"],
-.top-header .lang-btn,
-button#langToggle,
-#headerLangBtn,
-header button:has(#lang-btn-text) {
+/* Hide legacy in-app headers — replaced by #bgt-top */
+.bgt-old-header-hidden,
+body.bgt-has-top > .top-header,
+body.bgt-has-top .top-header.bgt-old-header-hidden {
   display: none !important;
 }
 
+/* ===== Unified TOP bar ===== */
+#bgt-top {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px;
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(18, 22, 36, 0.98), rgba(18, 22, 36, 0.92));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: saturate(1.15) blur(14px);
+  -webkit-backdrop-filter: saturate(1.15) blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+#bgt-top .bgt-top-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding-right: 10px;
+  margin-right: 2px;
+}
+
+#bgt-top .bgt-top-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: var(--bgt-radius);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+#bgt-top .bgt-top-btn:active {
+  transform: scale(0.96);
+}
+
+#bgt-top .bgt-top-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#bgt-top .bgt-top-btn.home { color: #4ade80; }
+#bgt-top .bgt-top-btn.back { color: #60a5fa; }
+#bgt-top .bgt-top-btn.log { color: #f472b6; }
+#bgt-top .bgt-top-btn.extra { color: #fbbf24; }
+
+#bgt-top .bgt-top-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+#bgt-top .bgt-top-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--bgt-accent), color-mix(in srgb, var(--bgt-accent) 70%, #000));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--bgt-accent) 40%, transparent);
+  flex-shrink: 0;
+}
+
+#bgt-top .bgt-top-text {
+  text-align: right;
+  min-width: 0;
+}
+
+#bgt-top .bgt-top-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--bgt-accent);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#bgt-top .bgt-top-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Primary buttons unified */
 button.btn,
 a.btn,
 .btn,
@@ -169,6 +209,14 @@ input[type="submit"] {
   border-radius: var(--bgt-radius-lg) !important;
 }
 
+/* Hide in-header language (only bottom chrome) */
+header button[onclick*="toggleLanguage"],
+header button:has(#lang-btn-text),
+.top-header button[onclick*="toggleLanguage"] {
+  display: none !important;
+}
+
+/* ===== Bottom chrome ===== */
 #bgt-chrome {
   position: fixed;
   bottom: max(10px, env(safe-area-inset-bottom, 0px));
@@ -180,7 +228,6 @@ input[type="submit"] {
   justify-content: center;
   gap: 4px;
   padding: 7px 8px;
-  width: auto;
   max-width: min(var(--bgt-shell-max), calc(100vw - 20px));
   border-radius: 18px;
   background: var(--bgt-chrome-bg);
@@ -188,7 +235,6 @@ input[type="submit"] {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  margin: 0;
 }
 
 #bgt-chrome a,
@@ -208,18 +254,12 @@ input[type="submit"] {
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s ease, background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 #bgt-chrome a:active,
 #bgt-chrome button:active {
   transform: scale(0.96);
-}
-
-#bgt-chrome a:hover,
-#bgt-chrome button:hover {
-  background: rgba(255, 255, 255, 0.12);
 }
 
 #bgt-chrome .bgt-home { color: #4ade80; }
@@ -231,18 +271,6 @@ input[type="submit"] {
   #bgt-chrome a span:not(#bgt-lang-label),
   #bgt-chrome button span:not(#bgt-lang-label) {
     display: none;
-  }
-  #bgt-chrome a,
-  #bgt-chrome button {
-    padding: 0 8px;
-    min-width: 40px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #bgt-chrome a,
-  #bgt-chrome button {
-    transition: none;
   }
 }
 
