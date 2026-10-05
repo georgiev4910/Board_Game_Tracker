@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BG Tracker">
-<meta name="bgt-version" content="2.2.0">
+<meta name="bgt-version" content="2.5.0">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect rx='22' width='100' height='100' fill='%2322c55e'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='58'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
 <title>Board Game Tracker</title>
@@ -3084,6 +3084,56 @@ body:not(.bgt-authed) #stats .stats-panel {
   opacity: 0.35;
   pointer-events: none;
 }
+body:not(.bgt-admin) #mgGames,
+body:not(.bgt-admin) #mgDanger {
+  display: none !important;
+}
+.admin-badge {
+  display: inline-block; margin-left: 6px; padding: 2px 8px;
+  border-radius: 999px; font-size: 10px; font-weight: 800;
+  background: rgba(251,191,36,.2); color: #fbbf24;
+  letter-spacing: .04em; vertical-align: middle;
+}
+/* v2.5 */
+.home-nav-card {
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.home-nav-card:active { transform: scale(.97); }
+.home-stats-row .home-stat {
+  border-radius: 16px;
+}
+.hh-opp-row {
+  margin: 8px 0 4px;
+}
+.hh-opp-row select {
+  width: 100%; padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 13px;
+}
+.onboard-overlay {
+  position: fixed; inset: 0; z-index: 30000;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(8,10,20,.72); backdrop-filter: blur(8px);
+  padding: 16px;
+}
+.onboard-overlay.hidden { display: none !important; }
+.onboard-card {
+  width: 100%; max-width: 400px;
+  background: var(--card, #1c2238);
+  border: 1px solid var(--border);
+  border-radius: 22px 22px 18px 18px;
+  padding: 22px 18px 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  animation: mgBodyIn .3s ease both;
+}
+.onboard-step-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+.onboard-step-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border);
+}
+.onboard-step-dots span.on { background: var(--green); }
+.onboard-card h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.02em; }
+.onboard-card p { margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.45; font-weight: 600; }
+.onboard-actions { display: flex; flex-direction: column; gap: 8px; }
+.onboard-actions button { margin: 0; }
 
 </style>
 <!-- Firebase App + Auth + Firestore -->
@@ -3189,14 +3239,18 @@ async function loadDataFromFirebase() {
     if (cloud.playerPrefs) {
       applyPlayerPrefs(cloud.playerPrefs, { silent: true });
     } else {
-      /* First time: upload local player prefs so other devices get them */
       setTimeout(function(){
         try { if (typeof window.saveDataToFirebase === 'function') window.saveDataToFirebase(); } catch(e){}
       }, 800);
     }
+    if (cloud.admins) {
+      try { localStorage.setItem('bgAdmins', JSON.stringify(cloud.admins)); } catch (e) {}
+      window.__bgtAdmins = cloud.admins;
+    }
     lastKnownUpdated = cloud.lastUpdated || '';
     if (typeof updateUI === 'function') updateUI();
     if (typeof updateProfileUI === 'function') updateProfileUI();
+    if (typeof applyAdminUI === 'function') applyAdminUI();
     if (typeof refreshHomeStats === 'function') refreshHomeStats();
     if (typeof showStats === 'function') showStats();
     return true;
@@ -3223,8 +3277,13 @@ function startCloudListener() {
       localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
     }
     if (cloud.playerPrefs) applyPlayerPrefs(cloud.playerPrefs);
+    if (cloud.admins) {
+      try { localStorage.setItem('bgAdmins', JSON.stringify(cloud.admins)); } catch (e) {}
+      window.__bgtAdmins = cloud.admins;
+    }
     lastKnownUpdated = cloudUpdated;
     if (typeof updateUI === 'function') updateUI();
+    if (typeof applyAdminUI === 'function') applyAdminUI();
     if (typeof showStats === 'function') showStats();
     if (typeof renderRandomizer === 'function') renderRandomizer();
   }, (err) => {
@@ -3251,6 +3310,8 @@ function setAuthUI(user) {
   } catch (e) {}
   document.body.classList.toggle('bgt-linked', !!(user && linked));
   try {
+    if (user && typeof window.claimAdminIfNone === 'function') window.claimAdminIfNone();
+    if (typeof applyAdminUI === 'function') applyAdminUI();
     if (typeof updateAuthStatusUI === 'function') updateAuthStatusUI(user);
     if (typeof clearStatsUI === 'function') clearStatsUI();
     if (typeof showStats === 'function') showStats();
@@ -3258,6 +3319,9 @@ function setAuthUI(user) {
     if (typeof renderPlayerStats === 'function') renderPlayerStats();
     if (typeof renderReports === 'function') renderReports();
     if (typeof refreshHomeStats === 'function') refreshHomeStats();
+    if (user && typeof maybeStartOnboarding === 'function') {
+      setTimeout(function(){ maybeStartOnboarding(); }, 600);
+    }
   } catch (e) {}
 }
 
@@ -3269,11 +3333,16 @@ window.saveDataToFirebase = async function () {
   try {
     isSaving = true;
     const logsWithId = gameLogs.map(log => ({ ...log, id: ensureLogId(log) }));
+    let admins = { uids: [], emails: [] };
+    try { admins = JSON.parse(localStorage.getItem('bgAdmins') || '{"uids":[],"emails":[]}'); } catch (e) {}
+    if (!admins.uids) admins.uids = [];
+    if (!admins.emails) admins.emails = [];
     const payload = {
       myGamesObj: myGamesObj,
       myPlayers: myPlayers,
       gameLogs: logsWithId,
       playerPrefs: collectPlayerPrefs(),
+      admins: admins,
       lastUpdated: new Date().toISOString(),
       updatedBy: auth.currentUser.uid
     };
@@ -3336,6 +3405,19 @@ onAuthStateChanged(auth, async (user) => {
 <body>
 <!-- Legacy full-screen gate kept hidden — login is in Settings -->
 <div class="auth-gate hidden" id="authGate" aria-hidden="true"></div>
+<!-- First-time onboarding after login -->
+<div class="onboard-overlay hidden" id="onboardOverlay" aria-modal="true" role="dialog">
+  <div class="onboard-card">
+    <div class="onboard-step-dots" id="onboardDots"><span class="on"></span><span></span><span></span><span></span></div>
+    <h3 id="onboardTitle">Добре дошъл</h3>
+    <p id="onboardText">Това е твоят tracker. Няколко бързи стъпки.</p>
+    <div id="onboardExtra"></div>
+    <div class="onboard-actions">
+      <button type="button" class="btn-blue" id="onboardPrimary" onclick="onboardNext()">Напред</button>
+      <button type="button" class="btn-secondary" id="onboardSkip" onclick="finishOnboarding()">Пропусни</button>
+    </div>
+  </div>
+</div>
 <div class="container">
     <div class="top-chrome" id="topChrome">
         <button type="button" class="back-home" onclick="goHome()" title="Начало" aria-label="Начало">🏠</button>
@@ -3437,8 +3519,11 @@ onAuthStateChanged(auth, async (user) => {
                 <div class="home-stat"><div class="hs-num" id="homeLogsCount">–</div><div class="hs-label">Партии</div></div>
                 <div class="home-stat"><div class="hs-num" id="homePlayersCount">–</div><div class="hs-label">Играчи</div></div>
             </div>
-<div class="home-h2h" id="homeH2H" style="display:none">
+<div class="home-h2h" id="homeH2H" style="display:none" hidden>
                 <div class="hh-label">Директен двубой</div>
+                <div class="hh-opp-row" id="homeH2HOppHome" style="display:none">
+                  <select id="homeH2HOpponentSelect2" onchange="setHomeH2HOpponent(this.value)"></select>
+                </div>
                 <div class="hh-arena">
                     <div class="hh-side">
                         <div class="hh-fig" id="hhFigA">♟️</div>
@@ -3561,33 +3646,36 @@ onAuthStateChanged(auth, async (user) => {
         <div class="section-title"><h2>📊 Статистика</h2><div class="small">Обновява се автоматично</div></div>
 
         <div class="stats-nav">
-            <button id="statsOverviewBtn" class="stats-nav-btn active" onclick="showStatsPanel('overview')">📊 Обща статистика</button>
-            <button id="statsDetailBtn" class="stats-nav-btn" onclick="showStatsPanel('detail')">🔎 Подробна статистика</button>
-            <button id="statsPlayerBtn" class="stats-nav-btn" onclick="showStatsPanel('player')">👤 Статистика по играчи</button>
+            <button id="statsOverviewBtn" class="stats-nav-btn active" onclick="showStatsPanel('overview')">📊 Обща</button>
+            <button id="statsMineBtn" class="stats-nav-btn" onclick="showStatsPanel('mine')">👤 Моите</button>
+            <button id="statsDetailBtn" class="stats-nav-btn" style="display:none" onclick="showStatsPanel('detail')">🔎</button>
+            <button id="statsPlayerBtn" class="stats-nav-btn" style="display:none" onclick="showStatsPanel('player')">👤</button>
         </div>
 
         <div id="statsOverviewPanel" class="stats-panel active">
             <div id="statsOverviewOutput"></div>
         </div>
 
-        <div id="statsDetailPanel" class="stats-panel">
+        <div id="statsMinePanel" class="stats-panel">
             <div class="detail-filters">
-                <div class="filter-title">Какво искаш да видиш?</div>
+                <div class="filter-title">Твоите данни · филтър</div>
                 <div class="stats-scope">
-                    <button id="detailAllBtn" class="scope-btn active" onclick="setDetailScope('all')">Всички игри</button>
-                    <button id="detailSpecificBtn" class="scope-btn" onclick="setDetailScope('specific')">Избрана игра</button>
+                    <button id="statsModePvpBtn" class="scope-btn active" onclick="setStatsMode('pvp')">⚔️ PvP</button>
+                    <button id="statsModeCoopBtn" class="scope-btn" onclick="setStatsMode('coop')">🤝 Co-op</button>
                 </div>
-                <select id="detailGameSelect" onchange="renderDetailedStats()" style="display:none"></select>
-            </div>
-            <div id="statsDetailOutput"></div>
-        </div>
-
-        <div id="statsPlayerPanel" class="stats-panel">
-            <div class="detail-filters">
-                <div class="filter-title">Избери играч за личен анализ</div>
-                <div id="playerSelectorBar" class="player-selector-bar"></div>
+                <div class="stats-scope" style="margin-top:8px">
+                    <button id="detailAllBtn" class="scope-btn active" onclick="setDetailScope('all')">Всички игри</button>
+                    <button id="detailSpecificBtn" class="scope-btn" onclick="setDetailScope('specific')">По игра</button>
+                </div>
+                <select id="detailGameSelect" onchange="renderMineStats()" style="display:none;margin-top:8px"></select>
             </div>
             <div id="statsPlayerOutput"></div>
+            <div id="statsDetailOutput" style="margin-top:12px"></div>
+        </div>
+
+        <div id="statsDetailPanel" class="stats-panel" style="display:none"></div>
+        <div id="statsPlayerPanel" class="stats-panel" style="display:none">
+            <div id="playerSelectorBar" class="player-selector-bar" style="display:none"></div>
         </div>
     </div>
 
@@ -3614,8 +3702,9 @@ onAuthStateChanged(auth, async (user) => {
                 <div class="mg-body">
                     <div class="small">Без вход: запис и рандом работят локално. Статистика и личен профил — след вход.</div>
                     <div id="authLoggedInBlock" style="display:none">
-                      <div class="auth-user-line">Влязъл: <span id="authUserEmail">—</span></div>
+                      <div class="auth-user-line">Влязъл: <span id="authUserEmail">—</span> <span class="admin-badge" id="authAdminBadge" style="display:none">ADMIN</span></div>
                       <div class="auth-user-line">Свързан играч: <b id="authLinkedPlayer">—</b></div>
+                      <div class="small" id="authAdminHint" style="margin:6px 0 8px"></div>
                       <label class="small" style="display:block;margin:10px 0 6px">Аз съм (играч в tracker-а)</label>
                       <select id="authLinkPlayerSelect" onchange="linkAccountToPlayer(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700;margin-bottom:10px"></select>
                       <button type="button" class="btn-secondary" onclick="doSignOut()">Изход</button>
@@ -3641,11 +3730,22 @@ onAuthStateChanged(auth, async (user) => {
                 <div class="mg-body">
                     <div class="small">Тема и поведение на началния екран.</div>
                     <div class="small" style="margin-top:8px;opacity:.9">🔒 Локални данни на устройството + защитен облак след вход.</div>
-                    <div class="small" style="margin-top:6px;opacity:.7">Board Game Tracker · v2.2</div>
+                    <div class="small" style="margin-top:6px;opacity:.7">Board Game Tracker · v2.5</div>
                     <div class="theme-toggle-row">
                         <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
                         <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
                         <button type="button" id="themeBtnLight" onclick="setTheme('light')">☀️ Светъл</button>
+                    </div>
+                    <div class="setting-toggle-row">
+                      <div class="st-text">
+                        <div class="st-title">⚔️ H2H на началото</div>
+                        <div class="st-desc">Директен двубой срещу избран противник.</div>
+                      </div>
+                      <button type="button" class="setting-switch" id="homeH2HToggle" onclick="toggleHomeH2H()" aria-label="H2H на home"></button>
+                    </div>
+                    <div id="homeH2HOppWrap" style="display:none;margin:8px 0 12px">
+                      <label class="small" style="display:block;margin-bottom:6px">Противник за H2H</label>
+                      <select id="homeH2HOpponentSelect" onchange="setHomeH2HOpponent(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700"></select>
                     </div>
                     <div class="setting-toggle-row">
                       <div class="st-text">
@@ -4049,7 +4149,7 @@ function goTo(tabName){
       /* optional prompt - user opens via chip */
     }
   }
-  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof applySoundToggle==='function')applySoundToggle(); if(typeof renderManageProfileList==='function')renderManageProfileList(); if(typeof renderTableGroupList==='function')renderTableGroupList(); }
+  else if(tabName === 'manage'){ applyTheme(getStoredTheme()); updateProfileUI(); if(typeof applyHeroInteractive==='function')applyHeroInteractive(); if(typeof applyFiguresVisible==='function')applyFiguresVisible(); if(typeof applySoundToggle==='function')applySoundToggle(); if(typeof applyHomeH2HToggleUI==='function')applyHomeH2HToggleUI(); if(typeof renderManageProfileList==='function')renderManageProfileList(); if(typeof renderTableGroupList==='function')renderTableGroupList(); }
   else { updateUI(); }
 }
 
@@ -4161,18 +4261,23 @@ function refreshHomeStats(){
       }
     }
 
-    /* H2H — only when logged in with linked player */
+    /* H2H — only when enabled in settings + linked + opponent */
     const h2hBox = document.getElementById('homeH2H');
     const loggedIn = typeof isLoggedIn === 'function' && isLoggedIn();
     const linkedMe = typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
-    if(!loggedIn || !linkedMe || (typeof canViewStats === 'function' && !canViewStats())){
+    const h2hOn = typeof isHomeH2HOn === 'function' && isHomeH2HOn();
+    if(typeof applyHomeH2HToggleUI === 'function') applyHomeH2HToggleUI();
+    if(!loggedIn || !linkedMe || !h2hOn || (typeof canViewStats === 'function' && !canViewStats())){
       if(h2hBox){ h2hBox.style.display = 'none'; h2hBox.setAttribute('hidden','true'); }
-    } else if(h2hBox && myPlayers && myPlayers.length >= 2){
+    } else if(h2hBox){
       h2hBox.removeAttribute('hidden');
       const a = linkedMe;
-      const others = myPlayers.filter(p => p !== a);
-      const b = (typeof currentH2HOpponent === 'string' && others.includes(currentH2HOpponent)) ? currentH2HOpponent : (others[0] || myPlayers.find(p => p !== a));
-      if(!b){ h2hBox.style.display = 'none'; }
+      const others = (typeof getH2HOpponentsFor === 'function' ? getH2HOpponentsFor(a) : (myPlayers||[]).filter(p => p !== a));
+      let b = typeof getHomeH2HOpponent === 'function' ? getHomeH2HOpponent() : '';
+      if(b && !others.includes(b)) b = '';
+      if(!b && others.length) b = others[0];
+      if(typeof populateHomeH2HOpponentSelects === 'function') populateHomeH2HOpponentSelects(a, others, b);
+      if(!b){ h2hBox.style.display = 'none'; h2hBox.setAttribute('hidden','true'); }
       else {
       const h2hLogs = allLogs.filter(l => {
         if(l.type === 'coop') return false;
@@ -4399,6 +4504,96 @@ function getMyLinkedPlayer(){
 }
 function canViewStats(){
   return isLoggedIn() && !!getMyLinkedPlayer();
+}
+/* ===== Home H2H preference ===== */
+function isHomeH2HOn(){
+  try { return localStorage.getItem('bgHomeH2H') === '1'; } catch(e){ return false; }
+}
+function setHomeH2H(on){
+  try { localStorage.setItem('bgHomeH2H', on ? '1' : '0'); } catch(e){}
+  applyHomeH2HToggleUI();
+  if(typeof refreshHomeStats === 'function') refreshHomeStats();
+  if(typeof showToast === 'function') showToast(on ? '⚔️ H2H на началото: вкл.' : 'H2H на началото: изкл.', 'info');
+}
+function toggleHomeH2H(){ setHomeH2H(!isHomeH2HOn()); }
+function getHomeH2HOpponent(){
+  try { return localStorage.getItem('bgHomeH2HOpponent') || ''; } catch(e){ return ''; }
+}
+function setHomeH2HOpponent(name){
+  try { localStorage.setItem('bgHomeH2HOpponent', name || ''); } catch(e){}
+  if(typeof currentH2HOpponent !== 'undefined') currentH2HOpponent = name || '';
+  if(typeof refreshHomeStats === 'function') refreshHomeStats();
+}
+function getH2HOpponentsFor(me){
+  const set = new Set();
+  (gameLogs || []).forEach(l => {
+    if(l.type === 'coop') return;
+    const keys = Object.keys(l.scores || {});
+    if(keys.length === 2 && keys.includes(me)){
+      keys.forEach(p => { if(p !== me) set.add(p); });
+    }
+  });
+  (myPlayers || []).forEach(p => { if(p !== me) set.add(p); });
+  return Array.from(set).sort((a,b) => a.localeCompare(b, 'bg'));
+}
+function applyHomeH2HToggleUI(){
+  const tog = document.getElementById('homeH2HToggle');
+  if(tog) tog.classList.toggle('on', isHomeH2HOn());
+  const wrap = document.getElementById('homeH2HOppWrap');
+  if(wrap) wrap.style.display = (isHomeH2HOn() && canViewStats()) ? 'block' : 'none';
+  const me = getMyLinkedPlayer();
+  if(me) populateHomeH2HOpponentSelects(me, getH2HOpponentsFor(me), getHomeH2HOpponent());
+}
+function populateHomeH2HOpponentSelects(me, others, selected){
+  const opts = (others || []).map(p =>
+    '<option value="'+String(p).replace(/"/g,'&quot;')+'"'+(p===selected?' selected':'')+'>'+(typeof esc==='function'?esc(p):p)+'</option>'
+  ).join('');
+  const html = '<option value="">— Избери противник —</option>' + opts;
+  ['homeH2HOpponentSelect','homeH2HOpponentSelect2'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+  const homeRow = document.getElementById('homeH2HOppHome');
+  if(homeRow) homeRow.style.display = (others && others.length) ? 'block' : 'none';
+}
+function getAdmins(){
+  try {
+    const a = JSON.parse(localStorage.getItem('bgAdmins') || '{"uids":[],"emails":[]}');
+    return {
+      uids: Array.isArray(a.uids) ? a.uids : [],
+      emails: Array.isArray(a.emails) ? a.emails.map(e => String(e).toLowerCase()) : []
+    };
+  } catch(e){ return { uids: [], emails: [] }; }
+}
+function isAdmin(){
+  if(!isLoggedIn()) return false;
+  const u = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
+  if(!u) return false;
+  const a = getAdmins();
+  if(a.uids.includes(u.uid)) return true;
+  if(u.email && a.emails.includes(String(u.email).toLowerCase())) return true;
+  return false;
+}
+function claimAdminIfNone(){
+  const a = getAdmins();
+  if(a.uids.length || a.emails.length) return false;
+  const u = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
+  if(!u) return false;
+  const next = {
+    uids: [u.uid],
+    emails: u.email ? [String(u.email).toLowerCase()] : []
+  };
+  try { localStorage.setItem('bgAdmins', JSON.stringify(next)); } catch(e){}
+  window.__bgtAdmins = next;
+  try { if(typeof window.saveDataToFirebase === 'function') window.saveDataToFirebase(); } catch(e){}
+  return true;
+}
+window.claimAdminIfNone = claimAdminIfNone;
+function applyAdminUI(){
+  const admin = isAdmin();
+  document.body.classList.toggle('bgt-admin', admin);
+  const badge = document.getElementById('authAdminBadge');
+  if(badge) badge.style.display = admin ? 'inline-block' : 'none';
 }
 function getTableGroup(){
   try {
@@ -5439,6 +5634,10 @@ function calculateWinner(){
     display.innerText=`🏆 Победител: ${winners[0]} (${max} т.)`;return {winners,max};
 }
 function addGame(){
+    if(typeof isAdmin === 'function' && !isAdmin()){
+      showToast('Само админът може да добавя игри', 'info');
+      return;
+    }
     const input=document.getElementById('gameInput'),name=input.value.trim(),type=document.getElementById('gameTypeInput').value;
     if(!name)return alert('Моля, въведи име на игра.');
     if(Object.keys(myGamesObj).some(g=>g.toLowerCase()===name.toLowerCase()))return alert('Тази игра вече съществува.');
@@ -5512,6 +5711,20 @@ function logGame(){
     const btn = document.getElementById('logGameBtn');
     if(btn){ btn.classList.add('btn-loading'); btn.disabled = true; }
     const done = () => { if(btn){ setTimeout(()=>{ btn.classList.remove('btn-loading'); btn.disabled = false; }, 320); } };
+    if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+      done();
+      showToast('Влез в акаунт, за да запишеш партия', 'info');
+      goTo('manage');
+      try { toggleMgSection('mgAccount'); } catch(e){}
+      return;
+    }
+    if(typeof getMyLinkedPlayer === 'function' && !getMyLinkedPlayer()){
+      done();
+      showToast('Свържи акаунта: Аз съм → твоето име', 'info');
+      goTo('manage');
+      try { toggleMgSection('mgAccount'); } catch(e){}
+      return;
+    }
     let leadFlip = null;
     const game=document.getElementById('gameSelect').value;
     if(!game){ done(); return alert('Моля, избери игра!'); }
@@ -5552,10 +5765,18 @@ function resetEntryForm(){
     document.querySelectorAll('.player-score-input').forEach(x=>{x.value='';x.disabled=true});
 }
 function clearAllLogs(){
+    if(typeof isAdmin === 'function' && !isAdmin()){
+      showToast('Само админът може да трие историята', 'info');
+      return;
+    }
     if(!gameLogs.length)return alert('Историята вече е празна.');
     if(confirm('Сигурен ли си, че искаш да изтриеш цялата история?')){ gameLogs=[];saveAll();showStats(); }
 }
 function resetToDefaultGames(){
+    if(typeof isAdmin === 'function' && !isAdmin()){
+      showToast('Само админът може да променя списъка с игри', 'info');
+      return;
+    }
     if(confirm('Да се възстановят ли стандартните игри?')){ myGamesObj={...initialGames};saveAll();updateUI();alert('Стандартните игри са възстановени.'); }
 }
 
@@ -6184,7 +6405,8 @@ function setDetailScope(scope){
     }
 
 
-    renderDetailedStats();
+    if(typeof renderMineStats === 'function') renderMineStats();
+    else renderDetailedStats();
 }
 
 function setStatsMode(mode){
@@ -6195,7 +6417,8 @@ function setStatsMode(mode){
 
     populateDetailGameSelect();
 
-    renderDetailedStats();
+    if(typeof renderMineStats === 'function') renderMineStats();
+    else renderDetailedStats();
 }
 
 function updateStatsModeButtons(){
@@ -6711,7 +6934,20 @@ function renderReports(){
 }
 
 
+function renderMineStats(){
+  if(typeof canViewStats === 'function' && !canViewStats()){
+    if(typeof renderPlayerStats === 'function') renderPlayerStats();
+    if(typeof renderDetailedStats === 'function') renderDetailedStats();
+    return;
+  }
+  selectedStatPlayer = getMyLinkedPlayer();
+  if(typeof populateDetailGameSelect === 'function') populateDetailGameSelect();
+  if(typeof renderPlayerStats === 'function') renderPlayerStats();
+  if(typeof renderDetailedStats === 'function') renderDetailedStats();
+}
+
 function showStatsPanel(panel){
+    if(panel === 'detail' || panel === 'player') panel = 'mine';
 
     document
         .querySelectorAll('#stats .stats-panel')
@@ -6756,48 +6992,15 @@ function showStatsPanel(panel){
     }
 
 
-    else if(panel === 'detail'){
+    else if(panel === 'mine' || panel === 'detail' || panel === 'player'){
 
-        document
-            .getElementById(
-                'statsDetailBtn'
-            )
-            .classList.add('active');
-
-
-        document
-            .getElementById(
-                'statsDetailPanel'
-            )
-            .classList.add('active');
-
-
-        setupStatsControls();
-
-        renderDetailedStats();
-
-    }
-
-
-    else if(panel === 'player'){
-
-        document
-            .getElementById(
-                'statsPlayerBtn'
-            )
-            .classList.add('active');
-
-
-        document
-            .getElementById(
-                'statsPlayerPanel'
-            )
-            .classList.add('active');
-
-
-        populatePlayerSelector();
-
-        renderPlayerStats();
+        const mineBtn = document.getElementById('statsMineBtn');
+        if(mineBtn) mineBtn.classList.add('active');
+        const minePan = document.getElementById('statsMinePanel');
+        if(minePan) minePan.classList.add('active');
+        if(typeof updateStatsModeButtons === 'function') updateStatsModeButtons();
+        if(typeof setupStatsControls === 'function') setupStatsControls();
+        renderMineStats();
 
     }
 
@@ -6929,6 +7132,87 @@ function applyHashTab(){
 window.addEventListener('hashchange', applyHashTab);
 document.addEventListener('DOMContentLoaded', applyHashTab);
 
+/* ===== Onboarding (first login) ===== */
+let onboardStep = 0;
+function onboardKey(){
+  const u = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
+  return u ? ('bgOnboardDone_' + u.uid) : 'bgOnboardDone';
+}
+function maybeStartOnboarding(){
+  if(!isLoggedIn()) return;
+  try { if(localStorage.getItem(onboardKey()) === '1') return; } catch(e){}
+  onboardStep = 0;
+  renderOnboardStep();
+  const ov = document.getElementById('onboardOverlay');
+  if(ov) ov.classList.remove('hidden');
+}
+function finishOnboarding(){
+  try { localStorage.setItem(onboardKey(), '1'); } catch(e){}
+  const ov = document.getElementById('onboardOverlay');
+  if(ov) ov.classList.add('hidden');
+}
+function renderOnboardStep(){
+  const title = document.getElementById('onboardTitle');
+  const text = document.getElementById('onboardText');
+  const extra = document.getElementById('onboardExtra');
+  const primary = document.getElementById('onboardPrimary');
+  const dots = document.getElementById('onboardDots');
+  if(dots){
+    dots.innerHTML = [0,1,2,3].map(i => '<span class="'+(i===onboardStep?'on':'')+'"></span>').join('');
+  }
+  if(extra) extra.innerHTML = '';
+  if(onboardStep === 0){
+    if(title) title.textContent = 'Добре дошъл в Tracker';
+    if(text) text.textContent = 'Това е твоето място за партии, рандом и статистики — не споделена таблица, а акаунт с твои данни.';
+    if(primary) primary.textContent = 'Напред';
+  } else if(onboardStep === 1){
+    if(title) title.textContent = 'Кой си ти?';
+    if(text) text.textContent = 'Свържи акаунта с име на масата (напр. Митко или Нина). Статистиката следи само това име.';
+    if(extra){
+      const names = (typeof getRegisteredNames === 'function' ? getRegisteredNames() : (myPlayers||[])).slice();
+      extra.innerHTML = '<select id="onboardLinkSelect" style="width:100%;padding:12px;border-radius:12px;font-weight:700;margin-bottom:8px">'+
+        '<option value="">— Избери —</option>'+
+        names.map(p=>'<option value="'+String(p).replace(/"/g,'&quot;')+'">'+(typeof esc==='function'?esc(p):p)+'</option>').join('')+
+        '</select>'+
+        '<input type="text" id="onboardLinkNew" placeholder="Или ново име…" style="width:100%;padding:12px;border-radius:12px;font-weight:700">';
+    }
+    if(primary) primary.textContent = 'Запази и напред';
+  } else if(onboardStep === 2){
+    if(title) title.textContent = 'Играчи на масата';
+    if(text) text.textContent = 'Добави с кого играеш. Тези имена излизат при запис на резултат. Можеш да промениш по-късно в Настройки.';
+    if(primary) primary.textContent = 'Към масата';
+  } else {
+    if(title) title.textContent = 'Готово!';
+    if(text) text.textContent = 'Запиши партия, пробвай рандома и виж „Моите“ статистики. H2H на началото се включва от Предпочитания.';
+    if(primary) primary.textContent = 'Към началото';
+  }
+}
+function onboardNext(){
+  if(onboardStep === 1){
+    const sel = document.getElementById('onboardLinkSelect');
+    const neu = document.getElementById('onboardLinkNew');
+    let name = (neu && neu.value.trim()) || (sel && sel.value) || '';
+    if(!name){
+      showToast('Избери или напиши име', 'info');
+      return;
+    }
+    if(typeof linkAccountToPlayer === 'function') linkAccountToPlayer(name);
+  }
+  if(onboardStep === 2){
+    finishOnboarding();
+    goTo('manage');
+    try { toggleMgSection('mgTable'); } catch(e){}
+    return;
+  }
+  if(onboardStep >= 3){
+    finishOnboarding();
+    goTo('home');
+    return;
+  }
+  onboardStep++;
+  renderOnboardStep();
+}
+
 /* ===== Auth form UI ===== */
 let authMode = 'login'; // login | register
 function toggleAuthMode(){
@@ -7008,18 +7292,29 @@ function updateAuthStatusUI(user){
   const loginBlock = document.getElementById('authLoginBlock');
   const loggedBlock = document.getElementById('authLoggedInBlock');
   const sel = document.getElementById('authLinkPlayerSelect');
+  const adminHint = document.getElementById('authAdminHint');
   if(emailEl) emailEl.textContent = user ? (user.email || user.uid) : '—';
   if(loginBlock) loginBlock.style.display = user ? 'none' : 'block';
   if(loggedBlock) loggedBlock.style.display = user ? 'block' : 'none';
   const linked = user && typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
   if(linkedEl) linkedEl.textContent = linked || '— (избери по-долу)';
+  if(typeof applyAdminUI === 'function') applyAdminUI();
+  if(adminHint){
+    if(!user) adminHint.textContent = '';
+    else if(isAdmin()) adminHint.textContent = '🔑 Админ: можеш да добавяш/триеш игри и да нулираш история.';
+    else adminHint.textContent = 'Играч: записваш партии и гледаш своя статистика. Игрите управлява само админът.';
+  }
   if(sel && user){
-    const players = (typeof myPlayers !== 'undefined' && myPlayers.length) ? myPlayers.slice() : [];
-    sel.innerHTML = '<option value="">— Избери играч —</option>' +
+    const players = (typeof getRegisteredNames === 'function' ? getRegisteredNames() : (myPlayers || [])).slice();
+    if(linked && !players.includes(linked)) players.unshift(linked);
+    sel.innerHTML = '<option value="">— Избери или напиши ново име по-долу —</option>' +
       players.map(p => '<option value="'+String(p).replace(/"/g,'&quot;')+'"'+(p===linked?' selected':'')+'>'+(typeof esc==='function'?esc(p):p)+'</option>').join('');
   }
   if(typeof renderManageProfileList === 'function'){
     try { renderManageProfileList(); } catch(e){}
+  }
+  if(typeof renderTableGroupList === 'function'){
+    try { renderTableGroupList(); } catch(e){}
   }
 }
 // Enter key on password
