@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="BG Tracker">
 <meta name="bgt-version" content="2.5.0">
 <link rel="manifest" href="./manifest.json">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect rx='22' width='100' height='100' fill='%2322c55e'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='58'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.oаrg/2000/svg' viewBox='0 0 100 100'%3E%3Crect rx='22' width='100' height='100' fill='%2322c55e'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='58'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
 <title>Board Game Tracker</title>
 <style>
 :root {
@@ -3176,15 +3176,18 @@ function ensureLogId(log) {
 }
 
 function collectPlayerPrefs() {
-  let colors = {}, figures = {}, gender = {}, activePlayer = '', accountLinks = {}, tableGroup = [];
+  let colors = {}, figures = {}, gender = {}, activePlayer = '', accountLinks = {}, tableGroup = [], tables = {}, activeTable = '';
   try { colors = JSON.parse(localStorage.getItem('bgPlayerColors') || '{}'); } catch (e) {}
   try { figures = JSON.parse(localStorage.getItem('bgPlayerFigures') || '{}'); } catch (e) {}
   try { gender = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}'); } catch (e) {}
   try { activePlayer = localStorage.getItem('bgActivePlayer') || ''; } catch (e) {}
   try { accountLinks = JSON.parse(localStorage.getItem('bgAccountLinks') || '{}'); } catch (e) {}
   try { tableGroup = JSON.parse(localStorage.getItem('bgTableGroup') || '[]'); } catch (e) {}
+  try { tables = JSON.parse(localStorage.getItem('bgTables') || '{}'); } catch (e) {}
+  try { activeTable = localStorage.getItem('bgActiveTable') || ''; } catch (e) {}
   if (!Array.isArray(tableGroup)) tableGroup = [];
-  return { colors, figures, gender, activePlayer, accountLinks, tableGroup };
+  if (!tables || typeof tables !== 'object') tables = {};
+  return { colors, figures, gender, activePlayer, accountLinks, tableGroup, tables, activeTable };
 }
 
 function applyPlayerPrefs(prefs, opts) {
@@ -3205,6 +3208,12 @@ function applyPlayerPrefs(prefs, opts) {
     }
     if (Array.isArray(prefs.tableGroup)) {
       localStorage.setItem('bgTableGroup', JSON.stringify(prefs.tableGroup));
+    }
+    if (prefs.tables && typeof prefs.tables === 'object') {
+      localStorage.setItem('bgTables', JSON.stringify(prefs.tables));
+    }
+    if (typeof prefs.activeTable === 'string') {
+      localStorage.setItem('bgActiveTable', prefs.activeTable);
     }
     if (typeof prefs.activePlayer === 'string') {
       if (prefs.activePlayer) localStorage.setItem('bgActivePlayer', prefs.activePlayer);
@@ -3648,6 +3657,7 @@ onAuthStateChanged(auth, async (user) => {
         <div class="stats-nav">
             <button id="statsOverviewBtn" class="stats-nav-btn active" onclick="showStatsPanel('overview')">📊 Обща</button>
             <button id="statsMineBtn" class="stats-nav-btn" onclick="showStatsPanel('mine')">👤 Моите</button>
+            <button id="statsByGameBtn" class="stats-nav-btn" onclick="showStatsPanel('bygame')">🎲 По игра</button>
             <button id="statsDetailBtn" class="stats-nav-btn" style="display:none" onclick="showStatsPanel('detail')">🔎</button>
             <button id="statsPlayerBtn" class="stats-nav-btn" style="display:none" onclick="showStatsPanel('player')">👤</button>
         </div>
@@ -3657,20 +3667,18 @@ onAuthStateChanged(auth, async (user) => {
         </div>
 
         <div id="statsMinePanel" class="stats-panel">
-            <div class="detail-filters">
-                <div class="filter-title">Твоите данни · филтър</div>
-                <div class="stats-scope">
-                    <button id="statsModePvpBtn" class="scope-btn active" onclick="setStatsMode('pvp')">⚔️ PvP</button>
-                    <button id="statsModeCoopBtn" class="scope-btn" onclick="setStatsMode('coop')">🤝 Co-op</button>
-                </div>
-                <div class="stats-scope" style="margin-top:8px">
-                    <button id="detailAllBtn" class="scope-btn active" onclick="setDetailScope('all')">Всички игри</button>
-                    <button id="detailSpecificBtn" class="scope-btn" onclick="setDetailScope('specific')">По игра</button>
-                </div>
-                <select id="detailGameSelect" onchange="renderMineStats()" style="display:none;margin-top:8px"></select>
-            </div>
             <div id="statsPlayerOutput"></div>
-            <div id="statsDetailOutput" style="margin-top:12px"></div>
+        </div>
+
+        <div id="statsByGamePanel" class="stats-panel">
+            <div class="detail-filters">
+                <div class="filter-title">Избери игра</div>
+                <select id="byGameSelect" onchange="renderByGameStats()" style="width:100%;padding:12px;border-radius:14px;font-weight:700;margin-bottom:8px">
+                  <option value="">— Избери игра —</option>
+                </select>
+            </div>
+            <div id="statsByGameOutput"></div>
+            <div id="statsDetailOutput" style="display:none"></div>
         </div>
 
         <div id="statsDetailPanel" class="stats-panel" style="display:none"></div>
@@ -3773,10 +3781,17 @@ onAuthStateChanged(auth, async (user) => {
 
             <div class="mg-section" id="mgTable">
                 <button type="button" class="mg-head" onclick="toggleMgSection('mgTable')">
-                    <span>🪑 Играчи на масата</span><span class="mg-chevron">▼</span>
+                    <span>🪑 Маси</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
-                    <div class="small">Кой участва в партиите. Тези имена излизат при <b>Запис</b>. Кани регистрирани играчи (свързани с акаунт) или добави име за масата.</div>
+                    <div class="small">Няколко маси (напр. Дома, Петък). Активната маса зарежда играчите при <b>Запис</b>. Синхронизира се в облака.</div>
+                    <label class="small" style="display:block;margin:10px 0 6px">Активна маса</label>
+                    <select id="activeTableSelect" onchange="setActiveTable(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700;margin-bottom:8px"></select>
+                    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+                      <input type="text" id="newTableNameInput" placeholder="Име на нова маса…" style="flex:1;min-width:120px" onkeydown="if(event.key==='Enter')createTable()">
+                      <button type="button" class="btn-secondary" onclick="createTable()" style="margin:0">＋ Маса</button>
+                    </div>
+                    <div class="small" style="margin-bottom:6px">Играчи на активната маса</div>
                     <div id="tableGroupList" class="table-group-list"></div>
                     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
                       <input type="text" id="tableInviteInput" placeholder="Име на играч…" style="flex:1;min-width:140px" onkeydown="if(event.key==='Enter')inviteToTable()">
@@ -4595,30 +4610,86 @@ function applyAdminUI(){
   const badge = document.getElementById('authAdminBadge');
   if(badge) badge.style.display = admin ? 'inline-block' : 'none';
 }
+function getTablesMap(){
+  try {
+    const t = JSON.parse(localStorage.getItem('bgTables') || '{}');
+    if(t && typeof t === 'object' && !Array.isArray(t)) return t;
+  } catch(e){}
+  /* migrate old single tableGroup */
+  try {
+    const old = JSON.parse(localStorage.getItem('bgTableGroup') || '[]');
+    if(Array.isArray(old) && old.length){
+      const map = { 'Основна': old };
+      localStorage.setItem('bgTables', JSON.stringify(map));
+      localStorage.setItem('bgActiveTable', 'Основна');
+      return map;
+    }
+  } catch(e){}
+  return {};
+}
+function getActiveTableName(){
+  try {
+    const n = localStorage.getItem('bgActiveTable') || '';
+    const map = getTablesMap();
+    if(n && map[n]) return n;
+    const keys = Object.keys(map);
+    if(keys.length) return keys[0];
+  } catch(e){}
+  return 'Основна';
+}
 function getTableGroup(){
+  const map = getTablesMap();
+  const name = getActiveTableName();
+  if(map[name] && Array.isArray(map[name])) return map[name].filter(Boolean);
   try {
     const arr = JSON.parse(localStorage.getItem('bgTableGroup') || '[]');
     return Array.isArray(arr) ? arr.filter(Boolean) : [];
   } catch(e){ return []; }
 }
-function setTableGroup(arr){
-  const clean = Array.from(new Set((arr || []).map(s => String(s).trim()).filter(Boolean)));
-  try { localStorage.setItem('bgTableGroup', JSON.stringify(clean)); } catch(e){}
-  /* keep myPlayers in sync for log/forms */
-  if(clean.length){
-    myPlayers = clean.slice();
-    window.myPlayers = myPlayers;
-    try { localStorage.setItem('myPlayers', JSON.stringify(myPlayers)); } catch(e){}
-  }
-  if(typeof schedulePrefsSync === 'function') schedulePrefsSync();
-  if(typeof saveAll === 'function') {
-    try {
+function persistTables(map, activeName){
+  try {
+    localStorage.setItem('bgTables', JSON.stringify(map));
+    if(activeName) localStorage.setItem('bgActiveTable', activeName);
+    const tg = (map[activeName || getActiveTableName()] || []).slice();
+    localStorage.setItem('bgTableGroup', JSON.stringify(tg));
+    if(tg.length){
+      myPlayers = tg.slice();
+      window.myPlayers = myPlayers;
       localStorage.setItem('myPlayers', JSON.stringify(myPlayers));
-      if(typeof window.saveDataToFirebase === 'function' && isLoggedIn()) window.saveDataToFirebase();
-    } catch(e){}
-  }
+    }
+  } catch(e){}
+  if(typeof schedulePrefsSync === 'function') schedulePrefsSync();
+  try {
+    if(typeof window.saveDataToFirebase === 'function' && isLoggedIn()) window.saveDataToFirebase();
+  } catch(e){}
   renderTableGroupList();
   if(typeof updateUI === 'function') updateUI();
+}
+function setTableGroup(arr){
+  const clean = Array.from(new Set((arr || []).map(s => String(s).trim()).filter(Boolean)));
+  const map = getTablesMap();
+  const name = getActiveTableName();
+  map[name] = clean;
+  persistTables(map, name);
+}
+function setActiveTable(name){
+  const map = getTablesMap();
+  if(!name || !map[name]) return;
+  persistTables(map, name);
+  showToast('🪑 Маса: ' + name, 'info');
+}
+function createTable(){
+  if(!isLoggedIn()){ showToast('Влез в акаунт', 'info'); return; }
+  const input = document.getElementById('newTableNameInput');
+  const name = input ? String(input.value || '').trim() : '';
+  if(!name){ showToast('Въведи име на масата', 'info'); return; }
+  const map = getTablesMap();
+  if(map[name]){ showToast('Тази маса вече съществува', 'info'); return; }
+  const me = getMyLinkedPlayer();
+  map[name] = me ? [me] : [];
+  if(input) input.value = '';
+  persistTables(map, name);
+  showToast('Създадена маса: ' + name, 'info');
 }
 function getRegisteredNames(){
   const set = new Set();
@@ -4673,21 +4744,36 @@ function removeFromTable(name){
 function renderTableGroupList(){
   const list = document.getElementById('tableGroupList');
   const hint = document.getElementById('tableGroupHint');
+  const sel = document.getElementById('activeTableSelect');
   if(!list) return;
   if(!isLoggedIn()){
-    list.innerHTML = '<div class="small">Влез в акаунт, за да настроиш масата.</div>';
+    list.innerHTML = '<div class="small">Влез в акаунт, за да настроиш масите.</div>';
     if(hint) hint.textContent = '';
+    if(sel) sel.innerHTML = '';
     return;
+  }
+  const map = getTablesMap();
+  let active = getActiveTableName();
+  if(!Object.keys(map).length){
+    const me = getMyLinkedPlayer();
+    map['Основна'] = me ? [me] : [];
+    persistTables(map, 'Основна');
+    return;
+  }
+  if(sel){
+    sel.innerHTML = Object.keys(map).sort((a,b)=>a.localeCompare(b,'bg')).map(n =>
+      '<option value="'+String(n).replace(/"/g,'&quot;')+'"'+(n===active?' selected':'')+'>'+esc(n)+'</option>'
+    ).join('');
   }
   const me = getMyLinkedPlayer();
   let tg = getTableGroup();
   if(me && !tg.includes(me)){
     tg = [me].concat(tg);
     setTableGroup(tg);
-    return; /* will re-render */
+    return;
   }
   if(!tg.length){
-    list.innerHTML = '<div class="small">Масата е празна. Добави играчи по-долу.</div>';
+    list.innerHTML = '<div class="small">Масата „'+esc(active)+'“ е празна. Добави играчи.</div>';
   } else {
     list.innerHTML = tg.map(p => {
       const isMe = p === me;
@@ -4702,10 +4788,7 @@ function renderTableGroupList(){
     });
   }
   if(hint){
-    const reg = getRegisteredNames();
-    hint.textContent = reg.length
-      ? ('Известни имена: ' + reg.join(', '))
-      : 'След като някой се регистрира и избере „Аз съм“, името му влиза в списъка.';
+    hint.textContent = 'Активна: «' + active + '» · ' + Object.keys(map).length + ' маси · синхрон в облака. Нина вижда същите маси след вход.';
   }
 }
 function canEditPlayerPrefs(name){
@@ -6935,15 +7018,137 @@ function renderReports(){
 
 
 function renderMineStats(){
+  const out = document.getElementById('statsPlayerOutput');
+  if(!out) return;
   if(typeof canViewStats === 'function' && !canViewStats()){
-    if(typeof renderPlayerStats === 'function') renderPlayerStats();
-    if(typeof renderDetailedStats === 'function') renderDetailedStats();
+    const needLogin = !isLoggedIn();
+    out.innerHTML = emptyState(
+      needLogin ? 'Статистиката изисква вход' : 'Свържи акаунта с играч',
+      needLogin ? 'Настройки → 🔐 Акаунт' : '🔐 Акаунт → Аз съм',
+      needLogin ? '🔐' : '👤'
+    );
     return;
   }
-  selectedStatPlayer = getMyLinkedPlayer();
-  if(typeof populateDetailGameSelect === 'function') populateDetailGameSelect();
-  if(typeof renderPlayerStats === 'function') renderPlayerStats();
-  if(typeof renderDetailedStats === 'function') renderDetailedStats();
+  const player = getMyLinkedPlayer();
+  selectedStatPlayer = player;
+  const scoped = getScopedLogs();
+  const pvp = scoped.filter(l => l.type !== 'coop');
+  const coop = scoped.filter(l => l.type === 'coop');
+  let wins = 0;
+  pvp.forEach(l => { if(playerWonLog(l, player)) wins++; });
+  const losses = pvp.length - wins;
+  const rate = pvp.length ? (wins / pvp.length * 100) : 0;
+  const coopW = coop.filter(l => l.coopResult === 'win').length;
+  const games = {};
+  scoped.forEach(l => { if(l.game) games[l.game] = (games[l.game] || 0) + 1; });
+  const topGames = Object.entries(games).sort((a,b) => b[1]-a[1]).slice(0, 6);
+  let html = '<div class="game-stats-box"><h3>👤 ' + esc(player) + '</h3>';
+  html += '<div class="dashboard">' +
+    statCard(scoped.length, 'Партии') +
+    statCard(wins, 'Победи') +
+    statCard(losses, 'Загуби') +
+    statCard(formatPercent(rate), 'Win rate') +
+  '</div>';
+  html += '<div class="stat-subgrid">' +
+    '<div class="stat-card"><div class="small">⚔️ PvP</div><div class="num">' + pvp.length + '</div></div>' +
+    '<div class="stat-card"><div class="small">🤝 Co-op успех</div><div class="num">' + coopW + '/' + coop.length + '</div></div>' +
+  '</div></div>';
+  html += '<div class="game-stats-box"><h3>🎲 Игрите ти</h3><div class="small" style="margin-bottom:8px">За детайли и история → таб <b>По игра</b></div>';
+  if(!topGames.length) html += '<div class="empty">Все още няма партии.</div>';
+  else {
+    html += '<div class="mobile-stat-list">';
+    topGames.forEach(([g, n]) => {
+      html += '<div class="mobile-stat-item" style="cursor:pointer" onclick="openByGame(\'' + String(g).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
+        '<div class="top"><b>' + esc(g) + '</b><b>' + n + '</b></div>' +
+        '<div class="meta"><span class="pill">отвори детайли →</span></div></div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  out.innerHTML = html;
+}
+function openByGame(gameName){
+  showStatsPanel('bygame');
+  setTimeout(function(){
+    const sel = document.getElementById('byGameSelect');
+    if(sel){
+      sel.value = gameName;
+      renderByGameStats();
+    }
+  }, 40);
+}
+function populateByGameSelect(){
+  const sel = document.getElementById('byGameSelect');
+  if(!sel) return;
+  const me = getMyLinkedPlayer();
+  const scoped = getScopedLogs();
+  const set = new Set();
+  scoped.forEach(l => { if(l.game) set.add(l.game); });
+  const games = Array.from(set).sort((a,b) => a.localeCompare(b, 'bg'));
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Избери игра —</option>' +
+    games.map(g => '<option value="'+String(g).replace(/"/g,'&quot;')+'"'+(g===cur?' selected':'')+'>'+esc(g)+'</option>').join('');
+}
+function renderByGameStats(){
+  const out = document.getElementById('statsByGameOutput');
+  if(!out) return;
+  if(!canViewStats()){
+    out.innerHTML = emptyState('Влез и свържи профил', '', '🔐');
+    return;
+  }
+  populateByGameSelect();
+  const sel = document.getElementById('byGameSelect');
+  const game = sel ? sel.value : '';
+  const player = getMyLinkedPlayer();
+  if(!game){
+    out.innerHTML = emptyState('Избери игра', 'Ще видиш само твоите партии, точки и рекорди за нея.', '🎲');
+    return;
+  }
+  const logs = getScopedLogs().filter(l => l.game === game)
+    .sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+  const pvp = logs.filter(l => l.type !== 'coop');
+  const coop = logs.filter(l => l.type === 'coop');
+  let wins = 0, best = null, sum = 0, nScore = 0;
+  pvp.forEach(l => {
+    if(playerWonLog(l, player)) wins++;
+    const sc = Number((l.scores || {})[player]);
+    if(Number.isFinite(sc)){
+      sum += sc; nScore++;
+      if(best === null || sc > best) best = sc;
+    }
+  });
+  const losses = pvp.length - wins;
+  const rate = pvp.length ? wins / pvp.length * 100 : 0;
+  const avg = nScore ? sum / nScore : null;
+  const coopW = coop.filter(l => l.coopResult === 'win').length;
+  let html = '<div class="game-stats-box"><h3>🎲 ' + esc(game) + '</h3>';
+  html += '<div class="dashboard">' +
+    statCard(logs.length, 'Твои партии') +
+    statCard(wins, 'Победи') +
+    statCard(losses, 'Загуби') +
+    statCard(formatPercent(rate), 'WR') +
+  '</div>';
+  html += '<div class="stat-subgrid">';
+  html += '<div class="stat-card"><div class="small">🚀 Рекорд</div><div class="num">' + (best !== null ? best : '–') + '</div></div>';
+  html += '<div class="stat-card"><div class="small">📈 Средни точки</div><div class="num">' + (avg !== null ? formatNumber(avg) : '–') + '</div></div>';
+  if(coop.length) html += '<div class="stat-card"><div class="small">🤝 Co-op</div><div class="num">' + coopW + '/' + coop.length + '</div></div>';
+  html += '</div></div>';
+  html += '<div class="game-stats-box"><h3>🕒 История</h3><div class="mobile-stat-list">';
+  if(!logs.length) html += '<div class="empty">Няма партии.</div>';
+  else logs.forEach(l => {
+    const date = formatDate(l.date);
+    if(l.type === 'coop'){
+      const ok = l.coopResult === 'win';
+      html += '<div class="recent-result"><div class="date">' + date + '</div><div><div class="game">Co-op</div><div class="score">' + esc((l.participants||[]).join(', ')) + '</div></div><div class="' + (ok?'success':'error') + '">' + (ok?'🏆 Успех':'❌ Неуспех') + '</div></div>';
+    } else {
+      const scores = Object.entries(l.scores||{}).map(([p,s]) => p + ': ' + s).join(' · ');
+      const ws = getPvpWinners(l);
+      const my = (l.scores||{})[player];
+      html += '<div class="recent-result"><div class="date">' + date + '</div><div><div class="game">Ти: <b>' + (my != null ? my : '–') + '</b></div><div class="score">' + esc(scores) + '</div></div><div class="success">🏆 ' + esc(ws.join(' & ') || '—') + '</div></div>';
+    }
+  });
+  html += '</div></div>';
+  out.innerHTML = html;
 }
 
 function showStatsPanel(panel){
@@ -6998,10 +7203,16 @@ function showStatsPanel(panel){
         if(mineBtn) mineBtn.classList.add('active');
         const minePan = document.getElementById('statsMinePanel');
         if(minePan) minePan.classList.add('active');
-        if(typeof updateStatsModeButtons === 'function') updateStatsModeButtons();
-        if(typeof setupStatsControls === 'function') setupStatsControls();
         renderMineStats();
 
+    }
+
+    else if(panel === 'bygame'){
+        const btn = document.getElementById('statsByGameBtn');
+        if(btn) btn.classList.add('active');
+        const pan = document.getElementById('statsByGamePanel');
+        if(pan) pan.classList.add('active');
+        renderByGameStats();
     }
 
     else if(panel === 'reports'){
