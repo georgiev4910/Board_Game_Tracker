@@ -1,60 +1,36 @@
-/*! Board Game Tracker — companion top + bottom chrome (v2.7) */
+/*! Board Game Tracker — companion top chrome only (v2.8) */
 (function () {
   var LANG_KEY = 'bgCompanionLang';
 
   var APP_META = {
     'everdell.html': {
-      title: 'EVERDELL',
-      sub: 'Companion',
-      icon: '🌲',
-      accent: '#16a34a',
-      extra: { title: 'Точки', icon: '🧮', run: function () { if (typeof window.openScoreCalculator === 'function') window.openScoreCalculator(); } }
+      title: 'EVERDELL', sub: 'Companion', icon: '🌲', accent: '#16a34a',
+      extra: { title: 'Точки', icon: '🧮', run: function () {
+        if (typeof window.openScoreCalculator === 'function') window.openScoreCalculator();
+      }}
     },
-    'heat.html': {
-      title: 'HEAT',
-      sub: 'Companion',
-      icon: '🏎️',
-      accent: '#ef4444'
-    },
-    'carcassonne.html': {
-      title: 'CARCASSONNE',
-      sub: 'Companion',
-      icon: '🏰',
-      accent: '#eab308'
-    },
+    'heat.html': { title: 'HEAT', sub: 'Companion', icon: '🏎️', accent: '#ef4444' },
+    'carcassonne.html': { title: 'CARCASSONNE', sub: 'Companion', icon: '🏰', accent: '#eab308' },
     'skyteam.html': {
-      title: 'SKY TEAM',
-      sub: 'Рандомайзер',
-      icon: '✈️',
-      accent: '#0ea5e9',
-      extra: { title: 'Писти', icon: '📋', run: function () { if (typeof window.openFlightLog === 'function') window.openFlightLog(); } }
+      title: 'SKY TEAM', sub: 'Рандомайзер', icon: '✈️', accent: '#0ea5e9',
+      extra: { title: 'Писти', icon: '📋', run: function () {
+        if (typeof window.openFlightLog === 'function') window.openFlightLog();
+      }}
     },
-    'castles.html': {
-      title: 'BURGUNDY',
-      sub: 'Castles',
-      icon: '🏯',
-      accent: '#e11d48'
-    },
-    'spirit_island.html': {
-      title: 'SPIRIT ISLAND',
-      sub: 'Companion',
-      icon: '🏝️',
-      accent: '#14b8a6'
-    }
+    'castles.html': { title: 'BURGUNDY', sub: 'Castles', icon: '🏯', accent: '#e11d48' },
+    'spirit_island.html': { title: 'SPIRIT ISLAND', sub: 'Companion', icon: '🏝️', accent: '#14b8a6' }
   };
 
   function fileName() {
     try {
-      var p = (location.pathname || '').split('/').pop() || '';
-      return p.toLowerCase() || 'index.html';
+      return ((location.pathname || '').split('/').pop() || '').toLowerCase();
     } catch (e) { return ''; }
   }
 
   function getMeta() {
     var key = fileName();
     if (APP_META[key]) return APP_META[key];
-    /* Heat.html on some systems */
-    if (key === 'heat.html' || /heat/i.test(key)) return APP_META['heat.html'];
+    if (/heat/i.test(key)) return APP_META['heat.html'];
     return { title: 'COMPANION', sub: 'Board Game Tracker', icon: '🎲', accent: '#22c55e' };
   }
 
@@ -67,13 +43,12 @@
 
   window.bgtGetLang = getLang;
   window.bgtSetLang = setLang;
-  if (typeof window.currentLang === 'undefined') window.currentLang = getLang();
-  else window.currentLang = getLang();
+  window.currentLang = getLang();
 
   function syncLangLabel() {
     var lang = getLang();
     window.currentLang = lang;
-    var el = document.getElementById('bgt-lang-label');
+    var el = document.getElementById('bgt-top-lang-label');
     if (el) el.textContent = lang.toUpperCase();
     var el2 = document.getElementById('lang-btn-text');
     if (el2) el2.textContent = lang.toUpperCase();
@@ -114,11 +89,16 @@
       el.classList.add('bgt-old-header-hidden');
       el.style.display = 'none';
     });
+    var bottom = document.getElementById('bgt-chrome');
+    if (bottom && bottom.parentNode) bottom.parentNode.removeChild(bottom);
+    var suite = document.getElementById('suite-chrome');
+    if (suite && suite.parentNode) suite.parentNode.removeChild(suite);
   }
 
   function mountTop() {
     if (document.getElementById('bgt-top')) return;
     var meta = getMeta();
+    var lang = getLang();
     document.documentElement.style.setProperty('--bgt-accent', meta.accent || '#22c55e');
     document.body.classList.add('bgt-has-top');
 
@@ -128,8 +108,8 @@
 
     var extraBtn = '';
     if (meta.extra) {
-      extraBtn = '<button type="button" class="bgt-top-btn extra" id="bgt-top-extra" title="' + (meta.extra.title || '') + '">' +
-        (meta.extra.icon || '★') + '</button>';
+      extraBtn = '<button type="button" class="bgt-top-btn extra" id="bgt-top-extra" title="' +
+        (meta.extra.title || '') + '">' + (meta.extra.icon || '★') + '</button>';
     }
 
     bar.innerHTML =
@@ -137,7 +117,10 @@
         '<a class="bgt-top-btn home" href="./index.html" title="Начало">🏠</a>' +
         '<button type="button" class="bgt-top-btn back" id="bgt-top-back" title="Назад">←</button>' +
         '<a class="bgt-top-btn log" href="./index.html#log" title="Запис">📝</a>' +
+        '<a class="bgt-top-btn apps" href="./index.html#companions" title="Companion апове">🎮</a>' +
         extraBtn +
+        '<button type="button" class="bgt-top-btn lang" id="bgt-top-lang" title="Език">🌐 <span id="bgt-top-lang-label">' +
+          lang.toUpperCase() + '</span></button>' +
       '</div>' +
       '<div class="bgt-top-brand">' +
         '<div class="bgt-top-text">' +
@@ -169,36 +152,18 @@
       extra.addEventListener('click', function () { meta.extra.run(); });
     }
 
+    var langBtn = document.getElementById('bgt-top-lang');
+    if (langBtn) {
+      langBtn.addEventListener('click', function () { window.bgtToggleLanguage(); });
+    }
+
     hideOldHeaders();
-    /* second pass after app paints */
     setTimeout(hideOldHeaders, 50);
     setTimeout(hideOldHeaders, 300);
   }
 
-  function mountBottom() {
-    if (document.getElementById('bgt-chrome')) return;
-    var old = document.getElementById('suite-chrome');
-    if (old && old.parentNode) old.parentNode.removeChild(old);
-
-    var lang = getLang();
-    var isEn = lang === 'en';
-    var bar = document.createElement('nav');
-    bar.id = 'bgt-chrome';
-    bar.setAttribute('role', 'navigation');
-    bar.setAttribute('aria-label', 'Board Game Tracker');
-    bar.innerHTML =
-      '<a class="bgt-home" href="./index.html">🏠 <span data-i18n-bg="Начало" data-i18n-en="Home">' + (isEn ? 'Home' : 'Начало') + '</span></a>' +
-      '<a class="bgt-apps" href="./index.html#companions">🎮 <span data-i18n-bg="Апове" data-i18n-en="Apps">' + (isEn ? 'Apps' : 'Апове') + '</span></a>' +
-      '<a class="bgt-log" href="./index.html#log">📝 <span data-i18n-bg="Запис" data-i18n-en="Log">' + (isEn ? 'Log' : 'Запис') + '</span></a>' +
-      '<button type="button" class="bgt-lang" id="bgt-lang-btn">🌐 <span id="bgt-lang-label">' + lang.toUpperCase() + '</span></button>';
-    document.body.appendChild(bar);
-    var langBtn = document.getElementById('bgt-lang-btn');
-    if (langBtn) langBtn.addEventListener('click', function () { window.bgtToggleLanguage(); });
-  }
-
   function boot() {
     mountTop();
-    mountBottom();
   }
 
   if (document.readyState === 'loading') {
