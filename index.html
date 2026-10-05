@@ -3087,12 +3087,13 @@ function ensureLogId(log) {
 }
 
 function collectPlayerPrefs() {
-  let colors = {}, figures = {}, gender = {}, activePlayer = '';
+  let colors = {}, figures = {}, gender = {}, activePlayer = '', accountLinks = {};
   try { colors = JSON.parse(localStorage.getItem('bgPlayerColors') || '{}'); } catch (e) {}
   try { figures = JSON.parse(localStorage.getItem('bgPlayerFigures') || '{}'); } catch (e) {}
   try { gender = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}'); } catch (e) {}
   try { activePlayer = localStorage.getItem('bgActivePlayer') || ''; } catch (e) {}
-  return { colors, figures, gender, activePlayer };
+  try { accountLinks = JSON.parse(localStorage.getItem('bgAccountLinks') || '{}'); } catch (e) {}
+  return { colors, figures, gender, activePlayer, accountLinks };
 }
 
 function applyPlayerPrefs(prefs, opts) {
@@ -3108,6 +3109,9 @@ function applyPlayerPrefs(prefs, opts) {
     if (prefs.gender && typeof prefs.gender === 'object') {
       localStorage.setItem('bgPlayerGender', JSON.stringify(prefs.gender));
     }
+    if (prefs.accountLinks && typeof prefs.accountLinks === 'object') {
+      localStorage.setItem('bgAccountLinks', JSON.stringify(prefs.accountLinks));
+    }
     if (typeof prefs.activePlayer === 'string') {
       if (prefs.activePlayer) localStorage.setItem('bgActivePlayer', prefs.activePlayer);
       else localStorage.removeItem('bgActivePlayer');
@@ -3118,6 +3122,7 @@ function applyPlayerPrefs(prefs, opts) {
       if (typeof updateProfileUI === 'function') updateProfileUI();
       if (typeof refreshHomeStats === 'function') refreshHomeStats();
       if (typeof renderManageProfileList === 'function') renderManageProfileList();
+      if (typeof updateAuthStatusUI === 'function') updateAuthStatusUI(typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
     } catch (e) {}
   }
 }
@@ -3191,19 +3196,16 @@ function stopCloudListener() {
 }
 
 function setAuthUI(user) {
+  /* App always usable — no full-screen lock */
+  document.body.classList.remove('auth-locked');
   const gate = document.getElementById('authGate');
-  const emailEl = document.getElementById('authUserEmail');
-  if (user) {
-    document.body.classList.remove('auth-locked');
-    if (gate) gate.classList.add('hidden');
-    if (emailEl) emailEl.textContent = user.email || user.uid;
-  } else {
-    document.body.classList.add('auth-locked');
-    if (gate) gate.classList.remove('hidden');
-    if (emailEl) emailEl.textContent = '—';
-  }
+  if (gate) gate.classList.add('hidden');
   try {
     if (typeof updateAuthStatusUI === 'function') updateAuthStatusUI(user);
+    if (typeof showStats === 'function') {
+      const statsTab = document.getElementById('stats');
+      if (statsTab && statsTab.classList.contains('active')) showStats();
+    }
   } catch (e) {}
 }
 
@@ -3267,28 +3269,9 @@ onAuthStateChanged(auth, async (user) => {
 });
 </script>
 </head>
-<body class="auth-locked">
-<!-- Auth gate -->
-<div class="auth-gate" id="authGate" role="dialog" aria-label="Вход">
-  <div class="auth-card">
-    <div class="auth-logo">🎲</div>
-    <h1 class="auth-title">Board Game Tracker</h1>
-    <p class="auth-sub" id="authSub">Влез, за да синхронизираш данните си</p>
-    <label for="authEmail">Имейл</label>
-    <input type="email" id="authEmail" autocomplete="username" placeholder="you@email.com">
-    <label for="authPassword">Парола</label>
-    <input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••">
-    <div class="auth-actions">
-      <button type="button" class="btn-blue" id="authSubmitBtn" onclick="submitAuth()">Вход</button>
-      <button type="button" class="btn-secondary" id="authModeBtn" onclick="toggleAuthMode()">Нямам акаунт — регистрация</button>
-    </div>
-    <div class="auth-msg" id="authMsg"></div>
-    <div class="auth-switch">
-      Локалните данни остават на устройството.<br>
-      Облакът е достъпен само след вход.
-    </div>
-  </div>
-</div>
+<body>
+<!-- Legacy full-screen gate kept hidden — login is in Settings -->
+<div class="auth-gate hidden" id="authGate" aria-hidden="true"></div>
 <div class="container">
     <div class="top-chrome" id="topChrome">
         <button type="button" class="back-home" onclick="goHome()" title="Начало" aria-label="Начало">🏠</button>
@@ -3560,9 +3543,25 @@ onAuthStateChanged(auth, async (user) => {
                     <span>🔐 Акаунт</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
-                    <div class="small">Входът защитава облачните данни. Без акаунт няма sync между устройства.</div>
-                    <div class="auth-user-line">Влязъл: <span id="authUserEmail">—</span></div>
-                    <button type="button" class="btn-secondary" onclick="doSignOut()">Изход</button>
+                    <div class="small">Без вход: запис и рандом работят локално. Статистика и личен профил — след вход.</div>
+                    <div id="authLoggedInBlock" style="display:none">
+                      <div class="auth-user-line">Влязъл: <span id="authUserEmail">—</span></div>
+                      <div class="auth-user-line">Свързан играч: <b id="authLinkedPlayer">—</b></div>
+                      <label class="small" style="display:block;margin:10px 0 6px">Аз съм (играч в tracker-а)</label>
+                      <select id="authLinkPlayerSelect" onchange="linkAccountToPlayer(this.value)" style="width:100%;padding:10px 12px;border-radius:12px;font-weight:700;margin-bottom:10px"></select>
+                      <button type="button" class="btn-secondary" onclick="doSignOut()">Изход</button>
+                    </div>
+                    <div id="authLoginBlock">
+                      <label for="authEmail">Имейл</label>
+                      <input type="email" id="authEmail" autocomplete="username" placeholder="you@email.com" style="width:100%;margin-bottom:8px">
+                      <label for="authPassword">Парола</label>
+                      <input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••" style="width:100%;margin-bottom:8px">
+                      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+                        <button type="button" class="btn-blue" id="authSubmitBtn" onclick="submitAuth()">Вход</button>
+                        <button type="button" class="btn-secondary" id="authModeBtn" onclick="toggleAuthMode()">Нямам акаунт — регистрация</button>
+                      </div>
+                      <div class="auth-msg" id="authMsg"></div>
+                    </div>
                 </div>
             </div>
 
@@ -4263,8 +4262,45 @@ function schedulePrefsSync(){
     try { window.saveDataToFirebase(); } catch(e){}
   }, 450);
 }
+function isLoggedIn(){
+  try { return !!(typeof window.getAuthUser === 'function' && window.getAuthUser()); } catch(e){ return false; }
+}
+function getAccountLinks(){
+  try { return JSON.parse(localStorage.getItem('bgAccountLinks') || '{}'); } catch(e){ return {}; }
+}
+function getMyLinkedPlayer(){
+  if(!isLoggedIn()) return '';
+  const u = window.getAuthUser();
+  if(!u) return '';
+  const links = getAccountLinks();
+  return links[u.uid] || '';
+}
+function canEditPlayerPrefs(name){
+  if(!name || !isLoggedIn()) return false;
+  const mine = getMyLinkedPlayer();
+  return !!mine && mine === name;
+}
+function linkAccountToPlayer(playerName){
+  if(!isLoggedIn()){ showToast('Влез в акаунт първо', 'info'); return; }
+  const u = window.getAuthUser();
+  if(!u) return;
+  const links = getAccountLinks();
+  if(playerName) links[u.uid] = playerName;
+  else delete links[u.uid];
+  try { localStorage.setItem('bgAccountLinks', JSON.stringify(links)); } catch(e){}
+  if(playerName) setActivePlayer(playerName);
+  else if(typeof updateProfileUI==='function') updateProfileUI();
+  if(typeof renderManageProfileList==='function') renderManageProfileList();
+  if(typeof updateAuthStatusUI==='function') updateAuthStatusUI(u);
+  schedulePrefsSync();
+  showToast(playerName ? ('Профил свързан: ' + playerName) : 'Връзката е махната', 'info');
+}
 function setPlayerColor(name, colorId){
   if(!name) return;
+  if(!canEditPlayerPrefs(name)){
+    showToast('Можеш да променяш само своя профил', 'info');
+    return;
+  }
   const map = getPlayerColorsMap();
   map[name] = colorId;
   try { localStorage.setItem('bgPlayerColors', JSON.stringify(map)); } catch(e){}
@@ -4309,6 +4345,10 @@ function guessPlayerGender(name){
 }
 function setPlayerGender(name, gender){
   if(!name) return;
+  if(!canEditPlayerPrefs(name)){
+    showToast('Можеш да променяш само своя профил', 'info');
+    return;
+  }
   try {
     const map = JSON.parse(localStorage.getItem('bgPlayerGender') || '{}');
     map[name] = gender;
@@ -4417,13 +4457,23 @@ function updateMenuStatsBadge(){
 function renderManageProfileList(){
   const list = document.getElementById('manageProfileList');
   if(!list) return;
+  if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+    list.innerHTML = '<div class="empty"><div class="empty-title">Влез в акаунт</div>Личните настройки са в 🔐 Акаунт след вход.</div>';
+    return;
+  }
   const players = (typeof myPlayers !== 'undefined' && myPlayers.length) ? myPlayers.slice() : [];
+  const mine = (typeof getMyLinkedPlayer === 'function') ? getMyLinkedPlayer() : '';
   const cur = getActivePlayer();
   if(!players.length){
-    list.innerHTML = '<div class="small">Добави играчи по-долу, после настрой профила.</div>';
+    list.innerHTML = '<div class="small">Добави играчи по-долу, после свържи акаунта в 🔐 Акаунт.</div>';
+    return;
+  }
+  if(!mine){
+    list.innerHTML = '<div class="empty"><div class="empty-title">Избери „Аз съм“</div>В 🔐 Акаунт посочи кой играч си — редактираш само своя цвят, род и фигурка.</div>';
     return;
   }
   list.innerHTML = players.map(p => {
+    const isMine = p === mine;
     const active = p === cur;
     const g = guessPlayerGender(p);
     const colorId = getPlayerColorId(p);
@@ -4431,6 +4481,14 @@ function renderManageProfileList(){
     const safe = String(p).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     const initial = (p.trim().charAt(0) || '?').toUpperCase();
     const figId = getPlayerFigureId(p);
+    if(!isMine){
+      return '<div class="player-pref-card" style="--pref-color:'+hex+';opacity:.75">'+
+        '<div class="player-pref-top">'+
+          '<div class="player-pref-avatar">'+initial+'</div>'+
+          '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+'</div>'+
+          '<span class="small">преглед</span></div>'+
+        '<div class="small" style="margin-top:6px">Само собственикът променя цвят / род / фигурка.</div></div>';
+    }
     const figures = PLAYER_FIGURE_PRESETS.map(pf =>
       '<button type="button" class="figure-swatch'+(pf.id===figId?' on':'')+'" title="'+pf.label+'" data-fig-for="'+safe+'" data-fig="'+pf.id+'">'+pf.emoji+'</button>'
     ).join('');
@@ -4440,7 +4498,7 @@ function renderManageProfileList(){
     return '<div class="player-pref-card'+(active?' active-pref':'')+'" style="--pref-color:'+hex+'">'+
       '<div class="player-pref-top">'+
         '<div class="player-pref-avatar">'+initial+'</div>'+
-        '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+'</div>'+
+        '<div class="player-pref-name">'+(typeof esc==='function'?esc(p):p)+' · ти</div>'+
         '<button type="button" class="player-pref-use" data-player="'+safe+'">'+(active?'✓ Активен':'Избери')+'</button>'+
       '</div>'+
       '<div class="player-pref-row"><span class="player-pref-label">Род</span><div class="gender-seg">'+
@@ -4450,9 +4508,7 @@ function renderManageProfileList(){
       '<div class="player-pref-row"><span class="player-pref-label">Цвят</span><div class="color-seg">'+swatches+'</div></div>'+
       '<div class="player-pref-row"><span class="player-pref-label">Фигура</span><div class="figure-seg">'+figures+'</div></div>'+
     '</div>';
-  }).join('') +
-  '<button type="button" class="profile-pick-btn'+(cur?'':' mine')+'" data-player="" style="width:100%;margin:0">'+
-  (cur?'':'✓ ')+'👀 Общ екран (без профил)</button>';
+  }).join('');
 
   list.querySelectorAll('[data-player]').forEach(btn => {
     btn.onclick = () => setActivePlayer(btn.getAttribute('data-player') || '');
@@ -4478,13 +4534,18 @@ function renderManageProfileList(){
       if(typeof showToast==='function') showToast('♟️ Фигурата е сменена', 'info');
     };
   });
-
 }
 function goToMyPlayerStats(){
-  const me = getActivePlayer();
+  if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+    goTo('manage');
+    try { toggleMgSection('mgAccount'); } catch(e){}
+    showToast('Влез в акаунт за статистика', 'info');
+    return;
+  }
+  const me = getMyLinkedPlayer() || getActivePlayer();
   if(!me){
     goTo('manage');
-    showToast('Избери активен играч в Настройки', 'info');
+    showToast('Свържи акаунта с играч в 🔐 Акаунт', 'info');
     return;
   }
   selectedStatPlayer = me;
@@ -4581,7 +4642,12 @@ const PLAYER_FIGURE_PRESETS = [
 ];
 function getPlayerFiguresMap(){ try{return JSON.parse(localStorage.getItem('bgPlayerFigures')||'{}');}catch(e){return{};} }
 function setPlayerFigure(name,figId){
-  if(!name)return; const m=getPlayerFiguresMap(); m[name]=figId;
+  if(!name)return;
+  if(!canEditPlayerPrefs(name)){
+    if(typeof showToast==='function') showToast('Можеш да променяш само своя профил', 'info');
+    return;
+  }
+  const m=getPlayerFiguresMap(); m[name]=figId;
   try{localStorage.setItem('bgPlayerFigures',JSON.stringify(m));}catch(e){}
   if(typeof updateProfileUI==='function')updateProfileUI();
   if(typeof refreshHomeStats==='function')refreshHomeStats();
@@ -5522,6 +5588,14 @@ function h2hBlockHtml(a, b, wa, wb, nLogs, extraSelectHtml){
 function showStats(){
     const out = document.getElementById('statsOverviewOutput');
     if(!out) return;
+    if(typeof isLoggedIn === 'function' && !isLoggedIn()){
+      out.innerHTML = emptyState('Статистиката изисква вход', 'Настройки → 🔐 Акаунт → Вход. Без акаунт записът и рандомът работят локално.', '🔐');
+      const detail = document.getElementById('statsDetailOutput');
+      if(detail) detail.innerHTML = '';
+      const playerOut = document.getElementById('statsPlayerOutput');
+      if(playerOut) playerOut.innerHTML = '';
+      return;
+    }
     try {
     const scoped = (typeof getScopedLogs === 'function') ? getScopedLogs() : gameLogs;
     const me = (typeof getActivePlayer === 'function') ? getActivePlayer() : '';
@@ -6668,7 +6742,23 @@ async function doSignOut(){
 }
 function updateAuthStatusUI(user){
   const emailEl = document.getElementById('authUserEmail');
+  const linkedEl = document.getElementById('authLinkedPlayer');
+  const loginBlock = document.getElementById('authLoginBlock');
+  const loggedBlock = document.getElementById('authLoggedInBlock');
+  const sel = document.getElementById('authLinkPlayerSelect');
   if(emailEl) emailEl.textContent = user ? (user.email || user.uid) : '—';
+  if(loginBlock) loginBlock.style.display = user ? 'none' : 'block';
+  if(loggedBlock) loggedBlock.style.display = user ? 'block' : 'none';
+  const linked = user && typeof getMyLinkedPlayer === 'function' ? getMyLinkedPlayer() : '';
+  if(linkedEl) linkedEl.textContent = linked || '— (избери по-долу)';
+  if(sel && user){
+    const players = (typeof myPlayers !== 'undefined' && myPlayers.length) ? myPlayers.slice() : [];
+    sel.innerHTML = '<option value="">— Избери играч —</option>' +
+      players.map(p => '<option value="'+String(p).replace(/"/g,'&quot;')+'"'+(p===linked?' selected':'')+'>'+(typeof esc==='function'?esc(p):p)+'</option>').join('');
+  }
+  if(typeof renderManageProfileList === 'function'){
+    try { renderManageProfileList(); } catch(e){}
+  }
 }
 // Enter key on password
 document.addEventListener('DOMContentLoaded', function(){
