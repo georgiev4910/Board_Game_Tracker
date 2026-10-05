@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BG Tracker">
-<meta name="bgt-version" content="2.1.0">
+<meta name="bgt-version" content="2.2.0">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect rx='22' width='100' height='100' fill='%2322c55e'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='58'%3E%F0%9F%8E%B2%3C/text%3E%3C/svg%3E">
 <title>Board Game Tracker</title>
@@ -2978,10 +2978,79 @@ html[data-theme="light"] .pill { color: #334155; }
   margin-top: 8px;
 }
 
+/* Auth gate */
+.auth-gate {
+  position: fixed; inset: 0; z-index: 20000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px 16px;
+  background: radial-gradient(ellipse at 30% 20%, rgba(96,165,250,.18), transparent 50%),
+              radial-gradient(ellipse at 70% 80%, rgba(34,197,94,.12), transparent 45%),
+              #0f1220;
+}
+.auth-gate.hidden { display: none !important; }
+.auth-card {
+  width: 100%; max-width: 380px;
+  padding: 28px 22px 22px;
+  border-radius: 22px;
+  background: rgba(28,34,56,.95);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  backdrop-filter: blur(16px);
+}
+html[data-theme="light"] .auth-gate {
+  background: radial-gradient(ellipse at 30% 20%, rgba(96,165,250,.12), transparent 50%), #eef2f9;
+}
+html[data-theme="light"] .auth-card {
+  background: #fff; border-color: rgba(15,23,42,.08);
+  color: #0f172a;
+}
+.auth-logo { font-size: 42px; text-align: center; margin-bottom: 8px; }
+.auth-title { text-align: center; font-size: 22px; font-weight: 900; letter-spacing: -.02em; margin: 0 0 4px; }
+.auth-sub { text-align: center; font-size: 13px; color: var(--muted, #9aa3c2); margin: 0 0 20px; font-weight: 600; }
+.auth-card label {
+  display: block; font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--muted, #9aa3c2); margin: 12px 0 6px;
+}
+.auth-card input[type="email"],
+.auth-card input[type="password"] {
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px; border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.25); color: inherit;
+  font-size: 15px; font-weight: 600;
+}
+html[data-theme="light"] .auth-card input[type="email"],
+html[data-theme="light"] .auth-card input[type="password"] {
+  background: #f1f5f9; border-color: rgba(15,23,42,.1);
+}
+.auth-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.auth-actions button {
+  margin: 0; padding: 13px 14px; border-radius: 14px; font-weight: 800; font-size: 14px;
+}
+.auth-msg {
+  margin-top: 12px; min-height: 1.3em; text-align: center;
+  font-size: 13px; font-weight: 700; color: #f87171;
+}
+.auth-msg.ok { color: #4ade80; }
+.auth-switch {
+  margin-top: 14px; text-align: center; font-size: 13px; font-weight: 600;
+  color: var(--muted, #9aa3c2);
+}
+.auth-switch button {
+  background: none; border: none; color: #60a5fa; font-weight: 800;
+  padding: 0; margin: 0; box-shadow: none; display: inline; font-size: 13px;
+}
+body.auth-locked .container { visibility: hidden; pointer-events: none; }
+.auth-user-line {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  margin: 8px 0; word-break: break-all;
+}
+
 </style>
-<!-- Firebase App (Core) и Firestore (База данни) -->
+<!-- Firebase App + Auth + Firestore -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -2994,11 +3063,14 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 const docRef = doc(db, "boardgame_data", "main_tracker");
 
 let isSaving = false;
 let lastKnownUpdated = null;
+let unsubSnapshot = null;
+let authReady = false;
 
 function ensureLogId(log) {
   if (log.id) return log.id;
@@ -3085,27 +3157,61 @@ async function loadDataFromFirebase() {
   }
 }
 
-onSnapshot(docRef, (docSnap) => {
-  if (!docSnap.exists() || isSaving) return;
-  const cloud = docSnap.data();
-  const cloudUpdated = cloud.lastUpdated || '';
-  if (cloudUpdated === lastKnownUpdated) return;
+function startCloudListener() {
+  if (unsubSnapshot) return;
+  unsubSnapshot = onSnapshot(docRef, (docSnap) => {
+    if (!docSnap.exists() || isSaving) return;
+    if (!auth.currentUser) return;
+    const cloud = docSnap.data();
+    const cloudUpdated = cloud.lastUpdated || '';
+    if (cloudUpdated === lastKnownUpdated) return;
 
-  if (cloud.myGamesObj) { window.myGamesObj = cloud.myGamesObj; myGamesObj = cloud.myGamesObj; localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj)); }
-  if (cloud.myPlayers) { window.myPlayers = cloud.myPlayers; myPlayers = cloud.myPlayers; localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers)); }
-  if (cloud.gameLogs) {
-    const logsWithId = cloud.gameLogs.map(log => ({ ...log, id: ensureLogId(log) }));
-    window.gameLogs = logsWithId; gameLogs = logsWithId;
-    localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
+    if (cloud.myGamesObj) { window.myGamesObj = cloud.myGamesObj; myGamesObj = cloud.myGamesObj; localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj)); }
+    if (cloud.myPlayers) { window.myPlayers = cloud.myPlayers; myPlayers = cloud.myPlayers; localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers)); }
+    if (cloud.gameLogs) {
+      const logsWithId = cloud.gameLogs.map(log => ({ ...log, id: ensureLogId(log) }));
+      window.gameLogs = logsWithId; gameLogs = logsWithId;
+      localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
+    }
+    if (cloud.playerPrefs) applyPlayerPrefs(cloud.playerPrefs);
+    lastKnownUpdated = cloudUpdated;
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof showStats === 'function') showStats();
+    if (typeof renderRandomizer === 'function') renderRandomizer();
+  }, (err) => {
+    console.warn('Firestore listener:', err);
+  });
+}
+
+function stopCloudListener() {
+  if (unsubSnapshot) {
+    try { unsubSnapshot(); } catch (e) {}
+    unsubSnapshot = null;
   }
-  if (cloud.playerPrefs) applyPlayerPrefs(cloud.playerPrefs);
-  lastKnownUpdated = cloudUpdated;
-  if (typeof updateUI === 'function') updateUI();
-  if (typeof showStats === 'function') showStats();
-  if (typeof renderRandomizer === 'function') renderRandomizer();
-});
+}
+
+function setAuthUI(user) {
+  const gate = document.getElementById('authGate');
+  const emailEl = document.getElementById('authUserEmail');
+  if (user) {
+    document.body.classList.remove('auth-locked');
+    if (gate) gate.classList.add('hidden');
+    if (emailEl) emailEl.textContent = user.email || user.uid;
+  } else {
+    document.body.classList.add('auth-locked');
+    if (gate) gate.classList.remove('hidden');
+    if (emailEl) emailEl.textContent = '—';
+  }
+  try {
+    if (typeof updateAuthStatusUI === 'function') updateAuthStatusUI(user);
+  } catch (e) {}
+}
 
 window.saveDataToFirebase = async function () {
+  if (!auth.currentUser) {
+    console.warn('Запис в облака изисква вход.');
+    return false;
+  }
   try {
     isSaving = true;
     const logsWithId = gameLogs.map(log => ({ ...log, id: ensureLogId(log) }));
@@ -3114,7 +3220,8 @@ window.saveDataToFirebase = async function () {
       myPlayers: myPlayers,
       gameLogs: logsWithId,
       playerPrefs: collectPlayerPrefs(),
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      updatedBy: auth.currentUser.uid
     };
     await setDoc(docRef, payload, { merge: true });
     lastKnownUpdated = payload.lastUpdated;
@@ -3131,9 +3238,57 @@ window.saveDataToFirebase = async function () {
     setTimeout(() => { isSaving = false; }, 1000);
   }
 };
+
+window.authSignIn = async function (email, password) {
+  const userCred = await signInWithEmailAndPassword(auth, email, password);
+  return userCred.user;
+};
+window.authRegister = async function (email, password) {
+  const userCred = await createUserWithEmailAndPassword(auth, email, password);
+  return userCred.user;
+};
+window.authSignOut = async function () {
+  stopCloudListener();
+  await signOut(auth);
+};
+window.getAuthUser = function () {
+  return auth.currentUser;
+};
+
+onAuthStateChanged(auth, async (user) => {
+  authReady = true;
+  setAuthUI(user);
+  if (user) {
+    startCloudListener();
+    try { await loadDataFromFirebase(); } catch (e) {}
+  } else {
+    stopCloudListener();
+  }
+});
 </script>
 </head>
-<body>
+<body class="auth-locked">
+<!-- Auth gate -->
+<div class="auth-gate" id="authGate" role="dialog" aria-label="Вход">
+  <div class="auth-card">
+    <div class="auth-logo">🎲</div>
+    <h1 class="auth-title">Board Game Tracker</h1>
+    <p class="auth-sub" id="authSub">Влез, за да синхронизираш данните си</p>
+    <label for="authEmail">Имейл</label>
+    <input type="email" id="authEmail" autocomplete="username" placeholder="you@email.com">
+    <label for="authPassword">Парола</label>
+    <input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••">
+    <div class="auth-actions">
+      <button type="button" class="btn-blue" id="authSubmitBtn" onclick="submitAuth()">Вход</button>
+      <button type="button" class="btn-secondary" id="authModeBtn" onclick="toggleAuthMode()">Нямам акаунт — регистрация</button>
+    </div>
+    <div class="auth-msg" id="authMsg"></div>
+    <div class="auth-switch">
+      Локалните данни остават на устройството.<br>
+      Облакът е достъпен само след вход.
+    </div>
+  </div>
+</div>
 <div class="container">
     <div class="top-chrome" id="topChrome">
         <button type="button" class="back-home" onclick="goHome()" title="Начало" aria-label="Начало">🏠</button>
@@ -3400,14 +3555,25 @@ window.saveDataToFirebase = async function () {
                 </div>
             </div>
 
+            <div class="mg-section" id="mgAccount">
+                <button type="button" class="mg-head" onclick="toggleMgSection('mgAccount')">
+                    <span>🔐 Акаунт</span><span class="mg-chevron">▼</span>
+                </button>
+                <div class="mg-body">
+                    <div class="small">Входът защитава облачните данни. Без акаунт няма sync между устройства.</div>
+                    <div class="auth-user-line">Влязъл: <span id="authUserEmail">—</span></div>
+                    <button type="button" class="btn-secondary" onclick="doSignOut()">Изход</button>
+                </div>
+            </div>
+
             <div class="mg-section" id="mgSystem">
                 <button type="button" class="mg-head" onclick="toggleMgSection('mgSystem')">
                     <span>🎛️ Предпочитания</span><span class="mg-chevron">▼</span>
                 </button>
                 <div class="mg-body">
                     <div class="small">Тема и поведение на началния екран.</div>
-                    <div class="small" style="margin-top:8px;opacity:.9">🔒 Данните са на това устройство (и в твоя Firebase, ако е свързан). Няма публичен профил.</div>
-                    <div class="small" style="margin-top:6px;opacity:.7">Board Game Tracker · v2.1</div>
+                    <div class="small" style="margin-top:8px;opacity:.9">🔒 Локални данни на устройството + защитен облак след вход.</div>
+                    <div class="small" style="margin-top:6px;opacity:.7">Board Game Tracker · v2.2</div>
                     <div class="theme-toggle-row">
                         <button type="button" id="themeBtnSystem" onclick="setTheme('system')">📱 Авто</button>
                         <button type="button" id="themeBtnDark" onclick="setTheme('dark')">🌙 Тъмен</button>
@@ -6426,6 +6592,89 @@ function applyHashTab(){
 }
 window.addEventListener('hashchange', applyHashTab);
 document.addEventListener('DOMContentLoaded', applyHashTab);
+
+/* ===== Auth form UI ===== */
+let authMode = 'login'; // login | register
+function toggleAuthMode(){
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const sub = document.getElementById('authSub');
+  const btn = document.getElementById('authSubmitBtn');
+  const modeBtn = document.getElementById('authModeBtn');
+  const msg = document.getElementById('authMsg');
+  if(msg){ msg.textContent = ''; msg.className = 'auth-msg'; }
+  if(authMode === 'register'){
+    if(sub) sub.textContent = 'Създай акаунт за този tracker';
+    if(btn) btn.textContent = 'Регистрация';
+    if(modeBtn) modeBtn.textContent = 'Вече имам акаунт — вход';
+  } else {
+    if(sub) sub.textContent = 'Влез, за да синхронизираш данните си';
+    if(btn) btn.textContent = 'Вход';
+    if(modeBtn) modeBtn.textContent = 'Нямам акаунт — регистрация';
+  }
+}
+function authErrorBg(code){
+  const map = {
+    'auth/invalid-email': 'Невалиден имейл.',
+    'auth/user-not-found': 'Няма акаунт с този имейл.',
+    'auth/wrong-password': 'Грешна парола.',
+    'auth/invalid-credential': 'Грешен имейл или парола.',
+    'auth/email-already-in-use': 'Този имейл вече е регистриран.',
+    'auth/weak-password': 'Паролата трябва да е поне 6 символа.',
+    'auth/too-many-requests': 'Твърде много опити. Изчакай малко.',
+    'auth/network-request-failed': 'Няма връзка с мрежата.'
+  };
+  return map[code] || ('Грешка: ' + (code || 'unknown'));
+}
+async function submitAuth(){
+  const email = (document.getElementById('authEmail') || {}).value || '';
+  const password = (document.getElementById('authPassword') || {}).value || '';
+  const msg = document.getElementById('authMsg');
+  const btn = document.getElementById('authSubmitBtn');
+  if(!email.trim() || !password){
+    if(msg){ msg.textContent = 'Попълни имейл и парола.'; msg.className = 'auth-msg'; }
+    return;
+  }
+  if(password.length < 6){
+    if(msg){ msg.textContent = 'Паролата трябва да е поне 6 символа.'; msg.className = 'auth-msg'; }
+    return;
+  }
+  if(btn){ btn.disabled = true; btn.textContent = '…'; }
+  try {
+    if(authMode === 'register'){
+      if(typeof window.authRegister !== 'function') throw { code: 'auth/network-request-failed' };
+      await window.authRegister(email.trim(), password);
+      if(msg){ msg.textContent = 'Акаунтът е създаден.'; msg.className = 'auth-msg ok'; }
+    } else {
+      if(typeof window.authSignIn !== 'function') throw { code: 'auth/network-request-failed' };
+      await window.authSignIn(email.trim(), password);
+      if(msg){ msg.textContent = 'Успешен вход.'; msg.className = 'auth-msg ok'; }
+    }
+  } catch(err){
+    if(msg){ msg.textContent = authErrorBg(err && err.code); msg.className = 'auth-msg'; }
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = authMode === 'register' ? 'Регистрация' : 'Вход';
+    }
+  }
+}
+async function doSignOut(){
+  try {
+    if(typeof window.authSignOut === 'function') await window.authSignOut();
+    showToast('Излязохте от акаунта', 'info');
+  } catch(e){
+    showToast('Грешка при изход', 'info');
+  }
+}
+function updateAuthStatusUI(user){
+  const emailEl = document.getElementById('authUserEmail');
+  if(emailEl) emailEl.textContent = user ? (user.email || user.uid) : '—';
+}
+// Enter key on password
+document.addEventListener('DOMContentLoaded', function(){
+  const pw = document.getElementById('authPassword');
+  if(pw) pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') submitAuth(); });
+});
 
 updateUI();
 
