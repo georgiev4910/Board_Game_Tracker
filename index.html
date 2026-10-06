@@ -2363,11 +2363,11 @@ html[data-theme="light"] .h2h-card .num.lead {
   letter-spacing: .04em;
   margin-bottom: 8px;
 }
-.stat-detail-slot .sd-list { display: grid; gap: 8px; max-height: 280px; overflow-y: auto; }
+.stat-detail-slot .sd-list { display: grid; gap: 8px; max-height: min(60vh, 520px); overflow-y: auto; }
 .stat-detail-slot .sd-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
   padding: 10px 12px;
@@ -2376,6 +2376,20 @@ html[data-theme="light"] .h2h-card .num.lead {
   border: 1px solid var(--border);
   font-size: 13px;
 }
+.stat-detail-slot .sd-main { flex: 1; min-width: 0; }
+.stat-detail-slot .sd-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.stat-detail-slot .sd-admin { display: flex; gap: 6px; }
+.stat-detail-slot .sd-admin-btn {
+  margin: 0 !important;
+  width: 34px; height: 34px; padding: 0 !important;
+  border-radius: 10px !important;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft, rgba(255,255,255,.06));
+  cursor: pointer;
+  line-height: 1;
+}
+.stat-detail-slot .sd-admin-btn.del:hover { border-color: #f87171; background: rgba(248,113,113,.12); }
 .stat-detail-slot .sd-row .sd-game { font-weight: 800; }
 .stat-detail-slot .sd-row .sd-meta { color: var(--muted); font-size: 12px; font-weight: 600; }
 .stat-detail-slot .sd-row .sd-win { color: #4ade80; font-weight: 800; }
@@ -5162,11 +5176,7 @@ function goToMyPlayerStats(){
   selectedStatPlayer = me;
   goTo('stats');
   setTimeout(function(){
-    try {
-      showStatsPanel('player');
-      if(typeof setStatPlayer === 'function') setStatPlayer(me);
-      else if(typeof populatePlayerSelector === 'function'){ populatePlayerSelector(); renderPlayerStats(); }
-    } catch(e){}
+    try { showStatsPanel('mine'); } catch(e){}
   }, 30);
 }
 function playerInLog(log, player){
@@ -5867,11 +5877,15 @@ function logGame(){
     const game=document.getElementById('gameSelect').value;
     if(!game){ done(); return alert('Моля, избери игра!'); }
     const checked=[...document.querySelectorAll('.player-card input[type=checkbox]:checked')];
+    const editingId = window._editingLogId || null;
+    const oldLog = editingId ? (gameLogs || []).find(l => l.id === editingId) : null;
+    const keepDate = oldLog && oldLog.date ? oldLog.date : new Date().toISOString();
+    let newEntry = null;
     if(currentLogFilter==='coop'){
         if(!checked.length){ done(); return alert('Моля, избери поне един играч за отбора!'); }
         if(!selectedCoopResult){ done(); return alert('Моля, избери победа или загуба!'); }
         const participants=checked.map(cb=>cb.closest('.player-card').querySelector('.player-name').textContent);
-        gameLogs.push({ id: crypto.randomUUID(), game, type: 'coop', participants, coopResult: selectedCoopResult, date: new Date().toISOString() });
+        newEntry = { id: editingId || crypto.randomUUID(), game, type: 'coop', participants, coopResult: selectedCoopResult, date: keepDate };
     }else{
         if(checked.length<2){ done(); return alert('Моля, избери поне 2 играчи!'); }
         const result=calculateWinner();
@@ -5879,28 +5893,45 @@ function logGame(){
         const scores={};checked.forEach(cb=>{const p=cb.closest('.player-card').querySelector('.player-name').textContent;scores[p]=Number(document.getElementById('score_'+idSafe(p)).value)});
         const winsBefore = getWinsForGame(game, gameLogs);
         const leadBefore = soleLeader(winsBefore);
-        gameLogs.push({ id: crypto.randomUUID(), game, type: 'pvp', scores, winners: result.winners, winner: result.winners[0], date: new Date().toISOString() });
-        const winsAfter = getWinsForGame(game, gameLogs);
-        const leadAfter = soleLeader(winsAfter);
-        if(leadAfter && (!leadBefore || leadBefore.name !== leadAfter.name)){
-          leadFlip = leadAfter.name + ' води при „' + game + '“ (' + leadAfter.wins + ' победи)';
+        newEntry = { id: editingId || crypto.randomUUID(), game, type: 'pvp', scores, winners: result.winners, winner: result.winners[0], date: keepDate };
+        if(editingId){
+          /* recompute lead after replace below */
+        } else {
+          const winsAfter = getWinsForGame(game, gameLogs.concat([newEntry]));
+          const leadAfter = soleLeader(winsAfter);
+          if(leadAfter && (!leadBefore || leadBefore.name !== leadAfter.name)){
+            leadFlip = leadAfter.name + ' води при „' + game + '“ (' + leadAfter.wins + ' победи)';
+          }
         }
     }
+    if(editingId){
+      const idx = (gameLogs || []).findIndex(l => l.id === editingId);
+      if(idx >= 0) gameLogs[idx] = newEntry;
+      else gameLogs.push(newEntry);
+      window._editingLogId = null;
+    } else {
+      gameLogs.push(newEntry);
+    }
+    window.gameLogs = gameLogs;
     saveAll();
-    showToast('✓ Партията е записана!');
+    showToast(editingId ? '✓ Партията е обновена!' : '✓ Партията е записана!');
     if(leadFlip){ setTimeout(function(){ fireConfetti(leadFlip); }, 400); }
     done();
-    const lastId = gameLogs.length ? gameLogs[gameLogs.length - 1].id : null;
+    const lastId = newEntry ? newEntry.id : null;
     const status=document.getElementById('logStatus');
     status.className='success';
-    startUndoWindow(lastId, game, status);
+    if(!editingId) startUndoWindow(lastId, game, status);
+    else status.innerHTML = '<div>Промените са запазени ✓</div>';
     resetEntryForm();updateUI();
 }
 function resetEntryForm(){
     selectedCoopResult=null;
+    window._editingLogId = null;
     const select=document.getElementById('gameSelect');if(select)select.value='';
     document.querySelectorAll('.player-card input[type=checkbox]').forEach(x=>x.checked=false);
     document.querySelectorAll('.player-score-input').forEach(x=>{x.value='';x.disabled=true});
+    const btn = document.getElementById('logGameBtn');
+    if(btn) btn.textContent = '✓ Запиши резултата';
 }
 function clearAllLogs(){
     if(typeof isAdmin === 'function' && !isAdmin()){
@@ -6109,13 +6140,21 @@ let _openStatId = null;
 function formatLogDetailRow(log){
   if(!log) return '';
   const date = formatDate(log.date);
+  const lid = log.id ? String(log.id) : '';
+  const admin = (typeof isAdmin === 'function' && isAdmin() && lid);
+  const adminBtns = admin
+    ? `<div class="sd-admin" onclick="event.stopPropagation()">
+        <button type="button" class="sd-admin-btn edit" title="Редактирай" onclick="editGameLog('${lid.replace(/'/g,"\\'")}')">✏️</button>
+        <button type="button" class="sd-admin-btn del" title="Изтрий" onclick="deleteGameLog('${lid.replace(/'/g,"\\'")}')">🗑️</button>
+      </div>`
+    : '';
   if(log.type === 'coop' || log.coopResult){
     const ok = log.coopResult === 'win';
     const team = (log.participants || []).join(', ');
     return `<div class="sd-row">
-      <div><div class="sd-game">${esc(log.game)}</div>
+      <div class="sd-main"><div class="sd-game">${esc(log.game)}</div>
       <div class="sd-meta">${date}${team ? ' · ' + esc(team) : ''}</div></div>
-      <div class="${ok?'sd-win':'sd-lose'}">${ok?'🏆 Успех':'❌ Неуспех'}</div>
+      <div class="sd-right"><div class="${ok?'sd-win':'sd-lose'}">${ok?'🏆 Успех':'❌ Неуспех'}</div>${adminBtns}</div>
     </div>`;
   }
   const scores = (typeof getPvpScores === 'function') ? getPvpScores(log) : Object.entries(log.scores||{}).map(([player,score])=>({player,score:Number(score)})).sort((a,b)=>b.score-a.score);
@@ -6125,9 +6164,10 @@ function formatLogDetailRow(log){
   ).join('');
   const winLabel = winners.length ? winners.join(' & ') : '—';
   return `<div class="sd-row">
-    <div><div class="sd-game">${esc(log.game)}</div>
-    <div class="sd-meta">${date} · победител: <span class="sd-win">${esc(winLabel)}</span></div></div>
-    <div class="sd-scores">${chips}</div>
+    <div class="sd-main"><div class="sd-game">${esc(log.game)}</div>
+    <div class="sd-meta">${date} · победител: <span class="sd-win">${esc(winLabel)}</span></div>
+    <div class="sd-scores">${chips}</div></div>
+    <div class="sd-right">${adminBtns}</div>
   </div>`;
 }
 
@@ -6136,6 +6176,90 @@ function logsDetailHtml(title, logs, emptyMsg){
   if(!list.length) return `<div class="sd-title">${esc(title)}</div><div class="empty">${emptyMsg || 'Няма записи.'}</div>`;
   const rows = list.map(formatLogDetailRow).join('');
   return `<div class="sd-title">${esc(title)} (${list.length})</div><div class="sd-list">${rows}</div>`;
+}
+
+function deleteGameLog(id){
+  if(typeof isAdmin === 'function' && !isAdmin()){
+    showToast('Само админът може да трие партии', 'info');
+    return;
+  }
+  if(!id) return;
+  if(!confirm('Изтриване на тази партия?')) return;
+  if(!confirm('Сигурно ли си? Действието е окончателно.')) return;
+  const before = (gameLogs || []).length;
+  gameLogs = (gameLogs || []).filter(l => l.id !== id);
+  window.gameLogs = gameLogs;
+  if(gameLogs.length === before){
+    showToast('Партията не е намерена', 'info');
+    return;
+  }
+  saveAll();
+  showToast('Партията е изтрита', 'info');
+  if(typeof showStats === 'function') showStats();
+  if(typeof renderMineStats === 'function') renderMineStats();
+  if(typeof renderByGameStats === 'function') renderByGameStats();
+  if(typeof refreshHomeStats === 'function') refreshHomeStats();
+}
+
+function editGameLog(id){
+  if(typeof isAdmin === 'function' && !isAdmin()){
+    showToast('Само админът може да редактира', 'info');
+    return;
+  }
+  const log = (gameLogs || []).find(l => l.id === id);
+  if(!log){
+    showToast('Партията не е намерена', 'info');
+    return;
+  }
+  window._editingLogId = id;
+  goTo('log');
+  setTimeout(function(){ prefillLogFormFromLog(log); }, 80);
+  showToast('✏️ Редакция — промени и запиши отново', 'info');
+}
+
+function prefillLogFormFromLog(log){
+  if(!log) return;
+  const isCoop = log.type === 'coop' || !!log.coopResult;
+  if(typeof setLogFilter === 'function') setLogFilter(isCoop ? 'coop' : 'pvp');
+  setTimeout(function(){
+    const sel = document.getElementById('gameSelect');
+    if(sel){
+      sel.value = log.game || '';
+      if(typeof onGameSelected === 'function') onGameSelected();
+    }
+    if(typeof renderPlayersForm === 'function') renderPlayersForm();
+    setTimeout(function(){
+      if(isCoop){
+        (log.participants || []).forEach(function(p){
+          const key = typeof idSafe === 'function' ? idSafe(p) : p;
+          const card = document.getElementById('card_' + key);
+          const cb = card && card.querySelector('input[type=checkbox]');
+          if(cb && !cb.checked){
+            cb.checked = true;
+            if(typeof togglePlayerCard === 'function') togglePlayerCard(p, 'coop', { target: cb, stopPropagation: function(){} });
+          }
+        });
+        if(log.coopResult && typeof setCoopResult === 'function') setCoopResult(log.coopResult);
+      } else {
+        Object.keys(log.scores || {}).forEach(function(p){
+          const key = typeof idSafe === 'function' ? idSafe(p) : p;
+          const card = document.getElementById('card_' + key);
+          const cb = card && card.querySelector('input[type=checkbox]');
+          if(cb){
+            cb.checked = true;
+            if(card) card.classList.add('selected');
+            const score = document.getElementById('score_' + key);
+            if(score){ score.disabled = false; score.value = log.scores[p]; }
+            const label = card && card.querySelector('.score-wrapper span');
+            if(label) label.style.opacity = 1;
+          }
+        });
+        if(typeof calculateWinner === 'function') calculateWinner();
+      }
+      const btn = document.getElementById('logGameBtn');
+      if(btn) btn.textContent = '✓ Запази промените';
+    }, 60);
+  }, 40);
 }
 
 function expandableStat(number, label, detailHtml, extra = ''){
@@ -6274,20 +6398,20 @@ function showStats(){
     const allPlayers=getAllPlayersList();
     const pvpPlayers=allPlayers.filter(p=>pvpLogs.some(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,p)));
 
-    const recentAll = [...scoped].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
-    const recentPvp = [...pvpLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
-    const recentCoop = [...coopLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,12);
+    const allSorted = [...scoped].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+    const allPvp = [...pvpLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+    const allCoop = [...coopLogs].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
     const gameCounts = {};
     scoped.forEach(l => { if(l.game) gameCounts[l.game]=(gameCounts[l.game]||0)+1; });
     const gamesListHtml = Object.entries(gameCounts).sort((a,b)=>b[1]-a[1]).map(([g,n]) =>
       `<div class="sd-row"><div class="sd-game">${esc(g)}</div><div class="sd-meta">${n} ${n===1?'партия':'партии'}</div></div>`
     ).join('');
 
-    let html=`<div class="small" style="margin-bottom:8px;color:var(--muted)">💡 Тапни върху карта за детайли</div>
+    let html=`<div class="small" style="margin-bottom:8px;color:var(--muted)">💡 Тапни върху карта за детайли${typeof isAdmin==='function'&&isAdmin()?' · ✏️/🗑️ само админ':''}</div>
     <div class="dashboard">
-        ${expandableStat(scoped.length,'Общо партии', logsDetailHtml('Последни партии', recentAll))}
-        ${expandableStat(pvpLogs.length,'PvP партии', logsDetailHtml('Последни PvP', recentPvp))}
-        ${expandableStat(coopLogs.length,'Co-op опити', logsDetailHtml('Последни Co-op', recentCoop))}
+        ${expandableStat(scoped.length,'Общо партии', logsDetailHtml('Всички партии', allSorted))}
+        ${expandableStat(pvpLogs.length,'PvP партии', logsDetailHtml('Всички PvP', allPvp))}
+        ${expandableStat(coopLogs.length,'Co-op опити', logsDetailHtml('Всички Co-op', allCoop))}
         ${expandableStat(uniqueGames,'Различни игри', `<div class="sd-title">Игри (${uniqueGames})</div><div class="sd-list">${gamesListHtml||'<div class="empty">Няма</div>'}</div>`)}
     </div>`;
 
@@ -6934,7 +7058,8 @@ function renderPlayerStats(){
       if(bar) bar.style.setProperty('--player-accent', hex);
     }
 
-    const pvpLogs=getModeLogs('pvp').filter(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,player));
+    const scopedBase = (typeof getScopedLogs === 'function') ? getScopedLogs() : (gameLogs || []);
+    const pvpLogs=getModeLogs('pvp', scopedBase).filter(log=>log.scores&&Object.prototype.hasOwnProperty.call(log.scores,player));
     let wins=0,positionSum=0,highest=null;
     const gameMap={};
     pvpLogs.forEach(log=>{
@@ -6965,7 +7090,7 @@ function renderPlayerStats(){
     else entries.forEach(([game,d])=>{const r=d.games?d.wins/d.games*100:0, pos=d.games?d.positionSum/d.games:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.games} партии</span><span class="pill">🏆 ${d.wins} победи</span><span class="pill">❌ ${d.games-d.wins} загуби</span><span class="pill">🥇 ${formatNumber(pos)} средно място</span>${d.highest!==null?`<span class="pill">🚀 ${d.highest} най-висок</span>`:''}</div></div>`});
     html+=`</div></div>`;
 
-    const coopLogs=getModeLogs('coop').filter(log=>Array.isArray(log.participants)&&log.participants.includes(player));
+    const coopLogs=getModeLogs('coop', scopedBase).filter(log=>Array.isArray(log.participants)&&log.participants.includes(player));
     const coopWins=coopLogs.filter(l=>l.coopResult==='win').length, coopLosses=coopLogs.length-coopWins, coopRate=coopLogs.length?coopWins/coopLogs.length*100:0;
     let team=0;coopLogs.forEach(l=>team+=l.participants.length);const avgTeam=coopLogs.length?team/coopLogs.length:0;
     let cStreak=0,cMax=0;[...coopLogs].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0)).forEach(l=>{if(l.coopResult==='win'){cStreak++;cMax=Math.max(cMax,cStreak)}else cStreak=0});
@@ -7073,54 +7198,29 @@ function renderReports(){
 
 
 function renderMineStats(){
+  /* Full personal stats (same as profile chip) + links to per-game details */
+  renderPlayerStats();
   const out = document.getElementById('statsPlayerOutput');
-  if(!out) return;
-  if(typeof canViewStats === 'function' && !canViewStats()){
-    const needLogin = !isLoggedIn();
-    out.innerHTML = emptyState(
-      needLogin ? 'Статистиката изисква вход' : 'Свържи акаунта с играч',
-      needLogin ? 'Настройки → 🔐 Акаунт' : '🔐 Акаунт → Аз съм',
-      needLogin ? '🔐' : '👤'
-    );
-    return;
-  }
-  const player = getMyLinkedPlayer();
-  selectedStatPlayer = player;
-  const scoped = getScopedLogs();
-  const pvp = scoped.filter(l => l.type !== 'coop');
-  const coop = scoped.filter(l => l.type === 'coop');
-  let wins = 0;
-  pvp.forEach(l => { if(playerWonLog(l, player)) wins++; });
-  const losses = pvp.length - wins;
-  const rate = pvp.length ? (wins / pvp.length * 100) : 0;
-  const coopW = coop.filter(l => l.coopResult === 'win').length;
+  if(!out || (typeof canViewStats === 'function' && !canViewStats())) return;
+  const scoped = typeof getScopedLogs === 'function' ? getScopedLogs() : [];
   const games = {};
   scoped.forEach(l => { if(l.game) games[l.game] = (games[l.game] || 0) + 1; });
-  const topGames = Object.entries(games).sort((a,b) => b[1]-a[1]).slice(0, 6);
-  let html = '<div class="game-stats-box"><h3>👤 ' + esc(player) + '</h3>';
-  html += '<div class="dashboard">' +
-    statCard(scoped.length, 'Партии') +
-    statCard(wins, 'Победи') +
-    statCard(losses, 'Загуби') +
-    statCard(formatPercent(rate), 'Win rate') +
-  '</div>';
-  html += '<div class="stat-subgrid">' +
-    '<div class="stat-card"><div class="small">⚔️ PvP</div><div class="num">' + pvp.length + '</div></div>' +
-    '<div class="stat-card"><div class="small">🤝 Co-op успех</div><div class="num">' + coopW + '/' + coop.length + '</div></div>' +
-  '</div></div>';
-  html += '<div class="game-stats-box"><h3>🎲 Игрите ти</h3><div class="small" style="margin-bottom:8px">За детайли и история → таб <b>По игра</b></div>';
-  if(!topGames.length) html += '<div class="empty">Все още няма партии.</div>';
+  const allGames = Object.entries(games).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0],'bg'));
+  let extra = '<div class="game-stats-box"><h3>🎲 Игри · отвори детайли</h3>';
+  extra += '<div class="small" style="margin-bottom:8px">Тапни игра за пълна история, рекорди и точки</div>';
+  if(!allGames.length) extra += '<div class="empty">Все още няма партии.</div>';
   else {
-    html += '<div class="mobile-stat-list">';
-    topGames.forEach(([g, n]) => {
-      html += '<div class="mobile-stat-item" style="cursor:pointer" onclick="openByGame(\'' + String(g).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
+    extra += '<div class="mobile-stat-list">';
+    allGames.forEach(function(pair){
+      const g = pair[0], n = pair[1];
+      extra += '<div class="mobile-stat-item" style="cursor:pointer" onclick="openByGame(\'' + String(g).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
         '<div class="top"><b>' + esc(g) + '</b><b>' + n + '</b></div>' +
         '<div class="meta"><span class="pill">отвори детайли →</span></div></div>';
     });
-    html += '</div>';
+    extra += '</div>';
   }
-  html += '</div>';
-  out.innerHTML = html;
+  extra += '</div>';
+  out.insertAdjacentHTML('beforeend', extra);
 }
 function openByGame(gameName){
   showStatsPanel('bygame');
