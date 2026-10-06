@@ -907,6 +907,16 @@ td.coop-lose { background: rgba(248,113,113,.12); color: #fca5a5; font-weight: 7
   flex-wrap: wrap;
   margin-top: 8px;
 }
+.mobile-stat-item .pill.pill-detail {
+  cursor: pointer;
+  border: 1px solid rgba(96,165,250,.45);
+  background: rgba(96,165,250,.14);
+  color: #93c5fd;
+  font-weight: 800;
+}
+.mobile-stat-item .pill.pill-detail:active {
+  transform: scale(0.97);
+}
 .mobile-stat-item .pill {
   background: rgba(255,255,255,.05);
   border: 1px solid var(--border);
@@ -7087,7 +7097,11 @@ function renderPlayerStats(){
     html+=`<div class="game-stats-box"><h3>🎲 ${esc(player)} • PvP по игри</h3><div class="mobile-stat-list">`;
     const entries=Object.entries(gameMap).sort((a,b)=>b[1].games-a[1].games||a[0].localeCompare(b[0],'bg'));
     if(!entries.length) html+=`<div class="empty">Няма PvP партии за този играч.</div>`;
-    else entries.forEach(([game,d])=>{const r=d.games?d.wins/d.games*100:0, pos=d.games?d.positionSum/d.games:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.games} партии</span><span class="pill">🏆 ${d.wins} победи</span><span class="pill">❌ ${d.games-d.wins} загуби</span><span class="pill">🥇 ${formatNumber(pos)} средно място</span>${d.highest!==null?`<span class="pill">🚀 ${d.highest} най-висок</span>`:''}</div></div>`});
+    else entries.forEach(([game,d])=>{
+      const r=d.games?d.wins/d.games*100:0, pos=d.games?d.positionSum/d.games:0;
+      const gEsc = String(game).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.games} партии</span><span class="pill">🏆 ${d.wins} победи</span><span class="pill">❌ ${d.games-d.wins} загуби</span><span class="pill">🥇 ${formatNumber(pos)} средно място</span>${d.highest!==null?`<span class="pill">🚀 ${d.highest} най-висок</span>`:''}<button type="button" class="pill pill-detail" onclick="event.stopPropagation();openByGame('${gEsc}')">Подробно →</button></div></div>`;
+    });
     html+=`</div></div>`;
 
     const coopLogs=getModeLogs('coop', scopedBase).filter(log=>Array.isArray(log.participants)&&log.participants.includes(player));
@@ -7099,7 +7113,11 @@ function renderPlayerStats(){
     html+=`<div class="game-stats-box"><h3>🎲 ${esc(player)} • Co-op по игри</h3><div class="mobile-stat-list">`;
     const cEntries=Object.entries(cMap).sort((a,b)=>b[1].attempts-a[1].attempts||a[0].localeCompare(b[0],'bg'));
     if(!cEntries.length)html+=`<div class="empty">Няма Co-op опити за този играч.</div>`;
-    else cEntries.forEach(([game,d])=>{const r=d.attempts?d.wins/d.attempts*100:0;html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.attempts} опита</span><span class="pill">🏆 ${d.wins} успеха</span><span class="pill">❌ ${d.attempts-d.wins} неуспеха</span><span class="pill">👥 ${formatNumber(d.team/d.attempts)} среден отбор</span></div></div>`});
+    else cEntries.forEach(([game,d])=>{
+      const r=d.attempts?d.wins/d.attempts*100:0;
+      const gEsc = String(game).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      html+=`<div class="mobile-stat-item"><div class="top"><b>${esc(game)}</b><b>${formatPercent(r)}</b></div><div style="margin-top:7px">${winRateBar(r)}</div><div class="meta"><span class="pill">🎮 ${d.attempts} опита</span><span class="pill">🏆 ${d.wins} успеха</span><span class="pill">❌ ${d.attempts-d.wins} неуспеха</span><span class="pill">👥 ${formatNumber(d.team/d.attempts)} среден отбор</span><button type="button" class="pill pill-detail" onclick="event.stopPropagation();openByGame('${gEsc}')">Подробно →</button></div></div>`;
+    });
     html+=`</div></div>`;
     out.innerHTML=html;
 }
@@ -7198,29 +7216,8 @@ function renderReports(){
 
 
 function renderMineStats(){
-  /* Full personal stats (same as profile chip) + links to per-game details */
+  /* Full personal stats — «Подробно» is on each game row with the bars */
   renderPlayerStats();
-  const out = document.getElementById('statsPlayerOutput');
-  if(!out || (typeof canViewStats === 'function' && !canViewStats())) return;
-  const scoped = typeof getScopedLogs === 'function' ? getScopedLogs() : [];
-  const games = {};
-  scoped.forEach(l => { if(l.game) games[l.game] = (games[l.game] || 0) + 1; });
-  const allGames = Object.entries(games).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0],'bg'));
-  let extra = '<div class="game-stats-box"><h3>🎲 Игри · отвори детайли</h3>';
-  extra += '<div class="small" style="margin-bottom:8px">Тапни игра за пълна история, рекорди и точки</div>';
-  if(!allGames.length) extra += '<div class="empty">Все още няма партии.</div>';
-  else {
-    extra += '<div class="mobile-stat-list">';
-    allGames.forEach(function(pair){
-      const g = pair[0], n = pair[1];
-      extra += '<div class="mobile-stat-item" style="cursor:pointer" onclick="openByGame(\'' + String(g).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">' +
-        '<div class="top"><b>' + esc(g) + '</b><b>' + n + '</b></div>' +
-        '<div class="meta"><span class="pill">отвори детайли →</span></div></div>';
-    });
-    extra += '</div>';
-  }
-  extra += '</div>';
-  out.insertAdjacentHTML('beforeend', extra);
 }
 function openByGame(gameName){
   showStatsPanel('bygame');
