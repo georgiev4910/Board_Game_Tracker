@@ -1,23 +1,25 @@
-const CACHE = 'bg-tracker-v37';
+const CACHE = 'bg-tracker-v38';
 const PRECACHE = [
-  './',
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './everdell.html',
-  './Heat.html',
-  './carcassonne.html',
-  './skyteam.html',
-  './castles.html',
-  './spirit_island.html',
+  './apple-touch-icon.png',
   './companion-chrome.js',
   './companion-chrome.css'
 ];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((c) =>
+      Promise.all(
+        PRECACHE.map((url) =>
+          c.add(url).catch((err) => {
+            console.warn('precache skip', url, err);
+          })
+        )
+      )
+    ).then(() => self.skipWaiting())
   );
 });
 
@@ -34,13 +36,8 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;
 
-  const isHTML =
-    e.request.mode === 'navigate' ||
-    (e.request.headers.get('accept') || '').includes('text/html') ||
-    url.pathname.endsWith('.html') ||
-    url.pathname.endsWith('/');
-
-  if (isHTML) {
+  // Network-first for navigations so the app always opens
+  if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
@@ -48,7 +45,9 @@ self.addEventListener('fetch', (e) => {
           caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
           return res;
         })
-        .catch(() => caches.match(e.request).then((r) => r || caches.match('./index.html')))
+        .catch(() =>
+          caches.match('./index.html').then((r) => r || caches.match(e.request))
+        )
     );
     return;
   }
@@ -57,8 +56,10 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then((cached) => {
       const fetched = fetch(e.request)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+          }
           return res;
         })
         .catch(() => cached);

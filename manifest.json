@@ -1,33 +1,29 @@
 {
-  "id": "./",
   "name": "Board Game Tracker",
   "short_name": "BG Tracker",
   "description": "Записвай партии, статистики и companion apps за настолни игри",
-  "start_url": "./index.html?source=pwa",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "browser"],
   "background_color": "#0f1220",
   "theme_color": "#0f1220",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "lang": "bg",
-  "dir": "ltr",
-  "categories": ["games", "utilities", "lifestyle"],
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
