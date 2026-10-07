@@ -1,8 +1,10 @@
-const CACHE = 'bg-tracker-v36';
+const CACHE = 'bg-tracker-v37';
 const PRECACHE = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
   './everdell.html',
   './Heat.html',
   './carcassonne.html',
