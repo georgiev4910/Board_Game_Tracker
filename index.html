@@ -3203,6 +3203,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const docRef = doc(db, "boardgame_data", "main_tracker");
+const backupDocRef = doc(db, "boardgame_data", "main_tracker_backup");
 
 let isSaving = false;
 let lastKnownUpdated = null;
@@ -3210,6 +3211,8 @@ let unsubSnapshot = null;
 let authReady = false;
 /** Do not push to cloud until first successful hydrate — prevents empty phone overwrite */
 let cloudReady = false;
+/** True only after we have read Firestore at least once this session */
+let cloudHydrated = false;
 
 function ensureLogId(log) {
   if (log.id) return log.id;
@@ -3291,17 +3294,58 @@ function mergeLogsById(a, b) {
   });
   (b || []).forEach(function (log) {
     const id = ensureLogId(log);
-    if (!map.has(id)) map.set(id, Object.assign({}, log, { id: id }));
+    /* later source wins on same id (prefer fresher fields) */
+    map.set(id, Object.assign({}, log, { id: id }));
   });
   return Array.from(map.values()).sort(function (x, y) {
     return new Date(y.date || 0) - new Date(x.date || 0);
   });
 }
 
+function getDeletedLogIds() {
+  try {
+    const arr = JSON.parse(localStorage.getItem('bgDeletedLogIds') || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+function markLogDeleted(id) {
+  if (!id) return;
+  const arr = getDeletedLogIds();
+  if (arr.indexOf(id) === -1) arr.push(id);
+  try { localStorage.setItem('bgDeletedLogIds', JSON.stringify(arr.slice(-800))); } catch (e) {}
+}
+function clearDeletedLogId(id) {
+  try {
+    const arr = getDeletedLogIds().filter(function (x) { return x !== id; });
+    localStorage.setItem('bgDeletedLogIds', JSON.stringify(arr));
+  } catch (e) {}
+}
+
 async function loadDataFromFirebase() {
   try {
     const snap = await getDoc(docRef);
+    cloudHydrated = true;
     if (!snap.exists()) {
+      /* try backup recovery */
+      try {
+        const b = await getDoc(backupDocRef);
+        if (b.exists() && Array.isArray(b.data().gameLogs) && b.data().gameLogs.length) {
+          const recovered = b.data().gameLogs.map(function (log) {
+            return Object.assign({}, log, { id: ensureLogId(log) });
+          });
+          window.gameLogs = recovered;
+          gameLogs = recovered;
+          localStorage.setItem('gameLogs', JSON.stringify(recovered));
+          cloudReady = true;
+          setTimeout(function () {
+            try { window.saveDataToFirebase({ forceLogs: true }); } catch (e) {}
+          }, 500);
+          if (typeof showToast === 'function') showToast('Възстановени ' + recovered.length + ' партии от backup', 'info');
+          if (typeof updateUI === 'function') updateUI();
+          if (typeof showStats === 'function') showStats();
+          return true;
+        }
+      } catch (e) {}
       cloudReady = true;
       return false;
     }
@@ -3309,9 +3353,23 @@ async function loadDataFromFirebase() {
     if (cloud.myGamesObj) { window.myGamesObj = cloud.myGamesObj; myGamesObj = cloud.myGamesObj; localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj)); }
     if (cloud.myPlayers) { window.myPlayers = cloud.myPlayers; myPlayers = cloud.myPlayers; localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers)); }
 
-    const cloudLogs = Array.isArray(cloud.gameLogs) ? cloud.gameLogs.map(function (log) {
+    let cloudLogs = Array.isArray(cloud.gameLogs) ? cloud.gameLogs.map(function (log) {
       return Object.assign({}, log, { id: ensureLogId(log) });
     }) : [];
+
+    /* If main is empty, try backup document */
+    if (!cloudLogs.length) {
+      try {
+        const b = await getDoc(backupDocRef);
+        if (b.exists() && Array.isArray(b.data().gameLogs) && b.data().gameLogs.length) {
+          cloudLogs = b.data().gameLogs.map(function (log) {
+            return Object.assign({}, log, { id: ensureLogId(log) });
+          });
+          if (typeof showToast === 'function') showToast('Заредени ' + cloudLogs.length + ' партии от backup', 'info');
+        }
+      } catch (e) {}
+    }
+
     let localLogs = [];
     try {
       localLogs = (Array.isArray(gameLogs) && gameLogs.length)
@@ -3322,15 +3380,12 @@ async function loadDataFromFirebase() {
       return Object.assign({}, log, { id: ensureLogId(log) });
     });
 
-    /* Prefer richer history: never let empty local wipe cloud on next save */
-    let merged = cloudLogs;
-    if (localLogs.length && cloudLogs.length) {
-      merged = mergeLogsById(cloudLogs, localLogs);
-    } else if (localLogs.length && !cloudLogs.length) {
-      merged = localLogs;
-    } else {
-      merged = cloudLogs;
-    }
+    const delSet = new Set(getDeletedLogIds());
+    let merged = mergeLogsById(cloudLogs, localLogs).filter(function (l) { return !delSet.has(l.id); });
+    /* Never prefer empty over non-empty */
+    if (!merged.length && cloudLogs.length) merged = cloudLogs.filter(function (l) { return !delSet.has(l.id); });
+    if (!merged.length && localLogs.length) merged = localLogs.filter(function (l) { return !delSet.has(l.id); });
+
     window.gameLogs = merged;
     gameLogs = merged;
     localStorage.setItem('gameLogs', JSON.stringify(merged));
@@ -3345,15 +3400,15 @@ async function loadDataFromFirebase() {
     lastKnownUpdated = cloud.lastUpdated || '';
     cloudReady = true;
 
-    /* If local had logs that cloud lost, push merge back once */
-    if (merged.length > cloudLogs.length) {
+    /* Restore main from backup/local if main was empty */
+    if (merged.length && (!Array.isArray(cloud.gameLogs) || !cloud.gameLogs.length)) {
       setTimeout(function () {
-        try { if (typeof window.saveDataToFirebase === 'function') window.saveDataToFirebase(); } catch (e) {}
+        try { window.saveDataToFirebase({ forceLogs: true }); } catch (e) {}
       }, 400);
-    } else if (!cloud.playerPrefs) {
+    } else if (merged.length > cloudLogs.length) {
       setTimeout(function () {
-        try { if (typeof window.saveDataToFirebase === 'function') window.saveDataToFirebase(); } catch (e) {}
-      }, 800);
+        try { window.saveDataToFirebase({ forceLogs: true }); } catch (e) {}
+      }, 400);
     }
 
     if (typeof updateUI === 'function') updateUI();
@@ -3364,7 +3419,8 @@ async function loadDataFromFirebase() {
     return true;
   } catch (error) {
     console.error('Грешка при изтегляне от Firebase:', error);
-    cloudReady = true; /* allow local-only use; save still guarded against empty wipe */
+    cloudHydrated = true;
+    cloudReady = true;
     return false;
   }
 }
@@ -3380,10 +3436,23 @@ function startCloudListener() {
 
     if (cloud.myGamesObj) { window.myGamesObj = cloud.myGamesObj; myGamesObj = cloud.myGamesObj; localStorage.setItem('myGamesObj', JSON.stringify(cloud.myGamesObj)); }
     if (cloud.myPlayers) { window.myPlayers = cloud.myPlayers; myPlayers = cloud.myPlayers; localStorage.setItem('myPlayers', JSON.stringify(cloud.myPlayers)); }
-    if (cloud.gameLogs) {
-      const logsWithId = cloud.gameLogs.map(log => ({ ...log, id: ensureLogId(log) }));
-      window.gameLogs = logsWithId; gameLogs = logsWithId;
-      localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
+    if (Array.isArray(cloud.gameLogs)) {
+      const cloudMapped = cloud.gameLogs.map(function (log) {
+        return Object.assign({}, log, { id: ensureLogId(log) });
+      });
+      const localNow = Array.isArray(gameLogs) ? gameLogs : [];
+      /* Never replace local non-empty history with empty cloud snapshot */
+      if (cloudMapped.length === 0 && localNow.length > 0) {
+        /* ignore destructive empty snapshot */
+      } else {
+        const delSet = new Set(getDeletedLogIds());
+        const mergedSnap = mergeLogsById(cloudMapped, localNow).filter(function (l) {
+          return !delSet.has(l.id);
+        });
+        window.gameLogs = mergedSnap;
+        gameLogs = mergedSnap;
+        localStorage.setItem('gameLogs', JSON.stringify(mergedSnap));
+      }
     }
     if (cloud.playerPrefs) applyPlayerPrefs(cloud.playerPrefs);
     if (cloud.admins) {
@@ -3434,64 +3503,108 @@ function setAuthUI(user) {
   } catch (e) {}
 }
 
-window.saveDataToFirebase = async function () {
+window.saveDataToFirebase = async function (opts) {
+  opts = opts || {};
   if (!auth.currentUser) {
     console.warn('Запис в облака изисква вход.');
     return false;
   }
-  if (!cloudReady) {
-    console.warn('Пропуск: облакът още не е зареден — няма качване на празни данни.');
+  if (!cloudReady && !opts.forceLogs) {
+    console.warn('Пропуск: облакът още не е зареден — няма качване.');
     return false;
   }
   try {
     isSaving = true;
-    let logsWithId = (gameLogs || []).map(log => ({ ...log, id: ensureLogId(log) }));
 
-    /* CRITICAL: never overwrite cloud history with an empty array (phone login race) */
+    let cloudLogs = [];
     try {
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        const cloudLogs = Array.isArray(snap.data().gameLogs) ? snap.data().gameLogs : [];
-        if (logsWithId.length === 0 && cloudLogs.length > 0) {
-          console.warn('Блокирано: опит за запис на 0 партии при', cloudLogs.length, 'в облака');
-          logsWithId = cloudLogs.map(log => ({ ...log, id: ensureLogId(log) }));
-          gameLogs = logsWithId;
-          window.gameLogs = logsWithId;
-          localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
-          isSaving = false;
-          return false;
-        }
+        const d = snap.data();
+        cloudLogs = Array.isArray(d.gameLogs) ? d.gameLogs.map(function (log) {
+          return Object.assign({}, log, { id: ensureLogId(log) });
+        }) : [];
       }
     } catch (e) {
       console.warn('Проверка преди запис:', e);
+      /* If we cannot read cloud, NEVER write gameLogs — only prefs risk */
+      cloudLogs = null;
+    }
+
+    const delSet = new Set(getDeletedLogIds());
+    let localLogs = (gameLogs || []).map(function (log) {
+      return Object.assign({}, log, { id: ensureLogId(log) });
+    });
+
+    let logsWithId;
+    if (cloudLogs === null) {
+      /* offline / read failed: do not touch gameLogs field in payload */
+      logsWithId = null;
+    } else {
+      /* UNION of cloud + local, minus intentional deletes — empty phone cannot wipe archive */
+      logsWithId = mergeLogsById(cloudLogs, localLogs).filter(function (l) {
+        return !delSet.has(l.id);
+      });
+      if (!logsWithId.length && cloudLogs.length && delSet.size === 0) {
+        logsWithId = cloudLogs.slice();
+      }
+      gameLogs = logsWithId;
+      window.gameLogs = logsWithId;
+      try { localStorage.setItem('gameLogs', JSON.stringify(logsWithId)); } catch (e) {}
     }
 
     let admins = { uids: [], emails: [] };
     try { admins = JSON.parse(localStorage.getItem('bgAdmins') || '{"uids":[],"emails":[]}'); } catch (e) {}
     if (!admins.uids) admins.uids = [];
     if (!admins.emails) admins.emails = [];
+
     const payload = {
       myGamesObj: myGamesObj,
       myPlayers: myPlayers,
-      gameLogs: logsWithId,
       playerPrefs: collectPlayerPrefs(),
       admins: admins,
       lastUpdated: new Date().toISOString(),
       updatedBy: auth.currentUser.uid
     };
+
+    /* Only include gameLogs when we have a safe merged list.
+       Omitting the field with merge:true leaves cloud history untouched. */
+    if (logsWithId !== null) {
+      if (logsWithId.length > 0 || opts.allowEmptyLogs) {
+        payload.gameLogs = logsWithId;
+      }
+      /* length === 0 and no allowEmptyLogs → omit gameLogs (protect archive) */
+    }
+
     await setDoc(docRef, payload, { merge: true });
     lastKnownUpdated = payload.lastUpdated;
-    gameLogs = logsWithId;
-    window.myGamesObj = myGamesObj; window.myPlayers = myPlayers; window.gameLogs = logsWithId;
+
+    /* Separate backup — survives main wipe */
+    if (logsWithId && logsWithId.length > 0) {
+      try {
+        await setDoc(backupDocRef, {
+          gameLogs: logsWithId,
+          myGamesObj: myGamesObj,
+          myPlayers: myPlayers,
+          savedAt: new Date().toISOString(),
+          count: logsWithId.length,
+          updatedBy: auth.currentUser.uid
+        }, { merge: true });
+      } catch (e) {
+        console.warn('Backup write failed:', e);
+      }
+    }
+
+    window.myGamesObj = myGamesObj;
+    window.myPlayers = myPlayers;
     localStorage.setItem('myGamesObj', JSON.stringify(myGamesObj));
     localStorage.setItem('myPlayers', JSON.stringify(myPlayers));
-    localStorage.setItem('gameLogs', JSON.stringify(logsWithId));
     return true;
   } catch (error) {
     console.error('Грешка при качване във Firebase:', error);
     return false;
   } finally {
-    setTimeout(() => { isSaving = false; }, 1000);
+    setTimeout(function () { isSaving = false; }, 1000);
   }
 };
 
@@ -3524,15 +3637,18 @@ window.__bgtGetLinkedName = function (user) {
 onAuthStateChanged(auth, async (user) => {
   authReady = true;
   window.__bgtAuthUser = user || null;
-  setAuthUI(user);
   if (user) {
-    cloudReady = false; /* block saves until hydrate finishes */
+    cloudReady = false;
+    cloudHydrated = false;
+    /* hydrate FIRST, then UI — avoids admin/prefs save racing empty logs */
     startCloudListener();
-    try { await loadDataFromFirebase(); } catch (e) { cloudReady = true; }
-    setAuthUI(user); /* refresh linked class after prefs applied */
+    try { await loadDataFromFirebase(); } catch (e) { cloudReady = true; cloudHydrated = true; }
+    setAuthUI(user);
   } else {
     stopCloudListener();
     cloudReady = false;
+    cloudHydrated = false;
+    setAuthUI(user);
   }
 });
 </script>
@@ -5941,6 +6057,7 @@ function undoLastLog(){
   if(gameLogs.length === before){
     showToast('Записът вече не е наличен', 'info');
   } else {
+    if (typeof markLogDeleted === 'function') markLogDeleted(id);
     saveAll();
     updateUI();
     showToast('↩ Записът е отменен');
@@ -6290,6 +6407,7 @@ function deleteGameLog(id){
     showToast('Партията не е намерена', 'info');
     return;
   }
+  if (typeof markLogDeleted === 'function') markLogDeleted(id);
   saveAll();
   showToast('Партията е изтрита', 'info');
   if(typeof showStats === 'function') showStats();
@@ -7851,7 +7969,7 @@ updateProfileUI();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js').then(function(reg){
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(function(reg){
       try { reg.update(); } catch(e){}
     }).catch(function(){});
   });

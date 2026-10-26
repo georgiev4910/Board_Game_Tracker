@@ -1,4 +1,4 @@
-const CACHE = 'bg-tracker-v39';
+const CACHE = 'bg-tracker-v40';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
