@@ -114,6 +114,55 @@
     return !!(window.__bgtAuthUser || (typeof window.getAuthUser === 'function' && window.getAuthUser()));
   };
 
+  BGT.getAdmins = function () {
+    let a = window.__bgtAdmins;
+    if (!a) {
+      try { a = JSON.parse(localStorage.getItem('bgAdmins') || '{}'); } catch (e) { a = {}; }
+    }
+    return {
+      uids: Array.isArray(a.uids) ? a.uids.slice() : [],
+      emails: Array.isArray(a.emails) ? a.emails.map(function (e) { return String(e).toLowerCase(); }) : []
+    };
+  };
+
+  BGT.isAdmin = function () {
+    if (!BGT.isLoggedIn()) return false;
+    const u = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
+    if (!u) return false;
+    const hard = (BGT.ADMIN_EMAILS || []).map(function (e) { return String(e).toLowerCase(); }).filter(Boolean);
+    if (hard.length && u.email && hard.indexOf(String(u.email).toLowerCase()) !== -1) return true;
+    const a = BGT.getAdmins();
+    if (a.uids.indexOf(u.uid) !== -1) return true;
+    if (u.email && a.emails.indexOf(String(u.email).toLowerCase()) !== -1) return true;
+    return false;
+  };
+
+  BGT.claimAdminIfNone = function () {
+    const hard = (BGT.ADMIN_EMAILS || []).filter(Boolean);
+    if (hard.length) return false;
+    const a = BGT.getAdmins();
+    if (a.uids.length || a.emails.length) return false;
+    const u = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);
+    if (!u) return false;
+    const next = {
+      uids: [u.uid],
+      emails: u.email ? [String(u.email).toLowerCase()] : []
+    };
+    try { localStorage.setItem('bgAdmins', JSON.stringify(next)); } catch (e) {}
+    window.__bgtAdmins = next;
+    return true;
+  };
+
+  BGT.applyAdminUI = function () {
+    const admin = BGT.isAdmin();
+    document.body.classList.toggle('bgt-admin', admin);
+    const badge = document.getElementById('authAdminBadge');
+    if (badge) badge.style.display = admin ? 'inline-block' : 'none';
+    const delBtn = document.getElementById('logSheetDelete');
+    if (delBtn) delBtn.classList.toggle('hidden', !admin);
+  };
+
+
   BGT.getMyLinkedPlayer = function () {
     if (!BGT.isLoggedIn()) return '';
     const user = window.__bgtAuthUser || (typeof window.getAuthUser === 'function' ? window.getAuthUser() : null);

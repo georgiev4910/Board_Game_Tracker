@@ -153,17 +153,17 @@ async function saveToCloud(opts) {
       BGT.persistLocal();
     }
 
-    let admins = { uids: [], emails: [] };
-    try { admins = JSON.parse(localStorage.getItem('bgAdmins') || '{"uids":[],"emails":[]}'); } catch (e) {}
-
     const payload = {
       myGamesObj: BGT.state.myGamesObj,
       myPlayers: BGT.state.myPlayers,
       playerPrefs: collectPrefs(),
-      admins: admins,
       lastUpdated: new Date().toISOString(),
       updatedBy: auth.currentUser.uid
     };
+    /* Само админ пише admins — иначе друг акаунт със празен локал би ги нулирал */
+    if (typeof BGT.isAdmin === 'function' && BGT.isAdmin()) {
+      payload.admins = BGT.getAdmins();
+    }
     if (logsWithId !== null && (logsWithId.length > 0 || opts.allowEmptyLogs)) {
       payload.gameLogs = logsWithId;
     }
@@ -245,13 +245,19 @@ onAuthStateChanged(auth, async function (user) {
     cloudReady = false;
     startListener();
     await loadFromCloud();
+    if (typeof BGT.claimAdminIfNone === 'function' && BGT.claimAdminIfNone()) {
+      try { await saveToCloud({ forceLogs: true }); } catch (e) {}
+    }
     const linked = BGT.getMyLinkedPlayer();
     document.body.classList.toggle('bgt-linked', !!linked);
+    if (typeof BGT.applyAdminUI === 'function') BGT.applyAdminUI();
     if (typeof BGT.refreshAll === 'function') BGT.refreshAll();
   } else {
     if (unsubSnapshot) { try { unsubSnapshot(); } catch (e) {} unsubSnapshot = null; }
     cloudReady = false;
     document.body.classList.remove('bgt-linked');
+    document.body.classList.remove('bgt-admin');
+    if (typeof BGT.applyAdminUI === 'function') BGT.applyAdminUI();
     if (typeof BGT.refreshAll === 'function') BGT.refreshAll();
   }
 });

@@ -1,6 +1,11 @@
 /* Board Game Tracker 3.0 — config */
 window.BGT = window.BGT || {};
 BGT.VERSION = '3.0.0';
+/* Само тези имейли са админи (изтриване на партии/игри/играчи).
+   Добави своя email с малки букви. Празен списък = първият логнат става админ веднъж. */
+BGT.ADMIN_EMAILS = [
+  'georgiev4910@gmail.com'
+];
 BGT.FIREBASE = {
   apiKey: "AIzaSyD_DjQ3XXZG3PM-yohUpPUXcQdrcDg5biE",
   authDomain: "boardgame-tracker-dafab.firebaseapp.com",

@@ -417,7 +417,9 @@
       if (loggedIn) loggedIn.classList.remove('hidden');
       if (authBox) {
         authBox.innerHTML = '<div class="list-row"><div class="meta"><div class="title">' +
-          BGT.esc(user.email || 'Акаунт') + '</div><div class="sub">Аз съм: ' +
+          BGT.esc(user.email || 'Акаунт') +
+          (BGT.isAdmin() ? ' <span class="admin-badge">ADMIN</span>' : '') +
+          '</div><div class="sub">Аз съм: ' +
           BGT.esc(BGT.getMyLinkedPlayer() || '— не е свързано') +
           '</div></div></div>';
       }
@@ -441,9 +443,11 @@
     if (tableList) {
       const tg = BGT.getTableGroup();
       tableList.innerHTML = tg.map(function (p) {
+        const rm = BGT.isAdmin()
+          ? '<button class="btn btn-secondary" style="width:auto;min-height:36px;padding:0 10px" onclick="BGT.removeFromTable(\'' + String(p).replace(/'/g, "\\'") + '\')">✕</button>'
+          : '';
         return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(p) +
-          '</div></div><button class="btn btn-secondary" style="width:auto;min-height:36px;padding:0 10px" ' +
-          'onclick="BGT.removeFromTable(\'' + String(p).replace(/'/g, "\\'") + '\')">✕</button></div>';
+          '</div></div>' + rm + '</div>';
       }).join('') || '<div class="empty">Масата е празна</div>';
     }
 
@@ -464,6 +468,7 @@
       }).join('');
     }
     BGT.renderProfileChip();
+    BGT.applyAdminUI();
   };
 
   BGT.togglePref = function (key, btn) {
@@ -515,6 +520,7 @@
     BGT.renderLibrary();
   };
   BGT.deactivateGame = function (name) {
+    if (!BGT.isAdmin()) return BGT.toast('Само админ може да изключва игри', 'info');
     BGT.state.inactiveGames = BGT.state.inactiveGames || [];
     if (BGT.state.inactiveGames.indexOf(name) === -1) BGT.state.inactiveGames.push(name);
     BGT.saveAll();
@@ -572,10 +578,14 @@
       if (!inLib) {
         actions += '<button type="button" class="btn btn-primary btn-xs" onclick="BGT.activateGame(\'' + ga + '\',\'' + type + '\')">Добави</button>';
       } else if (active) {
-        actions += '<button type="button" class="btn btn-secondary btn-xs" onclick="BGT.toggleGameType(\'' + ga + '\')">' +
-          (type === 'coop' ? 'Co-op' : 'PvP') + '</button>';
-        actions += '<button type="button" class="btn btn-secondary btn-xs" onclick="BGT.deactivateGame(\'' + ga + '\')">Изкл.</button>';
-      } else {
+        if (BGT.isAdmin()) {
+          actions += '<button type="button" class="btn btn-secondary btn-xs" onclick="BGT.toggleGameType(\'' + ga + '\')">' +
+            (type === 'coop' ? 'Co-op' : 'PvP') + '</button>';
+          actions += '<button type="button" class="btn btn-secondary btn-xs" onclick="BGT.deactivateGame(\'' + ga + '\')">Изкл.</button>';
+        } else {
+          actions += '<span class="sub">' + (type === 'coop' ? 'Co-op' : 'PvP') + '</span>';
+        }
+      } else if (BGT.isAdmin()) {
         actions += '<button type="button" class="btn btn-primary btn-xs" onclick="BGT.activateGame(\'' + ga + '\')">Вкл.</button>';
       }
       const sub = (type === 'coop' ? 'Co-op' : 'PvP') +
@@ -692,6 +702,7 @@
   };
   BGT.deleteLog = function (id) {
     if (!id) return;
+    if (!BGT.isAdmin()) return BGT.toast('Само админ може да трие партии', 'info');
     if (!confirm('Изтриване на този запис?')) return;
     if (!confirm('Сигурно?')) return;
     if (typeof BGT.markLogDeleted === 'function') BGT.markLogDeleted(id);
@@ -800,6 +811,7 @@
     BGT.renderMore();
   };
   BGT.removeFromTable = function (name) {
+    if (!BGT.isAdmin()) return BGT.toast('Само админ може да маха играчи от масата', 'info');
     BGT.setTableGroup(BGT.getTableGroup().filter(function (p) { return p !== name; }));
     BGT.saveAll();
     BGT.renderMore();
