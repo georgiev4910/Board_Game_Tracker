@@ -29,7 +29,10 @@
     homeH2H: localStorage.getItem('bgHomeH2H') === '1',
     currentLogFilter: 'pvp',
     randPlayers: 'all',
-    randPriority: '0'
+    randPriority: '0',
+    interactiveDice: localStorage.getItem('bgInteractiveDice') !== '0',
+    interactiveHero: localStorage.getItem('bgInteractiveHero') !== '0',
+    showSplash: localStorage.getItem('bgShowSplash') !== '0'
   };
 
   BGT.persistLocal = function () {
@@ -46,6 +49,9 @@
     if (s.activeTable) localStorage.setItem('bgActiveTable', s.activeTable);
     localStorage.setItem('bgTheme', s.theme);
     localStorage.setItem('bgHomeH2H', s.homeH2H ? '1' : '0');
+    localStorage.setItem('bgInteractiveDice', s.interactiveDice ? '1' : '0');
+    localStorage.setItem('bgInteractiveHero', s.interactiveHero ? '1' : '0');
+    localStorage.setItem('bgShowSplash', s.showSplash ? '1' : '0');
   };
 
   BGT.ensureLogId = function (log) {

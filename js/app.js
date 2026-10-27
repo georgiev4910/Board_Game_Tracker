@@ -361,26 +361,35 @@
 
   /* ---------- More / settings ---------- */
   BGT.renderMore = function () {
-    const authBox = document.getElementById('authStatus');
     const user = window.__bgtAuthUser;
-    if (authBox) {
-      if (user) {
+    const loginFields = document.getElementById('authLoginFields');
+    const loggedIn = document.getElementById('authLoggedIn');
+    const authBox = document.getElementById('authStatus');
+    if (user) {
+      if (loginFields) loginFields.classList.add('hidden');
+      if (loggedIn) loggedIn.classList.remove('hidden');
+      if (authBox) {
         authBox.innerHTML = '<div class="list-row"><div class="meta"><div class="title">' +
           BGT.esc(user.email || 'Акаунт') + '</div><div class="sub">Аз съм: ' +
           BGT.esc(BGT.getMyLinkedPlayer() || '— не е свързано') +
           '</div></div></div>';
-      } else {
-        authBox.innerHTML = '<div class="empty">Не си влязъл</div>';
       }
+    } else {
+      if (loginFields) loginFields.classList.remove('hidden');
+      if (loggedIn) loggedIn.classList.add('hidden');
+      if (authBox) authBox.innerHTML = '<div class="empty">Не си влязъл — въведи email и парола</div>';
     }
+
     const linkSel = document.getElementById('linkPlayerSelect');
     if (linkSel) {
       const players = BGT.getTableGroup();
+      const me = BGT.getMyLinkedPlayer();
       linkSel.innerHTML = '<option value="">— Избери —</option>' +
         players.map(function (p) {
-          return '<option value="' + BGT.esc(p) + '">' + BGT.esc(p) + '</option>';
+          return '<option value="' + BGT.esc(p) + '"' + (p === me ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
         }).join('');
     }
+
     const tableList = document.getElementById('tableList');
     if (tableList) {
       const tg = BGT.getTableGroup();
@@ -390,7 +399,32 @@
           'onclick="BGT.removeFromTable(\'' + String(p).replace(/'/g, "\\'") + '\')">✕</button></div>';
       }).join('') || '<div class="empty">Масата е празна</div>';
     }
-    /* companions */
+
+    /* prefs toggles */
+    [['togDice', 'interactiveDice'], ['togHero', 'interactiveHero'], ['togSplash', 'showSplash']].forEach(function (pair) {
+      const el = document.getElementById(pair[0]);
+      if (el) el.classList.toggle('on', !!BGT.state[pair[1]]);
+    });
+    BGT.applyInteractivePrefs();
+
+    /* games catalog */
+    const glist = document.getElementById('gamesManageList');
+    if (glist) {
+      const games = Object.keys(BGT.state.myGamesObj || {}).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+      glist.innerHTML = games.map(function (g) {
+        const t = BGT.state.myGamesObj[g];
+        return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(g) +
+          '</div><div class="sub">' + (t === 'coop' ? 'Co-op' : 'PvP') + '</div></div>' +
+          '<button class="btn btn-secondary" style="width:auto;min-height:36px;padding:0 10px" onclick="BGT.toggleGameType(\'' +
+          String(g).replace(/'/g, "\\'") + '\')">' + (t === 'coop' ? '→PvP' : '→Co-op') + '</button>' +
+          '<button class="btn btn-danger" style="width:auto;min-height:36px;padding:0 10px" onclick="BGT.removeGame(\'' +
+          String(g).replace(/'/g, "\\'") + '\')">✕</button></div>';
+      }).join('') || '<div class="empty">Няма игри в каталога</div>';
+    }
+
+    /* logs manage */
+    BGT.renderLogsManage();
+
     const cbox = document.getElementById('companionList');
     if (cbox) {
       cbox.innerHTML = (BGT.COMPANIONS || []).map(function (c) {
@@ -401,6 +435,128 @@
       }).join('');
     }
     BGT.renderProfileChip();
+  };
+
+  BGT.togglePref = function (key, btn) {
+    BGT.state[key] = !BGT.state[key];
+    BGT.persistLocal();
+    if (btn) btn.classList.toggle('on', !!BGT.state[key]);
+    BGT.applyInteractivePrefs();
+    BGT.toast(BGT.state[key] ? 'Включено' : 'Изключено', 'info');
+  };
+
+  BGT.applyInteractivePrefs = function () {
+    const die = document.getElementById('diceLogo');
+    if (die) {
+      die.style.pointerEvents = BGT.state.interactiveDice ? '' : 'none';
+      die.style.opacity = BGT.state.interactiveDice ? '' : '0.55';
+    }
+    const stage = document.getElementById('heroStage');
+    if (stage) {
+      stage.style.pointerEvents = BGT.state.interactiveHero ? '' : 'none';
+      stage.classList.toggle('hero-locked', !BGT.state.interactiveHero);
+    }
+  };
+
+  let _newGameType = 'pvp';
+  BGT.setNewGameType = function (t) {
+    _newGameType = t;
+    document.querySelectorAll('[data-new-game-type]').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.newGameType === t);
+    });
+  };
+  BGT.addGame = function () {
+    const inp = document.getElementById('newGameName');
+    const name = (inp && inp.value || '').trim();
+    if (!name) return BGT.toast('Въведи име', 'info');
+    BGT.state.myGamesObj = BGT.state.myGamesObj || {};
+    if (BGT.state.myGamesObj[name]) return BGT.toast('Играта вече съществува', 'info');
+    BGT.state.myGamesObj[name] = _newGameType || 'pvp';
+    BGT.saveAll();
+    if (inp) inp.value = '';
+    BGT.toast('Добавена: ' + name);
+    BGT.renderMore();
+  };
+  BGT.removeGame = function (name) {
+    if (!confirm('Премахни „' + name + '“ от каталога?')) return;
+    delete BGT.state.myGamesObj[name];
+    BGT.saveAll();
+    BGT.renderMore();
+  };
+  BGT.toggleGameType = function (name) {
+    const cur = BGT.state.myGamesObj[name];
+    BGT.state.myGamesObj[name] = cur === 'coop' ? 'pvp' : 'coop';
+    BGT.saveAll();
+    BGT.renderMore();
+  };
+
+  BGT.renderLogsManage = function () {
+    const box = document.getElementById('logsManageList');
+    if (!box) return;
+    const list = (BGT.state.gameLogs || []).slice(0, 40);
+    if (!list.length) {
+      box.innerHTML = '<div class="empty">Няма записи</div>';
+      return;
+    }
+    box.innerHTML = list.map(function (l) {
+      let sub = BGT.formatDate(l.date);
+      if (l.type === 'coop') sub += ' · ' + (l.coopResult === 'win' ? 'Успех' : 'Неуспех');
+      else if (l.winners) sub += ' · 🏆 ' + (l.winners || []).join(', ');
+      const id = String(l.id || '').replace(/'/g, "\\'");
+      return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(l.game) +
+        '</div><div class="sub">' + BGT.esc(sub) + '</div></div>' +
+        '<button class="btn btn-danger" style="width:auto;min-height:36px;padding:0 10px" onclick="BGT.deleteLog(\'' + id + '\')">🗑️</button></div>';
+    }).join('');
+  };
+  BGT.deleteLog = function (id) {
+    if (!id) return;
+    if (!confirm('Изтриване на този запис?')) return;
+    if (!confirm('Сигурно?')) return;
+    if (typeof BGT.markLogDeleted === 'function') BGT.markLogDeleted(id);
+    BGT.state.gameLogs = (BGT.state.gameLogs || []).filter(function (l) { return l.id !== id; });
+    BGT.saveAll();
+    BGT.toast('Записът е изтрит');
+    BGT.renderLogsManage();
+  };
+  BGT.exportLogs = function () {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      gameLogs: BGT.state.gameLogs || [],
+      myGamesObj: BGT.state.myGamesObj,
+      myPlayers: BGT.state.myPlayers
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'bgt-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    BGT.toast('Backup изтеглен');
+  };
+  BGT.importLogs = function (ev) {
+    const file = ev.target && ev.target.files && ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      try {
+        const data = JSON.parse(reader.result);
+        const incoming = Array.isArray(data.gameLogs) ? data.gameLogs : (Array.isArray(data) ? data : []);
+        if (!incoming.length) return BGT.toast('Няма партии в файла', 'info');
+        if (!confirm('Импорт на ' + incoming.length + ' партии (merge с текущите)?')) return;
+        const mapped = incoming.map(function (l) {
+          return Object.assign({}, l, { id: BGT.ensureLogId(l) });
+        });
+        BGT.state.gameLogs = BGT.mergeLogsById(BGT.state.gameLogs || [], mapped);
+        if (data.myGamesObj) BGT.state.myGamesObj = Object.assign({}, BGT.state.myGamesObj, data.myGamesObj);
+        BGT.saveAll();
+        BGT.toast('Импортирани / слети партии');
+        BGT.renderMore();
+      } catch (e) {
+        BGT.toast('Невалиден JSON', 'info');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
   };
 
   BGT.doLogin = async function () {
@@ -491,33 +647,64 @@
   ];
 
   BGT.rollDiceLogo = function () {
+    if (!BGT.state.interactiveDice) return;
     const el = document.getElementById('diceLogo');
     const face = document.getElementById('diceFace');
-    if (!el || !face || el.classList.contains('rolling')) return;
+    const stage = document.getElementById('diceStage');
+    const stageDie = document.getElementById('diceStageDie');
+    const stageFace = document.getElementById('diceStageFace');
+    const stageLabel = document.getElementById('diceStageLabel');
+    if (!el || !face || el.classList.contains('rolling') || !stage) return;
+    if (stage.classList.contains('active')) return;
+
     el.classList.add('rolling');
-    el.classList.remove('dice-result');
+    /* fly from top bar to center */
+    stage.classList.add('active');
+    stage.setAttribute('aria-hidden', 'false');
+    stageDie.classList.remove('settle', 'return');
+    stageDie.classList.add('drop');
+    stageLabel.textContent = '';
+    stageLabel.classList.remove('show');
+
     let n = 0;
     const iv = setInterval(function () {
       const r = 1 + Math.floor(Math.random() * 6);
-      face.textContent = DICE_FACES[r];
+      const f = DICE_FACES[r];
+      face.textContent = f;
+      if (stageFace) stageFace.textContent = f;
       n++;
-      if (n > 10) {
+      if (n > 14) {
         clearInterval(iv);
         const num = 1 + Math.floor(Math.random() * 6);
-        face.textContent = DICE_FACES[num];
+        const final = DICE_FACES[num];
+        face.textContent = final;
+        if (stageFace) stageFace.textContent = final;
         el.classList.remove('rolling');
-        el.classList.add('dice-result');
-        BGT.toast('Падна се: ' + num + ' (' + DICE_WORDS[num] + ') ' + DICE_FACES[num], 'info');
-        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+        stageDie.classList.remove('drop');
+        stageDie.classList.add('settle');
+        if (stageLabel) {
+          stageLabel.textContent = num + ' · ' + DICE_WORDS[num];
+          stageLabel.classList.add('show');
+        }
+        try { if (navigator.vibrate) navigator.vibrate([12, 40, 12]); } catch (e) {}
+
         setTimeout(function () {
-          el.classList.remove('dice-result');
-          face.textContent = '⚄';
-        }, 2200);
+          stageDie.classList.remove('settle');
+          stageDie.classList.add('return');
+          stageLabel.classList.remove('show');
+          setTimeout(function () {
+            stage.classList.remove('active');
+            stage.setAttribute('aria-hidden', 'true');
+            stageDie.classList.remove('return');
+            face.textContent = final;
+          }, 480);
+        }, 1600);
       }
-    }, 55);
+    }, 50);
   };
 
   BGT.playHeroShow = function () {
+    if (!BGT.state.interactiveHero) return;
     const stage = document.getElementById('heroStage');
     const result = document.getElementById('heroResult');
     const hint = document.getElementById('heroHint');
@@ -558,9 +745,36 @@
   };
 
 
+  BGT.runSplash = function () {
+    const splash = document.getElementById('splash');
+    const face = document.getElementById('splashFace');
+    if (!splash) return;
+    if (!BGT.state.showSplash) {
+      splash.classList.add('done');
+      return;
+    }
+    let n = 0;
+    const faces = [1, 2, 3, 4, 5, 6];
+    const iv = setInterval(function () {
+      if (face) face.textContent = DICE_FACES[faces[n % 6]];
+      n++;
+    }, 120);
+    setTimeout(function () {
+      clearInterval(iv);
+      if (face) face.textContent = '⚄';
+      splash.classList.add('hiding');
+      setTimeout(function () {
+        splash.classList.add('done');
+        splash.classList.remove('hiding');
+      }, 500);
+    }, 3200);
+  };
+
   /* boot */
   document.addEventListener('DOMContentLoaded', function () {
     document.documentElement.setAttribute('data-theme', BGT.state.theme || 'dark');
+    BGT.applyInteractivePrefs();
     BGT.go('home');
+    BGT.runSplash();
   });
 })();

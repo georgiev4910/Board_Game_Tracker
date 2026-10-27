@@ -24,6 +24,23 @@
 </head>
 <body>
 <div class="toast-host" id="toastHost"></div>
+
+<!-- Splash / loading -->
+<div class="splash" id="splash">
+  <div class="splash-die" id="splashDie">
+    <span class="face" id="splashFace">⚄</span>
+    <div class="splash-dots"><i></i><i></i><i></i></div>
+  </div>
+  <div class="splash-title">Board Game Tracker</div>
+  <div class="splash-sub">Зареждане на масата…</div>
+</div>
+
+<!-- Full-screen dice roll stage -->
+<div class="dice-stage" id="diceStage" aria-hidden="true">
+  <div class="dice-stage-die" id="diceStageDie"><span class="face" id="diceStageFace">⚄</span></div>
+  <div class="dice-stage-label" id="diceStageLabel"></div>
+</div>
+
 <div class="app-shell">
   <header class="topbar">
     <div class="brand">
@@ -186,33 +203,81 @@
   <!-- MORE -->
   <section class="screen" id="screen-more">
     <div class="section-title"><img class="icon" src="./icons/nav-settings.svg" alt=""> Още</div>
+
     <div class="panel">
       <h3>Акаунт</h3>
       <div id="authStatus"></div>
-      <div class="field"><label>Email</label><input type="email" id="authEmail" autocomplete="username"></div>
-      <div class="field"><label>Парола</label><input type="password" id="authPass" autocomplete="current-password"></div>
-      <div class="btn-row">
-        <button type="button" class="btn btn-primary" onclick="BGT.doLogin()">Вход</button>
-        <button type="button" class="btn btn-secondary" onclick="BGT.doRegister()">Регистрация</button>
+      <div id="authLoginFields">
+        <div class="field"><label>Email</label><input type="email" id="authEmail" autocomplete="username"></div>
+        <div class="field"><label>Парола</label><input type="password" id="authPass" autocomplete="current-password"></div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" onclick="BGT.doLogin()">Вход</button>
+          <button type="button" class="btn btn-secondary" onclick="BGT.doRegister()">Регистрация</button>
+        </div>
       </div>
-      <button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.doLogout()">Изход</button>
-      <div class="field" style="margin-top:14px">
-        <label>Аз съм</label>
-        <select id="linkPlayerSelect"></select>
+      <div id="authLoggedIn" class="hidden">
+        <div class="field">
+          <label>Аз съм</label>
+          <select id="linkPlayerSelect"></select>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="BGT.linkMe()">Свържи профила</button>
+        <button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.doLogout()">Изход</button>
       </div>
-      <button type="button" class="btn btn-primary" onclick="BGT.linkMe()">Свържи профила</button>
     </div>
+
+    <div class="panel">
+      <h3>Интерактивност</h3>
+      <div class="hint">Включи / изключи игралните елементи на началото.</div>
+      <div class="list-row">
+        <div class="meta"><div class="title">Интерактивно зарче</div><div class="sub">Горе вляво · хвърляне</div></div>
+        <button type="button" class="toggle" id="togDice" onclick="BGT.togglePref('interactiveDice', this)"></button>
+      </div>
+      <div class="list-row">
+        <div class="meta"><div class="title">Плуващи иконки</div><div class="sub">Начален екран · докосване</div></div>
+        <button type="button" class="toggle" id="togHero" onclick="BGT.togglePref('interactiveHero', this)"></button>
+      </div>
+      <div class="list-row">
+        <div class="meta"><div class="title">Splash при старт</div><div class="sub">Кратък intro 3–4 сек</div></div>
+        <button type="button" class="toggle" id="togSplash" onclick="BGT.togglePref('showSplash', this)"></button>
+      </div>
+    </div>
+
     <div class="panel">
       <h3>Масата</h3>
-      <div class="hint">Играчите, които се появяват при запис.</div>
+      <div class="hint">Играчите при запис на партия.</div>
       <div id="tableList"></div>
       <div class="field"><label>Нов играч</label><input type="text" id="newPlayerName" placeholder="Име"></div>
       <button type="button" class="btn btn-secondary" onclick="BGT.addToTable()">Добави на масата</button>
     </div>
+
+    <div class="panel">
+      <h3>Каталог с игри</h3>
+      <div class="hint">Добавяне / премахване / тип (PvP или Co-op).</div>
+      <div id="gamesManageList"></div>
+      <div class="field"><label>Нова игра</label><input type="text" id="newGameName" placeholder="Име на играта"></div>
+      <div class="chip-row">
+        <button type="button" class="chip active" data-new-game-type="pvp" onclick="BGT.setNewGameType('pvp')">PvP</button>
+        <button type="button" class="chip" data-new-game-type="coop" onclick="BGT.setNewGameType('coop')">Co-op</button>
+      </div>
+      <button type="button" class="btn btn-secondary" onclick="BGT.addGame()">Добави игра</button>
+    </div>
+
+    <div class="panel">
+      <h3>Записи (история)</h3>
+      <div class="hint">Преглед, изтриване. Backup в буфера / файл.</div>
+      <div class="btn-row" style="margin-bottom:10px">
+        <button type="button" class="btn btn-secondary" onclick="BGT.exportLogs()">Backup JSON</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('importLogsFile').click()">Импорт</button>
+      </div>
+      <input type="file" id="importLogsFile" accept="application/json,.json" class="hidden" onchange="BGT.importLogs(event)">
+      <div id="logsManageList"></div>
+    </div>
+
     <div class="panel">
       <h3>Companion apps</h3>
       <div class="companion-grid" id="companionList"></div>
     </div>
+
     <div class="panel">
       <h3>Изглед</h3>
       <button type="button" class="btn btn-secondary" onclick="BGT.toggleTheme()">Светъл / тъмен режим</button>
