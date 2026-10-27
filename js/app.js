@@ -475,6 +475,89 @@
     BGT.go(id);
   };
 
+
+  /* ---------- Playful interactions ---------- */
+  const DICE_FACES = { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' };
+  const DICE_WORDS = { 1: 'едно', 2: 'две', 3: 'три', 4: 'четири', 5: 'пет', 6: 'шест' };
+  const HERO_SETS = [
+    ['./icons/nav-dice.svg', './icons/nav-log.svg', './icons/nav-stats.svg'],
+    ['./icons/game-everdell.svg', './icons/game-heat.svg', './icons/game-sky.svg'],
+    ['./icons/game-carc.svg', './icons/game-castle.svg', './icons/game-spirit.svg'],
+    ['./icons/nav-shelf.svg', './icons/nav-home.svg', './icons/nav-apps.svg']
+  ];
+  const HERO_LINES = [
+    'Добра партия!', 'Нова кампания?', 'Кой води?', 'Време за реванш',
+    'Зарът е благосклонен', 'Масата вика', 'Една още…', 'Легендите се пишат тук'
+  ];
+
+  BGT.rollDiceLogo = function () {
+    const el = document.getElementById('diceLogo');
+    const face = document.getElementById('diceFace');
+    if (!el || !face || el.classList.contains('rolling')) return;
+    el.classList.add('rolling');
+    el.classList.remove('dice-result');
+    let n = 0;
+    const iv = setInterval(function () {
+      const r = 1 + Math.floor(Math.random() * 6);
+      face.textContent = DICE_FACES[r];
+      n++;
+      if (n > 10) {
+        clearInterval(iv);
+        const num = 1 + Math.floor(Math.random() * 6);
+        face.textContent = DICE_FACES[num];
+        el.classList.remove('rolling');
+        el.classList.add('dice-result');
+        BGT.toast('Падна се: ' + num + ' (' + DICE_WORDS[num] + ') ' + DICE_FACES[num], 'info');
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+        setTimeout(function () {
+          el.classList.remove('dice-result');
+          face.textContent = '⚄';
+        }, 2200);
+      }
+    }, 55);
+  };
+
+  BGT.playHeroShow = function () {
+    const stage = document.getElementById('heroStage');
+    const result = document.getElementById('heroResult');
+    const hint = document.getElementById('heroHint');
+    if (!stage || stage.classList.contains('playing')) return;
+    stage.classList.add('playing');
+    if (result) { result.classList.remove('show'); result.textContent = ''; }
+    if (hint) hint.style.opacity = '0.4';
+    const icons = [document.getElementById('hi0'), document.getElementById('hi1'), document.getElementById('hi2')];
+    let ticks = 0;
+    const pool = HERO_SETS.flat();
+    const iv = setInterval(function () {
+      icons.forEach(function (el) {
+        if (!el) return;
+        const img = el.querySelector('img');
+        if (img) img.src = pool[Math.floor(Math.random() * pool.length)];
+      });
+      ticks++;
+      if (ticks > 12) {
+        clearInterval(iv);
+        const set = HERO_SETS[Math.floor(Math.random() * HERO_SETS.length)];
+        icons.forEach(function (el, i) {
+          const img = el && el.querySelector('img');
+          if (img) img.src = set[i];
+        });
+        const line = HERO_LINES[Math.floor(Math.random() * HERO_LINES.length)];
+        if (result) {
+          result.textContent = line;
+          result.classList.add('show');
+        }
+        if (hint) {
+          hint.textContent = 'докосни пак';
+          hint.style.opacity = '';
+        }
+        stage.classList.remove('playing');
+        try { if (navigator.vibrate) navigator.vibrate([10, 30, 10]); } catch (e) {}
+      }
+    }, 50);
+  };
+
+
   /* boot */
   document.addEventListener('DOMContentLoaded', function () {
     document.documentElement.setAttribute('data-theme', BGT.state.theme || 'dark');

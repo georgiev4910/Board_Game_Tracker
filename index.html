@@ -27,7 +27,9 @@
 <div class="app-shell">
   <header class="topbar">
     <div class="brand">
-      <img class="icon-lg" src="./icons/brand-die.svg" alt="">
+      <button type="button" class="brand-die" id="diceLogo" onclick="BGT.rollDiceLogo()" title="Хвърли зара!" aria-label="Хвърли зара">
+        <span class="face" id="diceFace">⚄</span>
+      </button>
       <div class="brand-text">
         <div class="brand-title">Board Game Tracker</div>
         <div class="brand-sub">v3 · твоят свят на масата</div>
@@ -42,7 +44,17 @@
   <!-- HOME -->
   <section class="screen active" id="screen-home">
     <div class="hero">
-      <div class="hero-badge"><img class="icon" src="./icons/brand-die.svg" alt=""> Game Realm</div>
+      <div class="hero-stage" id="heroStage" onclick="BGT.playHeroShow()" title="Докосни">
+        <div class="hero-glow"></div>
+        <div class="hero-icons">
+          <div class="hi" id="hi0"><img src="./icons/nav-dice.svg" alt=""></div>
+          <div class="hi" id="hi1"><img src="./icons/nav-log.svg" alt=""></div>
+          <div class="hi" id="hi2"><img src="./icons/nav-stats.svg" alt=""></div>
+        </div>
+        <div class="hero-hint" id="heroHint">докосни за изненада</div>
+        <div class="hero-result" id="heroResult"></div>
+      </div>
+      <div class="hero-badge">Game Realm</div>
       <h1 id="homeHello">Board Game Realm</h1>
       <p id="homeSub">Записвай партии, откривай игри, следи прогреса.</p>
     </div>
