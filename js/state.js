@@ -20,6 +20,7 @@
     gameLogs: loadJSON('gameLogs', []),
     /** per player ownership: { "Митко": { "Everdell": true, ... }, ... } */
     gameOwnership: loadJSON('bgGameOwnership', {}),
+    inactiveGames: loadJSON('bgInactiveGames', []),
     activePlayer: localStorage.getItem('bgActivePlayer') || '',
     accountLinks: loadJSON('bgAccountLinks', {}),
     tables: loadJSON('bgTables', {}),
@@ -41,6 +42,7 @@
     saveJSON('myPlayers', s.myPlayers);
     saveJSON('gameLogs', s.gameLogs);
     saveJSON('bgGameOwnership', s.gameOwnership);
+    saveJSON('bgInactiveGames', s.inactiveGames || []);
     saveJSON('bgAccountLinks', s.accountLinks);
     saveJSON('bgTables', s.tables);
     saveJSON('bgDeletedLogIds', s.deletedLogIds);

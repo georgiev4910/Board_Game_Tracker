@@ -26,8 +26,20 @@
   function saveWidgetPrefs(prefs) {
     try { localStorage.setItem('bgStatWidgets', JSON.stringify(prefs)); } catch (e) {}
   }
+  function loadWidgetOrder() {
+    try {
+      const o = JSON.parse(localStorage.getItem('bgStatWidgetOrder') || 'null');
+      if (Array.isArray(o) && o.length) return o;
+    } catch (e) {}
+    return WIDGET_META.map(function (w) { return w.id; });
+  }
+  function saveWidgetOrder(order) {
+    try { localStorage.setItem('bgStatWidgetOrder', JSON.stringify(order)); } catch (e) {}
+  }
 
   BGT.statWidgets = loadWidgetPrefs();
+  /* WIDGET_META defined below — order init deferred */
+
 
   function me() { return BGT.getMyLinkedPlayer() || ''; }
   function logs() { return BGT.getScopedLogs() || []; }
@@ -219,8 +231,9 @@
           sub += ' · ' + sc;
         }
       }
-      return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(l.game) +
-        '</div><div class="sub">' + BGT.esc(sub) + '</div></div></div>';
+      const id = String(l.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return '<div class="list-row list-tap" onclick="BGT.openLogSheet(\'' + id + '\')"><div class="meta"><div class="title">' + BGT.esc(l.game) +
+        '</div><div class="sub">' + BGT.esc(sub) + '</div></div><span class="chev">›</span></div>';
     }).join('');
     return widgetShell('recent', 'Последни партии', rows);
   }
@@ -347,19 +360,45 @@
     leaders: function () { return renderLeaders(); }
   };
 
+  BGT.getWidgetOrder = function () {
+    let order = loadWidgetOrder();
+    const ids = WIDGET_META.map(function (w) { return w.id; });
+    ids.forEach(function (id) { if (order.indexOf(id) === -1) order.push(id); });
+    order = order.filter(function (id) { return ids.indexOf(id) !== -1; });
+    return order;
+  };
+
   BGT.renderStatsCustomize = function () {
     const box = document.getElementById('statsCustomize');
     if (!box) return;
     const prefs = BGT.statWidgets;
-    box.innerHTML = WIDGET_META.map(function (w) {
+    const order = BGT.getWidgetOrder();
+    box.innerHTML = order.map(function (id, idx) {
+      const w = WIDGET_META.find(function (x) { return x.id === id; });
+      if (!w) return '';
       const on = prefs[w.id] !== false;
       return '<div class="list-row">' +
         '<div class="meta"><div class="title">' + BGT.esc(w.title) + '</div>' +
         '<div class="sub">' + BGT.esc(w.desc) + '</div></div>' +
+        '<button type="button" class="btn btn-secondary btn-xs" onclick="BGT.moveWidget(\'' + w.id + '\',-1)">↑</button>' +
+        '<button type="button" class="btn btn-secondary btn-xs" onclick="BGT.moveWidget(\'' + w.id + '\',1)">↓</button>' +
         '<button type="button" class="toggle' + (on ? ' on' : '') + '" data-wid="' + w.id + '" ' +
         'onclick="BGT.toggleStatWidget(\'' + w.id + '\', this)"></button></div>';
     }).join('');
   };
+
+  BGT.moveWidget = function (id, dir) {
+    const order = BGT.getWidgetOrder();
+    const i = order.indexOf(id);
+    if (i < 0) return;
+    const j = i + dir;
+    if (j < 0 || j >= order.length) return;
+    const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+    saveWidgetOrder(order);
+    BGT.renderStatsCustomize();
+    BGT.renderStatsBody();
+  };
+
 
   BGT.toggleStatWidget = function (id, btn) {
     BGT.statWidgets[id] = !BGT.statWidgets[id];
@@ -385,9 +424,9 @@
     const player = me();
     const prefs = BGT.statWidgets;
     let html = '';
-    WIDGET_META.forEach(function (w) {
-      if (prefs[w.id] === false) return;
-      const fn = RENDERERS[w.id];
+    BGT.getWidgetOrder().forEach(function (id) {
+      if (prefs[id] === false) return;
+      const fn = RENDERERS[id];
       if (!fn) return;
       html += fn(player);
     });

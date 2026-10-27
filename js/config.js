@@ -37,6 +37,21 @@ BGT.GAME_PLAYERS = {
   'Порт Роял': [2, 5], 'Мандала': [2, 2], 'Splendor': [2, 4],
   'Каркасон': [2, 5], 'Castles of Burgundy': [2, 4], 'Имхотеп - двубоят': [2, 2]
 };
+BGT.CATALOG_GAMES = {
+  "Everdell": "pvp", "Heat": "pvp", "7 Wonder Duel": "pvp", "Ticket to ride": "pvp",
+  "Patchwork": "pvp", "Sky team": "coop", "Spirit Island": "coop", "Хляб и Бира": "pvp",
+  "Aqualin": "pvp", "Каскадия": "pvp", "Такеноко": "pvp", "Домино": "pvp",
+  "Порт Роял": "pvp", "Мандала": "pvp", "Splendor": "pvp", "Каркасон": "pvp",
+  "Castles of Burgundy": "pvp", "Имхотеп - двубоят": "pvp",
+  "Catan": "pvp", "Azul": "pvp", "Wingspan": "pvp", "Terraforming Mars": "pvp",
+  "Ark Nova": "pvp", "Brass Birmingham": "pvp", "Gloomhaven": "coop",
+  "Pandemic": "coop", "Forbidden Island": "coop", "The Crew": "coop",
+  "Codenames": "pvp", "Dixit": "pvp", "Just One": "coop", "Wavelength": "pvp",
+  "Root": "pvp", "Scythe": "pvp", "Concordia": "pvp", "Cascadia": "pvp",
+  "Quacks of Quedlinburg": "pvp", "Lost Ruins of Arnak": "pvp", "Dune Imperium": "pvp",
+  "Marvel Champions": "coop", "Arkham Horror LCG": "coop", "Nemesis": "coop",
+  "Blood Rage": "pvp", "Twilight Imperium": "pvp", "Great Western Trail": "pvp"
+};
 BGT.COMPANIONS = [
   { id: 'everdell', name: 'Everdell', file: 'everdell.html', icon: 'icons/game-everdell.svg', tone: 'forest' },
   { id: 'heat', name: 'Heat', file: 'Heat.html', icon: 'icons/game-heat.svg', tone: 'race' },
