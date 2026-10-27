@@ -1097,3 +1097,29 @@ html[data-theme="light"] .hero-result {
   vertical-align: middle;
 }
 body:not(.bgt-admin) #logSheetDelete { display: none !important; }
+
+/* Center log CTA in bottom nav */
+.bottom-nav .nav-log-main {
+  position: relative;
+  top: -10px;
+}
+.bottom-nav .nav-log-orb {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #22c55e, #15803d);
+  box-shadow: 0 8px 24px rgba(34,197,94,.45), 0 0 0 3px rgba(34,197,94,.2);
+  margin-bottom: 2px;
+}
+.bottom-nav .nav-log-orb .icon {
+  width: 26px;
+  height: 26px;
+  filter: brightness(0) invert(1);
+}
+.bottom-nav button[data-nav="log"].active .nav-log-orb,
+.bottom-nav .nav-log-main.active .nav-log-orb {
+  box-shadow: 0 10px 28px rgba(34,197,94,.55), 0 0 0 3px rgba(251,191,36,.35);
+}
+.stats-tabs { margin-bottom: 12px; }

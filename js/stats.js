@@ -407,11 +407,261 @@
     BGT.renderStatsBody();
   };
 
+
+  BGT._statsTab = localStorage.getItem('bgStatsTab') || 'overview';
+  BGT._statsPlayer = '';
+  BGT._detailMode = 'all'; /* all | game */
+  BGT._detailGame = '';
+
+  BGT.setStatsTab = function (tab) {
+    BGT._statsTab = tab;
+    try { localStorage.setItem('bgStatsTab', tab); } catch (e) {}
+    document.querySelectorAll('[data-stats-tab]').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.statsTab === tab);
+    });
+    BGT.renderStatsBody();
+  };
+
+  BGT.setStatsPlayer = function (name) {
+    BGT._statsPlayer = name || '';
+    BGT.renderStatsBody();
+  };
+
+  BGT.setDetailMode = function (mode) {
+    BGT._detailMode = mode;
+    BGT.renderStatsBody();
+  };
+
+  BGT.setDetailGame = function (game) {
+    BGT._detailGame = game || '';
+    BGT.renderStatsBody();
+  };
+
+  function allLogs() {
+    return (BGT.state.gameLogs || []).slice();
+  }
+
+  function allPlayersFromLogs(list) {
+    const set = new Set();
+    (list || allLogs()).forEach(function (l) {
+      if (l.type === 'coop') (l.participants || []).forEach(function (p) { set.add(p); });
+      else Object.keys(l.scores || {}).forEach(function (p) { set.add(p); });
+    });
+    BGT.getTableGroup().forEach(function (p) { set.add(p); });
+    return Array.from(set).filter(Boolean).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+  }
+
+  function playerWinCount(player, list) {
+    let w = 0, n = 0;
+    (list || allLogs()).forEach(function (l) {
+      if (!BGT.playerInLog(l, player)) return;
+      n++;
+      if (won(l, player)) w++;
+    });
+    return { n: n, w: w, rate: n ? Math.round(w / n * 100) : 0 };
+  }
+
+  function renderOverviewTab() {
+    const list = allLogs();
+    if (!list.length) return '<div class="empty">Няма записани партии.</div>';
+    const players = allPlayersFromLogs(list);
+    let html = '<div class="panel"><h3>Общ преглед</h3><div class="grid-3">';
+    html += '<div class="stat-pill"><div class="n">' + list.length + '</div><div class="l">Партии</div></div>';
+    const games = {};
+    list.forEach(function (l) { games[l.game] = (games[l.game] || 0) + 1; });
+    html += '<div class="stat-pill"><div class="n">' + Object.keys(games).length + '</div><div class="l">Игри</div></div>';
+    html += '<div class="stat-pill"><div class="n">' + players.length + '</div><div class="l">Играчи</div></div>';
+    html += '</div></div>';
+
+    html += '<div class="panel"><h3>Победи по играч</h3>';
+    html += players.map(function (p) {
+      const s = playerWinCount(p, list);
+      return '<div class="list-row list-tap" onclick="BGT.setStatsTab(\'player\');BGT.setStatsPlayer(\'' +
+        String(p).replace(/'/g, "\\'") + '\')"><div class="meta"><div class="title">' + BGT.esc(p) +
+        '</div><div class="sub">' + s.n + ' партии · ' + s.rate + '% win</div></div>' +
+        '<div class="sheet-score">' + s.w + '</div></div>';
+    }).join('') || '<div class="empty">—</div>';
+    html += '</div>';
+
+    html += '<div class="panel"><h3>По игри</h3>';
+    const gameRows = Object.entries(games).sort(function (a, b) { return b[1] - a[1]; });
+    html += gameRows.map(function (e) {
+      const g = e[0], n = e[1];
+      /* wins per player for this game */
+      const gLogs = list.filter(function (l) { return l.game === g; });
+      const pw = {};
+      gLogs.forEach(function (l) {
+        if (l.type === 'coop') {
+          if (l.coopResult === 'win') (l.participants || []).forEach(function (p) {
+            pw[p] = pw[p] || { w: 0, n: 0 }; pw[p].n++; pw[p].w++;
+          });
+          else (l.participants || []).forEach(function (p) {
+            pw[p] = pw[p] || { w: 0, n: 0 }; pw[p].n++;
+          });
+        } else {
+          Object.keys(l.scores || {}).forEach(function (p) {
+            pw[p] = pw[p] || { w: 0, n: 0 }; pw[p].n++;
+            if (BGT.getPvpWinners(l).includes(p)) pw[p].w++;
+          });
+        }
+      });
+      const sub = Object.entries(pw).sort(function (a, b) { return b[1].w - a[1].w; })
+        .map(function (x) { return x[0] + ' ' + x[1].w + '/' + x[1].n; }).join(' · ');
+      return '<div class="list-row list-tap" onclick="BGT.setStatsTab(\'detail\');BGT.setDetailMode(\'game\');BGT.setDetailGame(\'' +
+        String(g).replace(/'/g, "\\'") + '\')"><div class="meta"><div class="title">' + BGT.esc(g) +
+        '</div><div class="sub">' + BGT.esc(sub || (n + ' партии')) + '</div></div>' +
+        '<div class="sheet-score">' + n + '</div></div>';
+    }).join('');
+    html += '</div>';
+    return html;
+  }
+
+  function renderPlayerTab() {
+    const players = allPlayersFromLogs();
+    let sel = BGT._statsPlayer || me() || (players[0] || '');
+    if (sel && players.indexOf(sel) === -1 && players.length) sel = players[0];
+    BGT._statsPlayer = sel;
+
+    let html = '<div class="panel"><h3>Хайлайт на играч</h3>';
+    html += '<div class="field"><label>Играч</label><select id="statsPlayerSelect" onchange="BGT.setStatsPlayer(this.value)">';
+    html += players.map(function (p) {
+      return '<option value="' + BGT.esc(p) + '"' + (p === sel ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+    }).join('');
+    html += '</select></div>';
+
+    if (!sel) {
+      html += '<div class="empty">Няма играчи</div></div>';
+      return html;
+    }
+
+    const list = allLogs().filter(function (l) { return BGT.playerInLog(l, sel); });
+    const st = playerWinCount(sel, list);
+    const byG = {};
+    list.forEach(function (l) {
+      if (!byG[l.game]) byG[l.game] = { n: 0, w: 0 };
+      byG[l.game].n++;
+      if (won(l, sel)) byG[l.game].w++;
+    });
+    const byArr = Object.entries(byG).map(function (e) {
+      return { game: e[0], n: e[1].n, w: e[1].w };
+    });
+    const mostPlayed = byArr.slice().sort(function (a, b) { return b.n - a.n; })[0];
+    const mostWins = byArr.slice().sort(function (a, b) { return b.w - a.w || b.n - a.n; })[0];
+    const streak = (function () {
+      /* local streak on filtered list */
+      const newest = list.filter(function (l) { return l.type !== 'coop'; }).sort(function (a, b) {
+        return new Date(b.date || 0) - new Date(a.date || 0);
+      });
+      if (!newest.length) return null;
+      const first = won(newest[0], sel);
+      let c = 1;
+      for (let i = 1; i < newest.length; i++) {
+        if (won(newest[i], sel) === first) c++; else break;
+      }
+      return { n: c, win: first };
+    })();
+    const rec = records(sel);
+
+    html += '<div class="grid-3" style="margin-top:10px">';
+    html += '<div class="stat-pill"><div class="n">' + st.n + '</div><div class="l">Партии</div></div>';
+    html += '<div class="stat-pill"><div class="n">' + st.w + '</div><div class="l">Победи</div></div>';
+    html += '<div class="stat-pill"><div class="n">' + st.rate + '%</div><div class="l">Win rate</div></div>';
+    html += '</div>';
+
+    html += '<div class="list-row" style="margin-top:8px"><div class="meta"><div class="title">Най-играна</div><div class="sub">' +
+      (mostPlayed ? BGT.esc(mostPlayed.game) + ' · ' + mostPlayed.n + '×' : '—') + '</div></div></div>';
+    html += '<div class="list-row"><div class="meta"><div class="title">Най-много победи в</div><div class="sub">' +
+      (mostWins && mostWins.w ? BGT.esc(mostWins.game) + ' · ' + mostWins.w + 'W' : '—') + '</div></div></div>';
+    if (streak) {
+      html += '<div class="list-row"><div class="meta"><div class="title">Серия</div><div class="sub">' +
+        streak.n + ' ' + (streak.win ? 'победи' : 'загуби') + ' подред</div></div></div>';
+    }
+    if (rec.bestScore != null) {
+      html += '<div class="list-row"><div class="meta"><div class="title">Рекорд точки</div><div class="sub">' +
+        rec.bestScore + (rec.bestGame ? ' · ' + BGT.esc(rec.bestGame.game) : '') + '</div></div></div>';
+    }
+    html += '</div>';
+
+    /* H2H срещу други на масата */
+    const others = allPlayersFromLogs().filter(function (p) { return p !== sel; });
+    if (others.length) {
+      html += '<div class="panel"><h3>Директни двубои</h3>';
+      html += others.map(function (o) {
+        const h = h2hPair(sel, o);
+        if (!h.n) return '';
+        return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(sel) + ' vs ' + BGT.esc(o) +
+          '</div><div class="sub">' + h.n + ' партии</div></div><div class="sheet-score">' + h.a + '–' + h.b + '</div></div>';
+      }).join('') || '<div class="empty">Няма 1v1</div>';
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function renderDetailTab() {
+    let html = '<div class="panel"><h3>Подробна</h3>';
+    html += '<div class="chip-row">';
+    html += '<button type="button" class="chip' + (BGT._detailMode === 'all' ? ' active' : '') + '" onclick="BGT.setDetailMode(\'all\')">Всички партии</button>';
+    html += '<button type="button" class="chip' + (BGT._detailMode === 'game' ? ' active' : '') + '" onclick="BGT.setDetailMode(\'game\')">По игра</button>';
+    html += '</div>';
+
+    const list = allLogs().slice().sort(function (a, b) {
+      return new Date(b.date || 0) - new Date(a.date || 0);
+    });
+
+    if (BGT._detailMode === 'game') {
+      const games = Array.from(new Set(list.map(function (l) { return l.game; }))).sort(function (a, b) {
+        return a.localeCompare(b, 'bg');
+      });
+      html += '<div class="field" style="margin-top:10px"><label>Игра</label><select onchange="BGT.setDetailGame(this.value)">';
+      html += '<option value="">— Избери —</option>';
+      html += games.map(function (g) {
+        return '<option value="' + BGT.esc(g) + '"' + (g === BGT._detailGame ? ' selected' : '') + '>' + BGT.esc(g) + '</option>';
+      }).join('');
+      html += '</select></div>';
+      if (!BGT._detailGame) {
+        html += '<div class="empty">Избери игра</div></div>';
+        return html;
+      }
+      const gLogs = list.filter(function (l) { return l.game === BGT._detailGame; });
+      html += '<div class="hint">' + gLogs.length + ' партии</div>';
+      html += gLogs.map(function (l) {
+        let sub = BGT.formatDate(l.date);
+        if (l.type === 'coop') sub += ' · ' + (l.coopResult === 'win' ? 'Успех' : 'Неуспех') + ' · ' + (l.participants || []).join(', ');
+        else {
+          const sc = Object.entries(l.scores || {}).map(function (e) { return e[0] + ' ' + e[1]; }).join(' · ');
+          sub += ' · ' + sc;
+        }
+        const id = String(l.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return '<div class="list-row list-tap" onclick="BGT.openLogSheet(\'' + id + '\')"><div class="meta"><div class="title">' +
+          BGT.esc(l.game) + '</div><div class="sub">' + BGT.esc(sub) + '</div></div><span class="chev">›</span></div>';
+      }).join('') || '<div class="empty">Няма</div>';
+      html += '</div>';
+      return html;
+    }
+
+    html += '<div class="hint" style="margin-top:8px">' + list.length + ' партии · тап за детайл</div>';
+    html += list.slice(0, 80).map(function (l) {
+      let sub = BGT.formatDate(l.date);
+      if (l.type === 'coop') sub += ' · ' + (l.coopResult === 'win' ? 'Успех' : 'Неуспех');
+      else {
+        const w = BGT.getPvpWinners(l);
+        if (w.length) sub += ' · 🏆 ' + w.join(', ');
+      }
+      const id = String(l.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return '<div class="list-row list-tap" onclick="BGT.openLogSheet(\'' + id + '\')"><div class="meta"><div class="title">' +
+        BGT.esc(l.game) + '</div><div class="sub">' + BGT.esc(sub) + '</div></div><span class="chev">›</span></div>';
+    }).join('') || '<div class="empty">Няма записи</div>';
+    html += '</div>';
+    return html;
+  }
+
   BGT.toggleStatsCustomizePanel = function () {
-    const p = document.getElementById('statsCustomizePanel');
-    if (!p) return;
-    p.classList.toggle('hidden');
-    if (!p.classList.contains('hidden')) BGT.renderStatsCustomize();
+    /* legacy — widgets live in Още */
+    BGT.go('more');
+    setTimeout(function () {
+      BGT.toggleAcc('accWidgets');
+      BGT.renderStatsCustomize();
+    }, 50);
   };
 
   BGT.renderStatsBody = function () {
@@ -421,19 +671,12 @@
       out.innerHTML = '<div class="empty">Влез и свържи „Аз съм“, за да видиш статистики.</div>';
       return;
     }
-    const player = me();
-    const prefs = BGT.statWidgets;
-    let html = '';
-    BGT.getWidgetOrder().forEach(function (id) {
-      if (prefs[id] === false) return;
-      const fn = RENDERERS[id];
-      if (!fn) return;
-      html += fn(player);
+    document.querySelectorAll('[data-stats-tab]').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.statsTab === BGT._statsTab);
     });
-    if (!html) {
-      html = '<div class="empty">Включи поне един widget от Настройки на статистики.</div>';
-    }
-    out.innerHTML = html;
+    if (BGT._statsTab === 'player') out.innerHTML = renderPlayerTab();
+    else if (BGT._statsTab === 'detail') out.innerHTML = renderDetailTab();
+    else out.innerHTML = renderOverviewTab();
   };
 
   BGT.renderStats = function () {

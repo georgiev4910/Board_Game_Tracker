@@ -179,14 +179,10 @@
   <!-- STATS -->
   <section class="screen" id="screen-stats">
     <div class="section-title"><img class="icon" src="./icons/nav-stats.svg" alt=""> Статистика</div>
-    <div class="stats-toolbar">
-      <button type="button" class="btn btn-secondary" onclick="BGT.toggleStatsCustomizePanel()">Widgets</button>
-      <button type="button" class="btn btn-secondary" onclick="BGT.renderStatsBody()">Обнови</button>
-    </div>
-    <div class="panel hidden" id="statsCustomizePanel">
-      <h3>Показвани widgets</h3>
-      <div class="hint">Включи / изключи блоковете. Изборът се запазва на устройството.</div>
-      <div id="statsCustomize"></div>
+    <div class="chip-row stats-tabs">
+      <button type="button" class="chip active" data-stats-tab="overview" onclick="BGT.setStatsTab('overview')">Обща</button>
+      <button type="button" class="chip" data-stats-tab="player" onclick="BGT.setStatsTab('player')">Играч</button>
+      <button type="button" class="chip" data-stats-tab="detail" onclick="BGT.setStatsTab('detail')">Подробна</button>
     </div>
     <div id="statsBody"></div>
   </section>
@@ -304,6 +300,13 @@
       </div>
     </div>
 
+    <div class="acc" id="accWidgets">
+      <button type="button" class="acc-h" onclick="BGT.toggleAcc('accWidgets');BGT.renderStatsCustomize()"><span>Статистика · widgets</span><i>▾</i></button>
+      <div class="acc-b">
+        <div class="hint">Кои блокове да се показват в таб „Играч“ и редът им.</div>
+        <div id="statsCustomize"></div>
+      </div>
+    </div>
     <div class="acc" id="accLook">
       <button type="button" class="acc-h" onclick="BGT.toggleAcc('accLook')"><span>Изглед</span><i>▾</i></button>
       <div class="acc-b">
@@ -345,11 +348,12 @@
   <button type="button" data-nav="home" class="active" onclick="BGT.go('home')">
     <img class="icon" src="./icons/nav-home.svg" alt=""><span>Начало</span>
   </button>
-  <button type="button" data-nav="log" onclick="BGT.go('log')">
-    <img class="icon" src="./icons/nav-log.svg" alt=""><span>Запис</span>
-  </button>
   <button type="button" data-nav="random" onclick="BGT.go('random')">
     <img class="icon" src="./icons/nav-dice.svg" alt=""><span>Рандом</span>
+  </button>
+  <button type="button" data-nav="log" class="nav-log-main" onclick="BGT.go('log')">
+    <span class="nav-log-orb"><img class="icon" src="./icons/nav-log.svg" alt=""></span>
+    <span>Запис</span>
   </button>
   <button type="button" data-nav="stats" onclick="BGT.go('stats')">
     <img class="icon" src="./icons/nav-stats.svg" alt=""><span>Стат.</span>
