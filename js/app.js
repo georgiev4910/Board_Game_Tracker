@@ -129,6 +129,23 @@
   };
 
   /* ---------- Log ---------- */
+  BGT.onLogGameChange = function () {
+    const box = document.getElementById('logExpansions');
+    if (!box) return;
+    const game = (document.getElementById('logGameSelect') || {}).value || '';
+    if (!game) { box.innerHTML = ''; return; }
+    const all = BGT.getAllExpansions(game);
+    const owned = BGT.getOwnedExpansions(game);
+    if (!all.length) {
+      box.innerHTML = '<div class="hint">Няма въведени разширения за тази игра (редактирай от Игри → ✎).</div>';
+      return;
+    }
+    box.innerHTML = '<div class="hint">Разширения (собственост): ' +
+      all.map(function (e) {
+        const has = owned.indexOf(e) !== -1;
+        return '<span class="chip' + (has ? ' active' : '') + '" style="pointer-events:none">' + BGT.esc(e) + (has ? ' ✓' : '') + '</span>';
+      }).join(' ') + '</div>';
+  };
   BGT.renderLog = function () {
     const games = BGT.getActiveGames().sort(function (a, b) {
       return a.localeCompare(b, 'bg');
@@ -138,9 +155,13 @@
       const cur = sel.value;
       sel.innerHTML = '<option value="">— Избери игра —</option>' +
         games.map(function (g) {
-          return '<option value="' + BGT.esc(g) + '"' + (g === cur ? ' selected' : '') + '>' + BGT.esc(g) + '</option>';
+          const pr = BGT.getGamePlayerRange(g);
+          const label = g + ' (' + pr[0] + '–' + pr[1] + 'p)';
+          return '<option value="' + BGT.esc(g) + '"' + (g === cur ? ' selected' : '') + '>' + BGT.esc(label) + '</option>';
         }).join('');
+      sel.onchange = BGT.onLogGameChange;
     }
+    BGT.onLogGameChange();
     BGT.renderLogPlayers();
     const status = document.getElementById('logAccountStatus');
     if (status) {
@@ -296,6 +317,9 @@
     const range = BGT.getGamePlayerRange(name);
     if (num >= 5) return range[1] >= 5;
     return num >= range[0] && num <= range[1];
+  };
+  BGT.isSoloCapable = function (name) {
+    return BGT.getGamePlayerRange(name)[0] <= 1;
   };
 
   BGT.renderRandom = function () {
@@ -569,6 +593,94 @@
     return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   };
 
+
+  BGT.getOwnedExpansions = function (game) {
+    const map = (BGT.state.gameExpansions || {})[game] || {};
+    return Object.keys(map).filter(function (k) { return !!map[k]; }).sort(function (a, b) {
+      return a.localeCompare(b, 'bg');
+    });
+  };
+  BGT.getAllExpansions = function (game) {
+    const map = (BGT.state.gameExpansions || {})[game] || {};
+    return Object.keys(map).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+  };
+
+  let _editGameName = null;
+  let _editGameType = 'pvp';
+  BGT.openGameEdit = function (name) {
+    _editGameName = name;
+    _editGameType = (BGT.state.myGamesObj || {})[name] || 'pvp';
+    const title = document.getElementById('gameEditTitle');
+    if (title) title.textContent = name;
+    const range = BGT.getGamePlayerRange(name);
+    const minEl = document.getElementById('editGameMin');
+    const maxEl = document.getElementById('editGameMax');
+    if (minEl) minEl.value = range[0];
+    if (maxEl) maxEl.value = range[1];
+    document.getElementById('editTypePvp') && document.getElementById('editTypePvp').classList.toggle('active', _editGameType === 'pvp');
+    document.getElementById('editTypeCoop') && document.getElementById('editTypeCoop').classList.toggle('active', _editGameType === 'coop');
+    BGT.renderEditExpList();
+    const sheet = document.getElementById('gameEditSheet');
+    if (sheet) { sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false'); }
+  };
+  BGT.closeGameEdit = function () {
+    const sheet = document.getElementById('gameEditSheet');
+    if (sheet) { sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); }
+    _editGameName = null;
+  };
+  BGT.setEditGameType = function (t) {
+    _editGameType = t;
+    document.getElementById('editTypePvp') && document.getElementById('editTypePvp').classList.toggle('active', t === 'pvp');
+    document.getElementById('editTypeCoop') && document.getElementById('editTypeCoop').classList.toggle('active', t === 'coop');
+  };
+  BGT.renderEditExpList = function () {
+    const box = document.getElementById('editExpList');
+    if (!box || !_editGameName) return;
+    const map = (BGT.state.gameExpansions || {})[_editGameName] || {};
+    const keys = Object.keys(map).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+    if (!keys.length) {
+      box.innerHTML = '<div class="empty">Няма въведени разширения</div>';
+      return;
+    }
+    box.innerHTML = keys.map(function (exp) {
+      const on = !!map[exp];
+      const ea = String(exp).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(exp) + '</div></div>' +
+        '<button type="button" class="toggle' + (on ? ' on' : '') + '" onclick="BGT.toggleEditExpansion(\'' + ea + '\', this)"></button></div>';
+    }).join('');
+  };
+  BGT.toggleEditExpansion = function (exp, btn) {
+    if (!_editGameName) return;
+    BGT.state.gameExpansions = BGT.state.gameExpansions || {};
+    BGT.state.gameExpansions[_editGameName] = BGT.state.gameExpansions[_editGameName] || {};
+    const cur = !!BGT.state.gameExpansions[_editGameName][exp];
+    BGT.state.gameExpansions[_editGameName][exp] = !cur;
+    if (btn) btn.classList.toggle('on', !cur);
+  };
+  BGT.addEditExpansion = function () {
+    if (!_editGameName) return;
+    const inp = document.getElementById('editExpNew');
+    const name = (inp && inp.value || '').trim();
+    if (!name) return;
+    BGT.state.gameExpansions = BGT.state.gameExpansions || {};
+    BGT.state.gameExpansions[_editGameName] = BGT.state.gameExpansions[_editGameName] || {};
+    BGT.state.gameExpansions[_editGameName][name] = true;
+    if (inp) inp.value = '';
+    BGT.renderEditExpList();
+  };
+  BGT.saveGameEdit = function () {
+    if (!_editGameName) return;
+    const min = document.getElementById('editGameMin');
+    const max = document.getElementById('editGameMax');
+    BGT.setGamePlayerRange(_editGameName, min && min.value, max && max.value);
+    BGT.state.myGamesObj = BGT.state.myGamesObj || {};
+    BGT.state.myGamesObj[_editGameName] = _editGameType;
+    BGT.saveAll();
+    BGT.toast('Запазено: ' + _editGameName + ' (' + BGT.getGamePlayerRange(_editGameName).join('–') + 'p)');
+    BGT.closeGameEdit();
+    BGT.renderLibrary();
+  };
+
   BGT.renderLibrary = function () {
     const box = document.getElementById('libraryList');
     if (!box) return;
@@ -612,9 +724,12 @@
         actions += '<button type="button" class="btn btn-primary btn-xs" onclick="BGT.activateGame(\'' + ga + '\')">Вкл.</button>';
       }
       const pr = BGT.getGamePlayerRange(g);
-      const sub = (type === 'coop' ? 'Co-op' : 'PvP') + ' · ' + pr[0] + '–' + pr[1] + 'p' +
+      const exps = BGT.getOwnedExpansions(g);
+      let sub = (type === 'coop' ? 'Co-op' : 'PvP') + ' · ' + pr[0] + '–' + pr[1] + 'p' +
+        (pr[0] <= 1 ? ' · соло' : '') +
         (active ? ' · активна' : (inLib ? ' · неактивна' : ' · каталог')) +
         (owned ? ' · рафт' : '');
+      if (exps.length) sub += ' · exp: ' + exps.join(', ');
       return '<div class="list-row' + (active || !inLib ? '' : ' dim') + '"><div class="meta"><div class="title">' +
         BGT.esc(g) + '</div><div class="sub">' + BGT.esc(sub) + '</div></div>' + actions + '</div>';
     }).join('') || '<div class="empty">Няма игри в този филтър</div>';
@@ -991,10 +1106,14 @@
     const splash = document.getElementById('splash');
     const face = document.getElementById('splashFace');
     if (!splash) return;
-    if (!BGT.state.showSplash) {
+    /* само първо отваряне в тази tab-сесия — refresh не показва отново */
+    let already = false;
+    try { already = sessionStorage.getItem('bgSplashShown') === '1'; } catch (e) {}
+    if (!BGT.state.showSplash || already) {
       splash.classList.add('done');
       return;
     }
+    try { sessionStorage.setItem('bgSplashShown', '1'); } catch (e) {}
     let n = 0;
     const faces = [1, 2, 3, 4, 5, 6];
     const iv = setInterval(function () {

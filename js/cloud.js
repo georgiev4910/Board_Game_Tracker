@@ -78,6 +78,9 @@ async function loadFromCloud() {
     if (cloud.gamePlayers && typeof cloud.gamePlayers === 'object') {
       BGT.state.gamePlayers = Object.assign({}, BGT.GAME_PLAYERS || {}, cloud.gamePlayers);
     }
+    if (cloud.gameExpansions && typeof cloud.gameExpansions === 'object') {
+      BGT.state.gameExpansions = Object.assign({}, BGT.state.gameExpansions || {}, cloud.gameExpansions);
+    }
 
     let cloudLogs = Array.isArray(cloud.gameLogs)
       ? cloud.gameLogs.map(function (l) { return Object.assign({}, l, { id: BGT.ensureLogId(l) }); })
@@ -160,6 +163,7 @@ async function saveToCloud(opts) {
       myGamesObj: BGT.state.myGamesObj,
       myPlayers: BGT.state.myPlayers,
       gamePlayers: BGT.state.gamePlayers || {},
+      gameExpansions: BGT.state.gameExpansions || {},
       playerPrefs: collectPrefs(),
       lastUpdated: new Date().toISOString(),
       updatedBy: auth.currentUser.uid
