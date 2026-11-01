@@ -276,10 +276,24 @@
   };
 
   /* ---------- Randomizer ---------- */
+  BGT.getGamePlayerRange = function (name) {
+    const custom = (BGT.state.gamePlayers || {})[name];
+    if (Array.isArray(custom) && custom.length >= 2) return [Number(custom[0]) || 1, Number(custom[1]) || 6];
+    const conf = (BGT.GAME_PLAYERS || {})[name];
+    if (Array.isArray(conf) && conf.length >= 2) return [Number(conf[0]) || 1, Number(conf[1]) || 6];
+    return [2, 6];
+  };
+  BGT.setGamePlayerRange = function (name, min, max) {
+    let a = Math.max(1, Math.min(20, Number(min) || 1));
+    let b = Math.max(1, Math.min(20, Number(max) || a));
+    if (b < a) { const t = a; a = b; b = t; }
+    BGT.state.gamePlayers = BGT.state.gamePlayers || {};
+    BGT.state.gamePlayers[name] = [a, b];
+  };
   BGT.gameSupportsPlayers = function (name, n) {
     if (n === 'all' || n == null) return true;
     const num = Number(n);
-    const range = BGT.GAME_PLAYERS[name] || [2, 6];
+    const range = BGT.getGamePlayerRange(name);
     if (num >= 5) return range[1] >= 5;
     return num >= range[0] && num <= range[1];
   };
@@ -431,9 +445,9 @@
 
     const linkSel = document.getElementById('linkPlayerSelect');
     if (linkSel) {
-      const players = BGT.getTableGroup();
+      const players = BGT.collectKnownPlayers();
       const me = BGT.getMyLinkedPlayer();
-      linkSel.innerHTML = '<option value="">— Избери —</option>' +
+      linkSel.innerHTML = '<option value="">— Избери съществуващ —</option>' +
         players.map(function (p) {
           return '<option value="' + BGT.esc(p) + '"' + (p === me ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
         }).join('');
@@ -503,17 +517,26 @@
     const inp = document.getElementById('newGameName');
     const name = (inp && inp.value || '').trim();
     if (!name) return BGT.toast('Въведи име', 'info');
+    const minEl = document.getElementById('newGameMin');
+    const maxEl = document.getElementById('newGameMax');
+    const min = minEl ? Number(minEl.value) : 2;
+    const max = maxEl ? Number(maxEl.value) : 4;
     BGT.state.myGamesObj = BGT.state.myGamesObj || {};
     BGT.state.myGamesObj[name] = _newGameType || 'pvp';
+    BGT.setGamePlayerRange(name, min, max);
     BGT.state.inactiveGames = (BGT.state.inactiveGames || []).filter(function (g) { return g !== name; });
     BGT.saveAll();
     if (inp) inp.value = '';
-    BGT.toast('В библиотеката: ' + name);
+    BGT.toast('В библиотеката: ' + name + ' (' + BGT.getGamePlayerRange(name).join('–') + ' играчи)');
     BGT.renderLibrary();
   };
   BGT.activateGame = function (name, type) {
     BGT.state.myGamesObj = BGT.state.myGamesObj || {};
     if (!BGT.state.myGamesObj[name]) BGT.state.myGamesObj[name] = type || 'pvp';
+    if (!(BGT.state.gamePlayers || {})[name]) {
+      const conf = (BGT.GAME_PLAYERS || {})[name] || [2, 4];
+      BGT.setGamePlayerRange(name, conf[0], conf[1]);
+    }
     BGT.state.inactiveGames = (BGT.state.inactiveGames || []).filter(function (g) { return g !== name; });
     BGT.saveAll();
     BGT.toast('Активна: ' + name);
@@ -588,7 +611,8 @@
       } else if (BGT.isAdmin()) {
         actions += '<button type="button" class="btn btn-primary btn-xs" onclick="BGT.activateGame(\'' + ga + '\')">Вкл.</button>';
       }
-      const sub = (type === 'coop' ? 'Co-op' : 'PvP') +
+      const pr = BGT.getGamePlayerRange(g);
+      const sub = (type === 'coop' ? 'Co-op' : 'PvP') + ' · ' + pr[0] + '–' + pr[1] + 'p' +
         (active ? ' · активна' : (inLib ? ' · неактивна' : ' · каталог')) +
         (owned ? ' · рафт' : '');
       return '<div class="list-row' + (active || !inLib ? '' : ' dim') + '"><div class="meta"><div class="title">' +

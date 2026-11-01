@@ -16,6 +16,7 @@
 
   BGT.state = {
     myGamesObj: loadJSON('myGamesObj', Object.assign({}, BGT.INITIAL_GAMES)),
+    gamePlayers: loadJSON('bgGamePlayers', Object.assign({}, BGT.GAME_PLAYERS || {})),
     myPlayers: loadJSON('myPlayers', ['Нина', 'Митко']),
     gameLogs: loadJSON('gameLogs', []),
     /** per player ownership: { "Митко": { "Everdell": true, ... }, ... } */
@@ -39,6 +40,7 @@
   BGT.persistLocal = function () {
     const s = BGT.state;
     saveJSON('myGamesObj', s.myGamesObj);
+    saveJSON('bgGamePlayers', s.gamePlayers || {});
     saveJSON('myPlayers', s.myPlayers);
     saveJSON('gameLogs', s.gameLogs);
     saveJSON('bgGameOwnership', s.gameOwnership);
