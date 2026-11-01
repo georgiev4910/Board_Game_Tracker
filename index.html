@@ -277,7 +277,8 @@
           <button type="button" class="btn btn-secondary" onclick="BGT.exportLogs()">Backup JSON</button>
           <button type="button" class="btn btn-secondary" onclick="document.getElementById('importLogsFile').click()">Импорт</button>
         </div>
-        <button type="button" class="btn btn-primary" style="margin-top:8px" onclick="BGT.forcePushCloud()">Качи този архив в облака</button>
+        <button type="button" class="btn btn-primary" style="margin-top:8px" onclick="BGT.forcePullCloud()">Изтегли архива от облака</button>
+        <button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.forcePushCloud()">Качи този архив в облака</button>
         <div class="hint">За админ: когато лаптопът има пълната история (напр. 57–78), качи я преди телефона да пише.</div>
         <input type="file" id="importLogsFile" accept="application/json,.json" class="hidden" onchange="BGT.importLogs(event)">
         <button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.openLogsSheet()">Отвори историята</button>

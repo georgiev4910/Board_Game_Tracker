@@ -1140,6 +1140,25 @@
     if (typeof BGT.renderHome === 'function') BGT.renderHome();
   };
 
+  BGT.forcePullCloud = async function () {
+    if (!BGT.isLoggedIn()) return BGT.toast('Влез в акаунт', 'info');
+    BGT.toast('Изтегляне от облака…', 'info');
+    try {
+      const fn = window.forcePullFromCloud;
+      if (!fn) return BGT.toast('Cloud модулът не е готов — refresh', 'info');
+      const ok = await fn();
+      const n = (BGT.state.gameLogs || []).length;
+      if (ok) BGT.toast('Заредени ' + n + ' партии от облака');
+      else BGT.toast('Неуспешно изтегляне (' + n + ' локални)', 'info');
+      if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill(ok ? 'ok' : 'off');
+      BGT.renderHome();
+      if (typeof BGT.renderStatsBody === 'function') BGT.renderStatsBody();
+      BGT.renderMore();
+    } catch (e) {
+      BGT.toast('Грешка: ' + (e.message || 'pull'), 'info');
+    }
+  };
+
   BGT.forcePushCloud = async function () {
     if (!BGT.isLoggedIn()) return BGT.toast('Влез в акаунт', 'info');
     if (!BGT.isAdmin()) return BGT.toast('Само админ може да качи архива принудително', 'info');

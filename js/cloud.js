@@ -105,8 +105,16 @@ async function loadFromCloud() {
     const delSet = new Set(BGT.state.deletedLogIds || []);
     let merged = BGT.mergeLogsById(cloudLogs, localLogs).filter(function (l) { return !delSet.has(l.id); });
     if (!merged.length && cloudLogs.length) merged = cloudLogs.filter(function (l) { return !delSet.has(l.id); });
+    /* телефон с 0–3 локални vs пълен облак → вземи облака като основа */
+    if (cloudLogs.length > localLogs.length + 3 && cloudLogs.length >= merged.length) {
+      merged = BGT.mergeLogsById(cloudLogs, localLogs).filter(function (l) { return !delSet.has(l.id); });
+    }
+    if (cloudLogs.length && localLogs.length <= 3 && cloudLogs.length > localLogs.length) {
+      merged = BGT.mergeLogsById(cloudLogs, localLogs).filter(function (l) { return !delSet.has(l.id); });
+    }
 
     BGT.state.gameLogs = merged;
+    console.info('[BGT] loadFromCloud local=', localLogs.length, 'cloud=', cloudLogs.length, 'merged=', merged.length);
     if (cloud.playerPrefs) applyPrefs(cloud.playerPrefs);
     if (cloud.admins) {
       try { localStorage.setItem('bgAdmins', JSON.stringify(cloud.admins)); } catch (e) {}
@@ -247,6 +255,16 @@ function startListener() {
 }
 
 window.saveDataToFirebase = saveToCloud;
+
+window.forcePullFromCloud = async function () {
+  cloudReady = false;
+  if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('local');
+  const ok = await loadFromCloud();
+  if (ok && typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
+  if (typeof BGT.refreshAll === 'function') BGT.refreshAll();
+  return ok;
+};
+
 window.getAuthUser = function () { return auth.currentUser || window.__bgtAuthUser; };
 
 window.authSignIn = async function (email, password) {
