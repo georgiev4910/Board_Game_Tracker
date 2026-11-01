@@ -1114,9 +1114,9 @@ body:not(.bgt-admin) #logSheetDelete { display: none !important; }
   margin-bottom: 2px;
 }
 .bottom-nav .nav-log-orb .icon {
-  width: 26px;
-  height: 26px;
-  filter: brightness(0) invert(1);
+  width: 28px;
+  height: 28px;
+  filter: none;
 }
 .bottom-nav button[data-nav="log"].active .nav-log-orb,
 .bottom-nav .nav-log-main.active .nav-log-orb {

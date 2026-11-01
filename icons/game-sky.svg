@@ -1,4 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <rect width="64" height="64" rx="16" fill="#0c4a6e"/>
-  <path d="M12 36c4-10 12-16 20-16s16 6 20 16" stroke="#38bdf8" stroke-width="3" fill="none"/><path d="M18 40h28l-4 8H22l-4-8z" fill="#0ea5e9"/><circle cx="40" cy="20" r="5" fill="#fef08a"/>
+  <!-- plane -->
+  <path d="M8 34l48-10-6 8 6 4-20 2-8 10h-6l4-10-18 2 0-6z" fill="#e0f2fe"/>
+  <circle cx="18" cy="18" r="3" fill="#7dd3fc"/>
+  <circle cx="48" cy="48" r="2" fill="#7dd3fc"/>
 </svg>

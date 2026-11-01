@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="16" fill="#422006"/>
-  <rect x="14" y="14" width="36" height="36" rx="4" fill="#eab308"/><path d="M14 32h36M32 14v36" stroke="#854d0e" stroke-width="2"/><circle cx="32" cy="32" r="6" fill="#fef3c7" stroke="#854d0e"/>
+  <rect width="64" height="64" rx="16" fill="#1e3a5f"/>
+  <!-- tile + meeple -->
+  <rect x="12" y="12" width="40" height="40" rx="4" fill="#3b82f6"/>
+  <path d="M12 32h40M32 12v40" stroke="#93c5fd" stroke-width="2"/>
+  <path d="M32 28c-3 0-5 2-5 5v2h10v-2c0-3-2-5-5-5z" fill="#fef3c7"/>
+  <circle cx="32" cy="24" r="4" fill="#fef3c7"/>
+  <path d="M24 40h16v4H24z" fill="#fef3c7"/>
 </svg>
