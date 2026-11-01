@@ -30,6 +30,9 @@
     deletedLogIds: loadJSON('bgDeletedLogIds', []),
     theme: localStorage.getItem('bgTheme') || 'dark',
     homeH2H: localStorage.getItem('bgHomeH2H') === '1',
+    homeMode: localStorage.getItem('bgHomeMode') || 'buttons',
+    homeH2HLeft: localStorage.getItem('bgHomeH2HLeft') || '',
+    homeH2HRight: localStorage.getItem('bgHomeH2HRight') || '',
     currentLogFilter: 'pvp',
     randPlayers: 'all',
     randPriority: '0',
@@ -55,6 +58,9 @@
     if (s.activeTable) localStorage.setItem('bgActiveTable', s.activeTable);
     localStorage.setItem('bgTheme', s.theme);
     localStorage.setItem('bgHomeH2H', s.homeH2H ? '1' : '0');
+    localStorage.setItem('bgHomeMode', s.homeMode || 'buttons');
+    if (s.homeH2HLeft) localStorage.setItem('bgHomeH2HLeft', s.homeH2HLeft); else localStorage.removeItem('bgHomeH2HLeft');
+    if (s.homeH2HRight) localStorage.setItem('bgHomeH2HRight', s.homeH2HRight); else localStorage.removeItem('bgHomeH2HRight');
     localStorage.setItem('bgInteractiveDice', s.interactiveDice ? '1' : '0');
     localStorage.setItem('bgInteractiveHero', s.interactiveHero ? '1' : '0');
     localStorage.setItem('bgShowSplash', s.showSplash ? '1' : '0');

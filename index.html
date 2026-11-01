@@ -89,28 +89,7 @@
         <div class="stat-pill"><div class="n" id="homeStatTable">–</div><div class="l">На масата</div></div>
       </div>
     </div>
-    <div class="grid-2" style="margin-bottom:12px">
-      <button type="button" class="action-tile" onclick="BGT.go('log')">
-        <img class="icon-lg" src="./icons/nav-log.svg" alt="">
-        <span class="t">Запис</span>
-        <span class="d">Логни резултат за минута</span>
-      </button>
-      <button type="button" class="action-tile" onclick="BGT.go('random')">
-        <img class="icon-lg" src="./icons/nav-dice.svg" alt="">
-        <span class="t">Рандом</span>
-        <span class="d">Какво играем довечера?</span>
-      </button>
-      <button type="button" class="action-tile" onclick="BGT.go('stats')">
-        <img class="icon-lg" src="./icons/nav-stats.svg" alt="">
-        <span class="t">Статистика</span>
-        <span class="d">Твоите победи и серии</span>
-      </button>
-      <button type="button" class="action-tile" onclick="BGT.go('library')">
-        <img class="icon-lg" src="./icons/nav-shelf.svg" alt="">
-        <span class="t">Игри</span>
-        <span class="d">Активни · неактивни · каталог</span>
-      </button>
-    </div>
+    <div id="homeMain"></div>
     <div class="panel">
       <h3>Последна партия</h3>
       <div id="homeLast"></div>
@@ -317,9 +296,21 @@
       </div>
     </div>
     <div class="acc" id="accLook">
-      <button type="button" class="acc-h" onclick="BGT.toggleAcc('accLook')"><span>Изглед</span><i>▾</i></button>
+      <button type="button" class="acc-h" onclick="BGT.toggleAcc('accLook')"><span>Изглед & начален екран</span><i>▾</i></button>
       <div class="acc-b">
         <button type="button" class="btn btn-secondary" onclick="BGT.toggleTheme()">Светъл / тъмен режим</button>
+        <div class="field" style="margin-top:12px"><label>Начален екран</label>
+          <select id="homeModeSelect" onchange="BGT.setHomeMode(this.value)">
+            <option value="buttons">Бързи бутони</option>
+            <option value="h2h">Head-to-head</option>
+            <option value="table">Победи по игри</option>
+          </select>
+        </div>
+        <div id="homeH2HSettings" class="hidden">
+          <div class="field"><label>Играч А</label><select id="homeH2HLeft" onchange="BGT.setHomeH2H()"></select></div>
+          <div class="field"><label>Играч Б</label><select id="homeH2HRight" onchange="BGT.setHomeH2H()"></select></div>
+        </div>
+        <div class="hint">Промяната се вижда веднага на Начало.</div>
       </div>
     </div>
   </section>
