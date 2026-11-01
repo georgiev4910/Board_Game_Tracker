@@ -66,6 +66,7 @@ async function loadFromCloud() {
         BGT.persistLocal();
         cloudReady = true;
         BGT.toast('Възстановени ' + recovered.length + ' партии от backup', 'info');
+        if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
         setTimeout(function () { saveToCloud({ forceLogs: true }); }, 400);
         return true;
       }
@@ -114,9 +115,13 @@ async function loadFromCloud() {
     lastKnownUpdated = cloud.lastUpdated || '';
     BGT.persistLocal();
     cloudReady = true;
+    if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
 
     if (merged.length && (!cloud.gameLogs || !cloud.gameLogs.length)) {
-      setTimeout(function () { saveToCloud({ forceLogs: true }); }, 400);
+      setTimeout(function () { saveToCloud({ forceLogs: true, forcePush: true }); }, 400);
+    } else if (localLogs.length > (cloudLogs.length || 0) + 3) {
+      /* локалният архив е ясно по-пълен от облака — качи merge (лаптоп 57–78 vs телефон 1–3) */
+      setTimeout(function () { saveToCloud({ forceLogs: true, forcePush: true }); }, 600);
     }
     return true;
   } catch (e) {
@@ -155,6 +160,14 @@ async function saveToCloud(opts) {
       if (!logsWithId.length && cloudLogs.length && delSet.size === 0) {
         logsWithId = cloudLogs.slice();
       }
+      /* Ако локалният архив е ясно по-богат и forcePush — не позволявай cloud-only subset да „победи“ */
+      if (opts.forcePush && localLogs.length > (cloudLogs ? cloudLogs.length : 0)) {
+        logsWithId = BGT.mergeLogsById(localLogs, cloudLogs || []).filter(function (l) { return !delSet.has(l.id); });
+      }
+      BGT.state.gameLogs = logsWithId;
+      BGT.persistLocal();
+    } else if (opts.forcePush && localLogs.length) {
+      logsWithId = localLogs.filter(function (l) { return !delSet.has(l.id); });
       BGT.state.gameLogs = logsWithId;
       BGT.persistLocal();
     }
@@ -178,6 +191,7 @@ async function saveToCloud(opts) {
 
     await setDoc(docRef, payload, { merge: true });
     lastKnownUpdated = payload.lastUpdated;
+    if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
 
     if (logsWithId && logsWithId.length > 0) {
       try {
@@ -262,6 +276,7 @@ onAuthStateChanged(auth, async function (user) {
     const linked = BGT.getMyLinkedPlayer();
     document.body.classList.toggle('bgt-linked', !!linked);
     if (typeof BGT.applyAdminUI === 'function') BGT.applyAdminUI();
+    if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
     if (typeof BGT.refreshAll === 'function') BGT.refreshAll();
   } else {
     if (unsubSnapshot) { try { unsubSnapshot(); } catch (e) {} unsubSnapshot = null; }
@@ -269,6 +284,7 @@ onAuthStateChanged(auth, async function (user) {
     document.body.classList.remove('bgt-linked');
     document.body.classList.remove('bgt-admin');
     if (typeof BGT.applyAdminUI === 'function') BGT.applyAdminUI();
+    if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('off');
     if (typeof BGT.refreshAll === 'function') BGT.refreshAll();
   }
 });

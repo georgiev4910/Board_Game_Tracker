@@ -242,7 +242,8 @@
           <button type="button" class="btn btn-primary" onclick="BGT.linkMe()">Свържи с избрания</button>
           <div class="field" style="margin-top:12px"><label>Или нов играч</label><input type="text" id="linkNewPlayerName" placeholder="Име на нов играч"></div>
           <button type="button" class="btn btn-secondary" onclick="BGT.linkMeAsNew()">Създай и свържи</button>
-          <button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.doLogout()">Изход</button>
+          <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+          <button type="button" class="btn btn-danger" id="btnLogout" onclick="BGT.doLogout()">Изход от акаунта</button>
         </div>
       </div>
     </div>
@@ -276,6 +277,8 @@
           <button type="button" class="btn btn-secondary" onclick="BGT.exportLogs()">Backup JSON</button>
           <button type="button" class="btn btn-secondary" onclick="document.getElementById('importLogsFile').click()">Импорт</button>
         </div>
+        <button type="button" class="btn btn-primary" style="margin-top:8px" onclick="BGT.forcePushCloud()">Качи този архив в облака</button>
+        <div class="hint">За админ: когато лаптопът има пълната история (напр. 57–78), качи я преди телефона да пише.</div>
         <input type="file" id="importLogsFile" accept="application/json,.json" class="hidden" onchange="BGT.importLogs(event)">
         <button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.openLogsSheet()">Отвори историята</button>
       </div>

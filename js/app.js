@@ -742,7 +742,8 @@
           (BGT.isAdmin() ? ' <span class="admin-badge">ADMIN</span>' : '') +
           '</div><div class="sub">Аз съм: ' +
           BGT.esc(BGT.getMyLinkedPlayer() || '— не е свързано') +
-          '</div></div></div>';
+          '</div></div></div>' +
+          '<button type="button" class="btn btn-danger" style="margin-top:10px" onclick="BGT.doLogout()">Изход от акаунта</button>';
       }
     } else {
       if (loginFields) loginFields.classList.remove('hidden');
@@ -1139,6 +1140,29 @@
     if (typeof BGT.renderHome === 'function') BGT.renderHome();
   };
 
+  BGT.forcePushCloud = async function () {
+    if (!BGT.isLoggedIn()) return BGT.toast('Влез в акаунт', 'info');
+    if (!BGT.isAdmin()) return BGT.toast('Само админ може да качи архива принудително', 'info');
+    const n = (BGT.state.gameLogs || []).length;
+    if (!n) return BGT.toast('Локално няма партии за качване', 'info');
+    if (!confirm('Качване на ' + n + ' локални партии в облака?\nЛаптопът става източник; merge пази и евентуални нови id от облака.')) return;
+    BGT.toast('Качване…', 'info');
+    if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('local');
+    try {
+      const fn = window.saveDataToFirebase || (window.BGTCloud && window.BGTCloud.save);
+      if (!fn) return BGT.toast('Cloud модулът не е готов', 'info');
+      const ok = await fn({ forceLogs: true, forcePush: true });
+      if (ok) {
+        BGT.toast('Облакът е обновен (' + (BGT.state.gameLogs || []).length + ' партии)');
+        if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
+      } else {
+        BGT.toast('Качването не успя — опитай пак след 2 сек', 'info');
+      }
+    } catch (e) {
+      BGT.toast('Грешка: ' + (e.message || 'sync'), 'info');
+    }
+  };
+
   BGT.exportLogs = function () {
     const data = {
       exportedAt: new Date().toISOString(),
@@ -1203,8 +1227,16 @@
     }
   };
   BGT.doLogout = async function () {
-    await window.authSignOut();
-    BGT.toast('Излязохте', 'info');
+    try {
+      if (typeof window.authSignOut === 'function') await window.authSignOut();
+      else if (window.BGTCloud && window.BGTCloud.signOut) await window.BGTCloud.signOut();
+      document.body.classList.remove('bgt-authed', 'bgt-linked', 'bgt-admin');
+      window.__bgtAuthUser = null;
+      if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('off');
+      BGT.toast('Излязохте', 'info');
+    } catch (e) {
+      BGT.toast('Грешка при изход: ' + (e.message || ''), 'info');
+    }
     BGT.renderMore();
     BGT.renderHome();
   };
