@@ -36,6 +36,35 @@
     return Object.keys(BGT.state.myGamesObj || {}).filter(BGT.isGameActive);
   };
 
+  BGT.collectKnownPlayers = function () {
+    const set = new Set();
+    function add(p) {
+      p = String(p || '').trim();
+      if (p) set.add(p);
+    }
+    try { BGT.getTableGroup().forEach(add); } catch (e) {}
+    (BGT.state.myPlayers || []).forEach(add);
+    const tables = BGT.state.tables || {};
+    Object.keys(tables).forEach(function (k) {
+      (tables[k] || []).forEach(add);
+    });
+    (BGT.state.gameLogs || []).forEach(function (l) {
+      if (!l) return;
+      if (l.type === 'coop') (l.participants || []).forEach(add);
+      else {
+        Object.keys(l.scores || {}).forEach(add);
+        (l.winners || []).forEach(add);
+        if (l.winner) add(l.winner);
+      }
+    });
+    /* names already linked on any account */
+    const links = BGT.state.accountLinks || {};
+    Object.keys(links).forEach(function (k) { add(links[k]); });
+    return Array.from(set).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+  };
+
+
+
 
   /* ---------- Collection / ownership ---------- */
   BGT.getOwnership = function (player) {
@@ -469,6 +498,54 @@
     return BGT.getGamePlayerRange(name)[0] <= 1;
   };
 
+
+  BGT.getCompanionForGame = function (gameName) {
+    const list = BGT.COMPANIONS || [];
+    if (!gameName || !list.length) return null;
+    const n = String(gameName).toLowerCase().trim();
+    const aliases = {
+      'everdell': 'everdell',
+      'heat': 'heat',
+      'carcassonne': 'carcassonne',
+      'каркасон': 'carcassonne',
+      'sky team': 'skyteam',
+      'skyteam': 'skyteam',
+      'castles of burgundy': 'castles',
+      'castles': 'castles',
+      'spirit island': 'spirit',
+      'спирит': 'spirit'
+    };
+    let id = null;
+    Object.keys(aliases).forEach(function (k) {
+      if (n === k || n.indexOf(k) !== -1) id = aliases[k];
+    });
+    if (!id) {
+      for (let i = 0; i < list.length; i++) {
+        if (n.indexOf(String(list[i].name).toLowerCase()) !== -1) return list[i];
+      }
+      return null;
+    }
+    return list.find(function (c) { return c.id === id; }) || null;
+  };
+
+  BGT.renderCompanionList = function () {
+    const cbox = document.getElementById('companionList');
+    if (!cbox) return;
+    const list = BGT.COMPANIONS || [];
+    if (!list.length) {
+      cbox.innerHTML = '<div class="empty">Няма companion apps</div>';
+      return;
+    }
+    cbox.innerHTML = list.map(function (c) {
+      const icon = (c.icon || '').indexOf('./') === 0 ? c.icon : ('./' + (c.icon || '').replace(/^\//, ''));
+      const file = (c.file || '').indexOf('./') === 0 ? c.file : ('./' + (c.file || '').replace(/^\//, ''));
+      return '<a class="companion-card tone-' + BGT.esc(c.tone || '') + '" href="' + file + '" target="_blank" rel="noopener">' +
+        '<img class="icon-lg" src="' + icon + '" alt="">' +
+        '<div class="cn">' + BGT.esc(c.name) + '</div>' +
+        '<div class="cd">Companion</div></a>';
+    }).join('');
+  };
+
   BGT.renderRandom = function () {
     /* chips state */
     document.querySelectorAll('[data-rand-pl]').forEach(function (b) {
@@ -493,6 +570,7 @@
     /* ownership — if linked player has ownership map, prefer owned */
     if (me) {
       const owned = names.filter(function (g) { return BGT.ownsGame(me, g); });
+      /* само ако има маркиран рафт — иначе не филтрирай всички */
       if (owned.length) names = owned;
     }
     if (!names.length) {
@@ -521,14 +599,72 @@
       pick = names[Math.floor(Math.random() * names.length)];
     }
     const out = document.getElementById('randResult');
-    if (out) {
-      out.innerHTML =
-        '<div class="panel" style="text-align:center">' +
-        '<div class="section-title" style="justify-content:center">Падна се</div>' +
-        '<div style="font-size:28px;font-weight:900;letter-spacing:-.03em;margin:8px 0 14px">' + BGT.esc(pick) + '</div>' +
-        '<button class="btn btn-primary" onclick="BGT.quickLog(\'' + String(pick).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')">Запиши резултат</button>' +
+    if (!out) return;
+    if (out.dataset.spinning === '1') return;
+    out.dataset.spinning = '1';
+
+    const pool = names.slice();
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const companion = BGT.getCompanionForGame(pick);
+    const pr = BGT.getGamePlayerRange(pick);
+    const safePick = String(pick).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+    function finalHtml(game) {
+      const comp = BGT.getCompanionForGame(game);
+      let extra = '';
+      if (comp) {
+        const file = (comp.file || '').indexOf('./') === 0 ? comp.file : ('./' + comp.file);
+        extra = '<a class="btn btn-secondary" style="margin-top:8px;text-decoration:none;display:block;text-align:center" href="' +
+          file + '" target="_blank" rel="noopener">Companion · ' + BGT.esc(comp.name) + '</a>';
+      }
+      return '<div class="panel rand-result-panel">' +
+        '<div class="rand-burst" aria-hidden="true">✨</div>' +
+        '<div class="hint" style="text-align:center">Падна се</div>' +
+        '<div class="rand-final-name">' + BGT.esc(game) + '</div>' +
+        '<div class="hint" style="text-align:center">' +
+          ((BGT.state.myGamesObj[game] === 'coop') ? 'Co-op' : 'PvP') +
+          ' · ' + pr[0] + '–' + pr[1] + ' играчи</div>' +
+        '<button type="button" class="btn btn-primary" onclick="BGT.quickLog(\'' + safePick + '\')">Запиши резултат</button>' +
+        extra +
         '</div>';
     }
+
+    if (reduce) {
+      out.innerHTML = finalHtml(pick);
+      out.dataset.spinning = '0';
+      return;
+    }
+
+    out.innerHTML =
+      '<div class="panel rand-spin-stage">' +
+      '<div class="rand-spin-label">Завъртане…</div>' +
+      '<div class="rand-spin-window"><div class="rand-spin-name is-blur" id="randSpinName">—</div></div>' +
+      '<div class="rand-spin-dots"><span></span><span></span><span></span></div>' +
+      '</div>';
+
+    const nameEl = document.getElementById('randSpinName');
+    let ticks = 0;
+    const totalTicks = 18 + Math.floor(Math.random() * 8);
+    const spin = setInterval(function () {
+      ticks++;
+      if (nameEl) {
+        const flash = pool[Math.floor(Math.random() * pool.length)];
+        nameEl.textContent = flash;
+        nameEl.classList.add('is-blur');
+      }
+      if (ticks >= totalTicks) {
+        clearInterval(spin);
+        if (nameEl) {
+          nameEl.textContent = pick;
+          nameEl.classList.remove('is-blur');
+          nameEl.classList.add('is-land');
+        }
+        setTimeout(function () {
+          out.innerHTML = finalHtml(pick);
+          out.dataset.spinning = '0';
+        }, 420);
+      }
+    }, 70);
   };
 
   BGT.quickLog = function (game) {
@@ -616,12 +752,22 @@
 
     const linkSel = document.getElementById('linkPlayerSelect');
     if (linkSel) {
-      const players = BGT.collectKnownPlayers();
+      const players = (typeof BGT.collectKnownPlayers === 'function') ? BGT.collectKnownPlayers() : [];
       const me = BGT.getMyLinkedPlayer();
-      linkSel.innerHTML = '<option value="">— Избери съществуващ —</option>' +
-        players.map(function (p) {
-          return '<option value="' + BGT.esc(p) + '"' + (p === me ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
-        }).join('');
+      if (!players.length) {
+        linkSel.innerHTML = '<option value="">— Няма играчи в архива —</option>';
+      } else {
+        linkSel.innerHTML = '<option value="">— Избери съществуващ —</option>' +
+          players.map(function (p) {
+            return '<option value="' + BGT.esc(p) + '"' + (p === me ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+          }).join('');
+      }
+      const hint = document.getElementById('linkPlayersHint');
+      if (hint) {
+        hint.textContent = players.length
+          ? ('Намерени ' + players.length + ' играчи от архива/масата')
+          : 'Архивът още се зарежда или е празен — изчакай 1–2 сек или създай нов играч по-долу.';
+      }
     }
 
     const tableList = document.getElementById('tableList');
@@ -643,15 +789,7 @@
     });
     BGT.applyInteractivePrefs();
 
-    const cbox = document.getElementById('companionList');
-    if (cbox) {
-      cbox.innerHTML = (BGT.COMPANIONS || []).map(function (c) {
-        return '<a class="companion-card" href="./' + c.file + '">' +
-          '<img class="icon-lg" src="' + c.icon + '" alt="">' +
-          '<div class="cn">' + BGT.esc(c.name) + '</div>' +
-          '<div class="cd">Companion</div></a>';
-      }).join('');
-    }
+    BGT.renderCompanionList();
     BGT.renderProfileChip();
     BGT.applyAdminUI();
     BGT.renderHomeModeSettings();
@@ -1070,20 +1208,40 @@
     BGT.renderMore();
     BGT.renderHome();
   };
-  BGT.linkMe = function () {
-    const name = document.getElementById('linkPlayerSelect').value;
-    if (!name) return BGT.toast('Избери име', 'info');
+  BGT.applyAccountLink = function (name) {
     const user = window.__bgtAuthUser;
     if (!user) return BGT.toast('Първо влез', 'info');
+    name = String(name || '').trim();
+    if (!name) return BGT.toast('Избери или въведи име', 'info');
     BGT.state.accountLinks = BGT.state.accountLinks || {};
     BGT.state.accountLinks[user.uid] = name;
-    if (user.email) BGT.state.accountLinks['email:' + user.email.toLowerCase()] = name;
+    if (user.email) BGT.state.accountLinks['email:' + String(user.email).toLowerCase()] = name;
     BGT.state.activePlayer = name;
+    const tg = BGT.getTableGroup();
+    if (tg.indexOf(name) === -1) {
+      tg.push(name);
+      BGT.setTableGroup(tg);
+    }
     BGT.saveAll();
     document.body.classList.add('bgt-linked');
     BGT.toast('Свързан като ' + name);
     BGT.renderMore();
     BGT.renderHome();
+    if (typeof BGT.renderStatsBody === 'function') BGT.renderStatsBody();
+  };
+
+  BGT.linkMe = function () {
+    const name = (document.getElementById('linkPlayerSelect') || {}).value;
+    if (!name) return BGT.toast('Избери съществуващ играч от списъка', 'info');
+    BGT.applyAccountLink(name);
+  };
+
+  BGT.linkMeAsNew = function () {
+    const inp = document.getElementById('linkNewPlayerName');
+    const name = (inp && inp.value || '').trim();
+    if (!name) return BGT.toast('Въведи име за нов играч', 'info');
+    BGT.applyAccountLink(name);
+    if (inp) inp.value = '';
   };
   BGT.addToTable = function () {
     const inp = document.getElementById('newPlayerName');
@@ -1113,6 +1271,8 @@
     const active = document.querySelector('.screen.active');
     const id = active ? active.id.replace('screen-', '') : 'home';
     BGT.go(id);
+    /* always refresh account/link UI after cloud hydrate */
+    if (typeof BGT.renderMore === 'function') BGT.renderMore();
   };
 
 
@@ -1284,6 +1444,7 @@
     document.documentElement.setAttribute('data-theme', BGT.state.theme || 'dark');
     BGT.applyInteractivePrefs();
     BGT.updateSyncPill(BGT.isLoggedIn() ? 'ok' : 'off');
+    BGT.renderCompanionList();
     BGT.go('home');
     BGT.runSplash();
   });

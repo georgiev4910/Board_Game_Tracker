@@ -1168,3 +1168,73 @@ body:not(.bgt-admin) #logSheetDelete { display: none !important; }
   background: #22c55e;
   border-radius: 99px;
 }
+
+.rand-spin-stage { text-align: center; padding: 18px 14px 22px; }
+.rand-spin-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 10px; letter-spacing: .04em; text-transform: uppercase; }
+.rand-spin-window {
+  border-radius: 16px;
+  border: 1px solid var(--border-strong);
+  background: rgba(0,0,0,.25);
+  padding: 18px 12px;
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.rand-spin-name {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  transition: filter .12s, transform .12s, opacity .12s;
+}
+.rand-spin-name.is-blur { filter: blur(2px); opacity: .75; transform: scale(1.04); }
+.rand-spin-name.is-land { animation: randLand .45s ease; }
+@keyframes randLand {
+  0% { transform: scale(1.2); opacity: .5; }
+  60% { transform: scale(0.96); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.rand-spin-dots { display: flex; gap: 6px; justify-content: center; margin-top: 12px; }
+.rand-spin-dots span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent, #22c55e);
+  animation: randDot 0.9s ease infinite;
+  opacity: .4;
+}
+.rand-spin-dots span:nth-child(2) { animation-delay: .15s; }
+.rand-spin-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes randDot {
+  0%, 100% { opacity: .3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+.rand-final-name {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin: 6px 0 12px;
+  animation: randLand .5s ease;
+}
+.rand-result-panel { text-align: center; }
+.rand-burst { font-size: 22px; margin-bottom: 4px; }
+.companion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.companion-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  text-decoration: none;
+  color: inherit;
+  transition: transform .15s, border-color .15s;
+}
+.companion-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+.companion-card .cn { font-weight: 900; font-size: 13px; text-align: center; }
+.companion-card .cd { font-size: 11px; color: var(--muted); font-weight: 600; }
