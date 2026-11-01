@@ -36,6 +36,35 @@
     return Object.keys(BGT.state.myGamesObj || {}).filter(BGT.isGameActive);
   };
 
+  BGT.collectKnownPlayers = function () {
+    const set = new Set();
+    function add(p) {
+      p = String(p || '').trim();
+      if (p) set.add(p);
+    }
+    try { BGT.getTableGroup().forEach(add); } catch (e) {}
+    (BGT.state.myPlayers || []).forEach(add);
+    const tables = BGT.state.tables || {};
+    Object.keys(tables).forEach(function (k) {
+      (tables[k] || []).forEach(add);
+    });
+    (BGT.state.gameLogs || []).forEach(function (l) {
+      if (!l) return;
+      if (l.type === 'coop') (l.participants || []).forEach(add);
+      else {
+        Object.keys(l.scores || {}).forEach(add);
+        (l.winners || []).forEach(add);
+        if (l.winner) add(l.winner);
+      }
+    });
+    /* names already linked on any account */
+    const links = BGT.state.accountLinks || {};
+    Object.keys(links).forEach(function (k) { add(links[k]); });
+    return Array.from(set).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+  };
+
+
+
 
   /* ---------- Collection / ownership ---------- */
   BGT.getOwnership = function (player) {
@@ -66,6 +95,146 @@
   };
 
   /* ---------- Home ---------- */
+  BGT.setHomeMode = function (mode) {
+    BGT.state.homeMode = mode || 'buttons';
+    BGT.persistLocal();
+    const h2h = document.getElementById('homeH2HSettings');
+    if (h2h) h2h.classList.toggle('hidden', mode !== 'h2h');
+    BGT.renderHome();
+  };
+
+  BGT.setHomeH2H = function () {
+    const a = document.getElementById('homeH2HLeft');
+    const b = document.getElementById('homeH2HRight');
+    BGT.state.homeH2HLeft = a ? a.value : '';
+    BGT.state.homeH2HRight = b ? b.value : '';
+    BGT.persistLocal();
+    BGT.renderHome();
+  };
+
+  BGT.collectHomePlayers = function () {
+    if (typeof BGT.collectKnownPlayers === 'function') return BGT.collectKnownPlayers();
+    return BGT.getTableGroup().slice();
+  };
+
+  BGT.renderHomeModeSettings = function () {
+    const sel = document.getElementById('homeModeSelect');
+    if (sel) sel.value = BGT.state.homeMode || 'buttons';
+    const h2h = document.getElementById('homeH2HSettings');
+    if (h2h) h2h.classList.toggle('hidden', (BGT.state.homeMode || 'buttons') !== 'h2h');
+    const players = BGT.collectHomePlayers();
+    const fill = function (id, cur) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = players.map(function (p) {
+        return '<option value="' + BGT.esc(p) + '"' + (p === cur ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+      }).join('') || '<option value="">—</option>';
+      if (cur) el.value = cur;
+    };
+    let left = BGT.state.homeH2HLeft || '';
+    let right = BGT.state.homeH2HRight || '';
+    const me = BGT.getMyLinkedPlayer();
+    if (!left && me) left = me;
+    if (!right && players.length) {
+      right = players.find(function (p) { return p !== left; }) || players[0] || '';
+    }
+    fill('homeH2HLeft', left);
+    fill('homeH2HRight', right);
+  };
+
+  BGT.renderHomeButtons = function () {
+    return '<div class="grid-2" style="margin-bottom:12px">' +
+      '<button type="button" class="action-tile" onclick="BGT.go(\'log\')"><img class="icon-lg" src="./icons/nav-log.svg" alt=""><span class="t">Запис</span><span class="d">Логни резултат</span></button>' +
+      '<button type="button" class="action-tile" onclick="BGT.go(\'random\')"><img class="icon-lg" src="./icons/nav-dice.svg" alt=""><span class="t">Рандом</span><span class="d">Какво играем?</span></button>' +
+      '<button type="button" class="action-tile" onclick="BGT.go(\'stats\')"><img class="icon-lg" src="./icons/nav-stats.svg" alt=""><span class="t">Статистика</span><span class="d">Победи и серии</span></button>' +
+      '<button type="button" class="action-tile" onclick="BGT.go(\'library\')"><img class="icon-lg" src="./icons/nav-shelf.svg" alt=""><span class="t">Игри</span><span class="d">Библиотека</span></button>' +
+      '</div>';
+  };
+
+  BGT.renderHomeH2H = function () {
+    if (!BGT.canViewStats()) {
+      return '<div class="panel"><div class="empty">Влез и свържи профил за H2H</div></div>';
+    }
+    const players = BGT.collectHomePlayers();
+    let a = BGT.state.homeH2HLeft || BGT.getMyLinkedPlayer() || '';
+    let b = BGT.state.homeH2HRight || '';
+    if (!b) b = players.find(function (p) { return p !== a; }) || '';
+    if (!a || !b || a === b) {
+      return '<div class="panel"><div class="empty">Избери двама различни играчи в Още → Изглед</div></div>';
+    }
+    let aw = 0, bw = 0, n = 0;
+    (BGT.state.gameLogs || []).forEach(function (l) {
+      if (l.type === 'coop') return;
+      const keys = Object.keys(l.scores || {});
+      if (keys.length === 2 && keys.indexOf(a) !== -1 && keys.indexOf(b) !== -1) {
+        n++;
+        const w = BGT.getPvpWinners(l);
+        if (w.indexOf(a) !== -1 && w.indexOf(b) === -1) aw++;
+        else if (w.indexOf(b) !== -1 && w.indexOf(a) === -1) bw++;
+      }
+    });
+    const total = aw + bw;
+    const pct = total ? Math.round(aw / total * 100) : 50;
+    return '<div class="panel"><h3>Head-to-head</h3>' +
+      '<div class="home-h2h">' +
+      '<div><div class="name">' + BGT.esc(a) + '</div><div class="sub">' + aw + ' победи</div></div>' +
+      '<div class="score">' + aw + '–' + bw + '</div>' +
+      '<div><div class="name">' + BGT.esc(b) + '</div><div class="sub">' + bw + ' победи</div></div>' +
+      '</div>' +
+      '<div class="home-h2h-bar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="hint" style="margin-top:8px">' + n + ' директни партии (1v1)</div></div>';
+  };
+
+  BGT.renderHomeWinsTable = function () {
+    if (!BGT.canViewStats()) {
+      return '<div class="panel"><div class="empty">Влез за таблица с победи</div></div>';
+    }
+    const logs = BGT.state.gameLogs || [];
+    if (!logs.length) return '<div class="panel"><div class="empty">Няма партии</div></div>';
+    const players = BGT.collectHomePlayers();
+    if (!players.length) return '<div class="panel"><div class="empty">Няма играчи</div></div>';
+    const gamesMap = {};
+    logs.forEach(function (l) {
+      if (!l.game) return;
+      if (!gamesMap[l.game]) {
+        gamesMap[l.game] = {};
+        players.forEach(function (p) { gamesMap[l.game][p] = 0; });
+      }
+      if (l.type === 'coop') {
+        if (l.coopResult === 'win') {
+          (l.participants || []).forEach(function (p) {
+            if (gamesMap[l.game][p] != null) gamesMap[l.game][p]++;
+          });
+        }
+      } else {
+        BGT.getPvpWinners(l).forEach(function (p) {
+          if (gamesMap[l.game][p] != null) gamesMap[l.game][p]++;
+        });
+      }
+    });
+    const games = Object.keys(gamesMap).sort(function (x, y) { return x.localeCompare(y, 'bg'); });
+    let html = '<div class="panel"><h3>Победи по игри</h3><div style="overflow:auto"><table class="home-wins-table"><thead><tr><th>Игра</th>';
+    players.forEach(function (p) { html += '<th>' + BGT.esc(p) + '</th>'; });
+    html += '</tr></thead><tbody>';
+    games.forEach(function (g) {
+      const row = gamesMap[g];
+      const vals = players.map(function (p) { return row[p] || 0; });
+      const max = Math.max.apply(null, vals);
+      const leaders = vals.filter(function (v) { return v === max && max > 0; }).length;
+      html += '<tr><td>' + BGT.esc(g) + '</td>';
+      players.forEach(function (p) {
+        const v = row[p] || 0;
+        let cls = '';
+        if (max > 0 && v === max) cls = leaders > 1 ? 'tie' : 'lead';
+        html += '<td class="' + cls + '">' + v + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<div class="hint">Зелено = водач · жълто = равенство</div></div>';
+    return html;
+  };
+
   BGT.renderHome = function () {
     const me = BGT.getMyLinkedPlayer();
     const can = BGT.canViewStats();
@@ -92,7 +261,14 @@
     set('homeStatLogs', can ? scoped.length : '–');
     set('homeStatTable', BGT.getTableGroup().length || '–');
 
-    /* last game */
+    const main = document.getElementById('homeMain');
+    if (main) {
+      const mode = BGT.state.homeMode || 'buttons';
+      if (mode === 'h2h') main.innerHTML = BGT.renderHomeH2H();
+      else if (mode === 'table') main.innerHTML = BGT.renderHomeWinsTable();
+      else main.innerHTML = BGT.renderHomeButtons();
+    }
+
     const lastBox = document.getElementById('homeLast');
     if (lastBox) {
       if (!can || !scoped.length) {
@@ -129,6 +305,23 @@
   };
 
   /* ---------- Log ---------- */
+  BGT.onLogGameChange = function () {
+    const box = document.getElementById('logExpansions');
+    if (!box) return;
+    const game = (document.getElementById('logGameSelect') || {}).value || '';
+    if (!game) { box.innerHTML = ''; return; }
+    const all = BGT.getAllExpansions(game);
+    const owned = BGT.getOwnedExpansions(game);
+    if (!all.length) {
+      box.innerHTML = '<div class="hint">Няма въведени разширения за тази игра (редактирай от Игри → ✎).</div>';
+      return;
+    }
+    box.innerHTML = '<div class="hint">Разширения (собственост): ' +
+      all.map(function (e) {
+        const has = owned.indexOf(e) !== -1;
+        return '<span class="chip' + (has ? ' active' : '') + '" style="pointer-events:none">' + BGT.esc(e) + (has ? ' ✓' : '') + '</span>';
+      }).join(' ') + '</div>';
+  };
   BGT.renderLog = function () {
     const games = BGT.getActiveGames().sort(function (a, b) {
       return a.localeCompare(b, 'bg');
@@ -138,9 +331,13 @@
       const cur = sel.value;
       sel.innerHTML = '<option value="">— Избери игра —</option>' +
         games.map(function (g) {
-          return '<option value="' + BGT.esc(g) + '"' + (g === cur ? ' selected' : '') + '>' + BGT.esc(g) + '</option>';
+          const pr = BGT.getGamePlayerRange(g);
+          const label = g + ' (' + pr[0] + '–' + pr[1] + 'p)';
+          return '<option value="' + BGT.esc(g) + '"' + (g === cur ? ' selected' : '') + '>' + BGT.esc(label) + '</option>';
         }).join('');
+      sel.onchange = BGT.onLogGameChange;
     }
+    BGT.onLogGameChange();
     BGT.renderLogPlayers();
     const status = document.getElementById('logAccountStatus');
     if (status) {
@@ -276,12 +473,29 @@
   };
 
   /* ---------- Randomizer ---------- */
+  BGT.getGamePlayerRange = function (name) {
+    const custom = (BGT.state.gamePlayers || {})[name];
+    if (Array.isArray(custom) && custom.length >= 2) return [Number(custom[0]) || 1, Number(custom[1]) || 6];
+    const conf = (BGT.GAME_PLAYERS || {})[name];
+    if (Array.isArray(conf) && conf.length >= 2) return [Number(conf[0]) || 1, Number(conf[1]) || 6];
+    return [2, 6];
+  };
+  BGT.setGamePlayerRange = function (name, min, max) {
+    let a = Math.max(1, Math.min(20, Number(min) || 1));
+    let b = Math.max(1, Math.min(20, Number(max) || a));
+    if (b < a) { const t = a; a = b; b = t; }
+    BGT.state.gamePlayers = BGT.state.gamePlayers || {};
+    BGT.state.gamePlayers[name] = [a, b];
+  };
   BGT.gameSupportsPlayers = function (name, n) {
     if (n === 'all' || n == null) return true;
     const num = Number(n);
-    const range = BGT.GAME_PLAYERS[name] || [2, 6];
+    const range = BGT.getGamePlayerRange(name);
     if (num >= 5) return range[1] >= 5;
     return num >= range[0] && num <= range[1];
+  };
+  BGT.isSoloCapable = function (name) {
+    return BGT.getGamePlayerRange(name)[0] <= 1;
   };
 
   BGT.renderRandom = function () {
@@ -431,12 +645,22 @@
 
     const linkSel = document.getElementById('linkPlayerSelect');
     if (linkSel) {
-      const players = BGT.getTableGroup();
+      const players = (typeof BGT.collectKnownPlayers === 'function') ? BGT.collectKnownPlayers() : [];
       const me = BGT.getMyLinkedPlayer();
-      linkSel.innerHTML = '<option value="">— Избери —</option>' +
-        players.map(function (p) {
-          return '<option value="' + BGT.esc(p) + '"' + (p === me ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
-        }).join('');
+      if (!players.length) {
+        linkSel.innerHTML = '<option value="">— Няма играчи в архива —</option>';
+      } else {
+        linkSel.innerHTML = '<option value="">— Избери съществуващ —</option>' +
+          players.map(function (p) {
+            return '<option value="' + BGT.esc(p) + '"' + (p === me ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+          }).join('');
+      }
+      const hint = document.getElementById('linkPlayersHint');
+      if (hint) {
+        hint.textContent = players.length
+          ? ('Намерени ' + players.length + ' играчи от архива/масата')
+          : 'Архивът още се зарежда или е празен — изчакай 1–2 сек или създай нов играч по-долу.';
+      }
     }
 
     const tableList = document.getElementById('tableList');
@@ -469,6 +693,7 @@
     }
     BGT.renderProfileChip();
     BGT.applyAdminUI();
+    BGT.renderHomeModeSettings();
   };
 
   BGT.togglePref = function (key, btn) {
@@ -503,17 +728,26 @@
     const inp = document.getElementById('newGameName');
     const name = (inp && inp.value || '').trim();
     if (!name) return BGT.toast('Въведи име', 'info');
+    const minEl = document.getElementById('newGameMin');
+    const maxEl = document.getElementById('newGameMax');
+    const min = minEl ? Number(minEl.value) : 2;
+    const max = maxEl ? Number(maxEl.value) : 4;
     BGT.state.myGamesObj = BGT.state.myGamesObj || {};
     BGT.state.myGamesObj[name] = _newGameType || 'pvp';
+    BGT.setGamePlayerRange(name, min, max);
     BGT.state.inactiveGames = (BGT.state.inactiveGames || []).filter(function (g) { return g !== name; });
     BGT.saveAll();
     if (inp) inp.value = '';
-    BGT.toast('В библиотеката: ' + name);
+    BGT.toast('В библиотеката: ' + name + ' (' + BGT.getGamePlayerRange(name).join('–') + ' играчи)');
     BGT.renderLibrary();
   };
   BGT.activateGame = function (name, type) {
     BGT.state.myGamesObj = BGT.state.myGamesObj || {};
     if (!BGT.state.myGamesObj[name]) BGT.state.myGamesObj[name] = type || 'pvp';
+    if (!(BGT.state.gamePlayers || {})[name]) {
+      const conf = (BGT.GAME_PLAYERS || {})[name] || [2, 4];
+      BGT.setGamePlayerRange(name, conf[0], conf[1]);
+    }
     BGT.state.inactiveGames = (BGT.state.inactiveGames || []).filter(function (g) { return g !== name; });
     BGT.saveAll();
     BGT.toast('Активна: ' + name);
@@ -544,6 +778,94 @@
 
   BGT.escAttr = function (s) {
     return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  };
+
+
+  BGT.getOwnedExpansions = function (game) {
+    const map = (BGT.state.gameExpansions || {})[game] || {};
+    return Object.keys(map).filter(function (k) { return !!map[k]; }).sort(function (a, b) {
+      return a.localeCompare(b, 'bg');
+    });
+  };
+  BGT.getAllExpansions = function (game) {
+    const map = (BGT.state.gameExpansions || {})[game] || {};
+    return Object.keys(map).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+  };
+
+  let _editGameName = null;
+  let _editGameType = 'pvp';
+  BGT.openGameEdit = function (name) {
+    _editGameName = name;
+    _editGameType = (BGT.state.myGamesObj || {})[name] || 'pvp';
+    const title = document.getElementById('gameEditTitle');
+    if (title) title.textContent = name;
+    const range = BGT.getGamePlayerRange(name);
+    const minEl = document.getElementById('editGameMin');
+    const maxEl = document.getElementById('editGameMax');
+    if (minEl) minEl.value = range[0];
+    if (maxEl) maxEl.value = range[1];
+    document.getElementById('editTypePvp') && document.getElementById('editTypePvp').classList.toggle('active', _editGameType === 'pvp');
+    document.getElementById('editTypeCoop') && document.getElementById('editTypeCoop').classList.toggle('active', _editGameType === 'coop');
+    BGT.renderEditExpList();
+    const sheet = document.getElementById('gameEditSheet');
+    if (sheet) { sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false'); }
+  };
+  BGT.closeGameEdit = function () {
+    const sheet = document.getElementById('gameEditSheet');
+    if (sheet) { sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); }
+    _editGameName = null;
+  };
+  BGT.setEditGameType = function (t) {
+    _editGameType = t;
+    document.getElementById('editTypePvp') && document.getElementById('editTypePvp').classList.toggle('active', t === 'pvp');
+    document.getElementById('editTypeCoop') && document.getElementById('editTypeCoop').classList.toggle('active', t === 'coop');
+  };
+  BGT.renderEditExpList = function () {
+    const box = document.getElementById('editExpList');
+    if (!box || !_editGameName) return;
+    const map = (BGT.state.gameExpansions || {})[_editGameName] || {};
+    const keys = Object.keys(map).sort(function (a, b) { return a.localeCompare(b, 'bg'); });
+    if (!keys.length) {
+      box.innerHTML = '<div class="empty">Няма въведени разширения</div>';
+      return;
+    }
+    box.innerHTML = keys.map(function (exp) {
+      const on = !!map[exp];
+      const ea = String(exp).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(exp) + '</div></div>' +
+        '<button type="button" class="toggle' + (on ? ' on' : '') + '" onclick="BGT.toggleEditExpansion(\'' + ea + '\', this)"></button></div>';
+    }).join('');
+  };
+  BGT.toggleEditExpansion = function (exp, btn) {
+    if (!_editGameName) return;
+    BGT.state.gameExpansions = BGT.state.gameExpansions || {};
+    BGT.state.gameExpansions[_editGameName] = BGT.state.gameExpansions[_editGameName] || {};
+    const cur = !!BGT.state.gameExpansions[_editGameName][exp];
+    BGT.state.gameExpansions[_editGameName][exp] = !cur;
+    if (btn) btn.classList.toggle('on', !cur);
+  };
+  BGT.addEditExpansion = function () {
+    if (!_editGameName) return;
+    const inp = document.getElementById('editExpNew');
+    const name = (inp && inp.value || '').trim();
+    if (!name) return;
+    BGT.state.gameExpansions = BGT.state.gameExpansions || {};
+    BGT.state.gameExpansions[_editGameName] = BGT.state.gameExpansions[_editGameName] || {};
+    BGT.state.gameExpansions[_editGameName][name] = true;
+    if (inp) inp.value = '';
+    BGT.renderEditExpList();
+  };
+  BGT.saveGameEdit = function () {
+    if (!_editGameName) return;
+    const min = document.getElementById('editGameMin');
+    const max = document.getElementById('editGameMax');
+    BGT.setGamePlayerRange(_editGameName, min && min.value, max && max.value);
+    BGT.state.myGamesObj = BGT.state.myGamesObj || {};
+    BGT.state.myGamesObj[_editGameName] = _editGameType;
+    BGT.saveAll();
+    BGT.toast('Запазено: ' + _editGameName + ' (' + BGT.getGamePlayerRange(_editGameName).join('–') + 'p)');
+    BGT.closeGameEdit();
+    BGT.renderLibrary();
   };
 
   BGT.renderLibrary = function () {
@@ -588,9 +910,13 @@
       } else if (BGT.isAdmin()) {
         actions += '<button type="button" class="btn btn-primary btn-xs" onclick="BGT.activateGame(\'' + ga + '\')">Вкл.</button>';
       }
-      const sub = (type === 'coop' ? 'Co-op' : 'PvP') +
+      const pr = BGT.getGamePlayerRange(g);
+      const exps = BGT.getOwnedExpansions(g);
+      let sub = (type === 'coop' ? 'Co-op' : 'PvP') + ' · ' + pr[0] + '–' + pr[1] + 'p' +
+        (pr[0] <= 1 ? ' · соло' : '') +
         (active ? ' · активна' : (inLib ? ' · неактивна' : ' · каталог')) +
         (owned ? ' · рафт' : '');
+      if (exps.length) sub += ' · exp: ' + exps.join(', ');
       return '<div class="list-row' + (active || !inLib ? '' : ' dim') + '"><div class="meta"><div class="title">' +
         BGT.esc(g) + '</div><div class="sub">' + BGT.esc(sub) + '</div></div>' + actions + '</div>';
     }).join('') || '<div class="empty">Няма игри в този филтър</div>';
@@ -783,20 +1109,40 @@
     BGT.renderMore();
     BGT.renderHome();
   };
-  BGT.linkMe = function () {
-    const name = document.getElementById('linkPlayerSelect').value;
-    if (!name) return BGT.toast('Избери име', 'info');
+  BGT.applyAccountLink = function (name) {
     const user = window.__bgtAuthUser;
     if (!user) return BGT.toast('Първо влез', 'info');
+    name = String(name || '').trim();
+    if (!name) return BGT.toast('Избери или въведи име', 'info');
     BGT.state.accountLinks = BGT.state.accountLinks || {};
     BGT.state.accountLinks[user.uid] = name;
-    if (user.email) BGT.state.accountLinks['email:' + user.email.toLowerCase()] = name;
+    if (user.email) BGT.state.accountLinks['email:' + String(user.email).toLowerCase()] = name;
     BGT.state.activePlayer = name;
+    const tg = BGT.getTableGroup();
+    if (tg.indexOf(name) === -1) {
+      tg.push(name);
+      BGT.setTableGroup(tg);
+    }
     BGT.saveAll();
     document.body.classList.add('bgt-linked');
     BGT.toast('Свързан като ' + name);
     BGT.renderMore();
     BGT.renderHome();
+    if (typeof BGT.renderStatsBody === 'function') BGT.renderStatsBody();
+  };
+
+  BGT.linkMe = function () {
+    const name = (document.getElementById('linkPlayerSelect') || {}).value;
+    if (!name) return BGT.toast('Избери съществуващ играч от списъка', 'info');
+    BGT.applyAccountLink(name);
+  };
+
+  BGT.linkMeAsNew = function () {
+    const inp = document.getElementById('linkNewPlayerName');
+    const name = (inp && inp.value || '').trim();
+    if (!name) return BGT.toast('Въведи име за нов играч', 'info');
+    BGT.applyAccountLink(name);
+    if (inp) inp.value = '';
   };
   BGT.addToTable = function () {
     const inp = document.getElementById('newPlayerName');
@@ -826,6 +1172,8 @@
     const active = document.querySelector('.screen.active');
     const id = active ? active.id.replace('screen-', '') : 'home';
     BGT.go(id);
+    /* always refresh account/link UI after cloud hydrate */
+    if (typeof BGT.renderMore === 'function') BGT.renderMore();
   };
 
 
@@ -967,10 +1315,14 @@
     const splash = document.getElementById('splash');
     const face = document.getElementById('splashFace');
     if (!splash) return;
-    if (!BGT.state.showSplash) {
+    /* само първо отваряне в тази tab-сесия — refresh не показва отново */
+    let already = false;
+    try { already = sessionStorage.getItem('bgSplashShown') === '1'; } catch (e) {}
+    if (!BGT.state.showSplash || already) {
       splash.classList.add('done');
       return;
     }
+    try { sessionStorage.setItem('bgSplashShown', '1'); } catch (e) {}
     let n = 0;
     const faces = [1, 2, 3, 4, 5, 6];
     const iv = setInterval(function () {
