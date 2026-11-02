@@ -163,7 +163,6 @@
   <!-- STATS -->
   <section class="screen" id="screen-stats">
     <div class="section-title"><img class="icon" src="./icons/nav-stats.svg" alt=""> Статистика</div>
-    <div class="hint" id="statsTopHint">Обща = всички · Играч = хайлайт · Подробна = списък партии</div>
     <div class="chip-row stats-tabs">
       <button type="button" class="chip active" data-stats-tab="overview" onclick="BGT.setStatsTab('overview')">Обща</button>
       <button type="button" class="chip" data-stats-tab="player" onclick="BGT.setStatsTab('player')">Играч</button>
@@ -182,17 +181,6 @@
       Игри
     </div>
     <div class="panel">
-      <div class="hint">Активна = влиза в Запис и Рандом. ✎ = играчи, тип, разширения. Изключена = скрита от избора.</div>
-      <div class="field"><label>Търсене</label><input type="text" id="libSearch" placeholder="Филтър…" oninput="BGT.renderLibrary()"></div>
-      <div class="chip-row">
-        <button type="button" class="chip active" data-lib-filter="active" onclick="BGT.setLibFilter('active')">Активни</button>
-        <button type="button" class="chip" data-lib-filter="inactive" onclick="BGT.setLibFilter('inactive')">Неактивни</button>
-        <button type="button" class="chip" data-lib-filter="catalog" onclick="BGT.setLibFilter('catalog')">Каталог</button>
-        <button type="button" class="chip" data-lib-filter="owned" onclick="BGT.setLibFilter('owned')">Притежавам</button>
-      </div>
-      <div id="libraryList"></div>
-    </div>
-    <div class="panel">
       <h3>Нова игра</h3>
       <div class="field"><label>Име</label><input type="text" id="newGameName" placeholder="Име на играта"></div>
       <div class="chip-row">
@@ -204,6 +192,16 @@
         <div class="field" style="flex:1;margin:0"><label>Макс. играчи</label><input type="number" id="newGameMax" min="1" max="20" value="4"></div>
       </div>
       <button type="button" class="btn btn-primary" onclick="BGT.addGame()">Добави</button>
+    </div>
+    <div class="panel">
+      <div class="hint">Активна = Запис и Рандом · ✎ = настройки · Изключена = скрита</div>
+      <div class="field"><label>Търсене</label><input type="text" id="libSearch" placeholder="Филтър…" oninput="BGT.renderLibrary()"></div>
+      <div class="chip-row">
+        <button type="button" class="chip active" data-lib-filter="active" onclick="BGT.setLibFilter('active')">Активни</button>
+        <button type="button" class="chip" data-lib-filter="inactive" onclick="BGT.setLibFilter('inactive')">Неактивни</button>
+        <button type="button" class="chip" data-lib-filter="catalog" onclick="BGT.setLibFilter('catalog')">Каталог</button>
+      </div>
+      <div id="libraryList"></div>
     </div>
   </section>
 

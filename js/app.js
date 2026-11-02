@@ -151,6 +151,31 @@
       '</div>';
   };
 
+  BGT.setHomeH2HSide = function (side, name) {
+    name = String(name || '').trim();
+    if (!name) return;
+    let left = BGT.state.homeH2HLeft || '';
+    let right = BGT.state.homeH2HRight || '';
+    if (side === 'left') {
+      if (name === right) {
+        /* swap */
+        BGT.state.homeH2HRight = left;
+        BGT.state.homeH2HLeft = name;
+      } else {
+        BGT.state.homeH2HLeft = name;
+      }
+    } else {
+      if (name === left) {
+        BGT.state.homeH2HLeft = right;
+        BGT.state.homeH2HRight = name;
+      } else {
+        BGT.state.homeH2HRight = name;
+      }
+    }
+    BGT.persistLocal();
+    BGT.renderHome();
+  };
+
   BGT.renderHomeH2H = function () {
     if (!BGT.canViewStats()) {
       return '<div class="panel"><div class="empty">Влез и свържи профил, за да видиш H2H.</div></div>';
@@ -159,9 +184,16 @@
     let a = BGT.state.homeH2HLeft || BGT.getMyLinkedPlayer() || '';
     let b = BGT.state.homeH2HRight || '';
     if (!b) b = players.find(function (p) { return p !== a; }) || '';
-    if (!a || !b || a === b) {
-      return '<div class="panel"><div class="empty">Нужни са поне двама играчи на масата. Добави ги в Още → Масата. Двойката за H2H се избира в Още → Изглед.</div></div>';
+    if (!a && players.length) a = players[0];
+    if ((!b || a === b) && players.length > 1) {
+      b = players.find(function (p) { return p !== a; }) || players[1];
     }
+    if (!a || !b || a === b) {
+      return '<div class="panel"><div class="empty">Нужни са поне двама на масата (Още → Масата).</div></div>';
+    }
+    BGT.state.homeH2HLeft = a;
+    BGT.state.homeH2HRight = b;
+
     let aw = 0, bw = 0, n = 0;
     (BGT.state.gameLogs || []).forEach(function (l) {
       if (l.type === 'coop') return;
@@ -175,14 +207,22 @@
     });
     const total = aw + bw;
     const pct = total ? Math.round(aw / total * 100) : 50;
+
+    function nameSelect(side, current) {
+      let opts = players.map(function (p) {
+        return '<option value="' + BGT.esc(p) + '"' + (p === current ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+      }).join('');
+      return '<select class="h2h-name-select" onchange="BGT.setHomeH2HSide(\'' + side + '\', this.value)">' + opts + '</select>';
+    }
+
     return '<div class="panel"><h3>Head-to-head</h3>' +
       '<div class="home-h2h">' +
-      '<div><div class="name">' + BGT.esc(a) + '</div><div class="sub">' + aw + ' победи</div></div>' +
+      '<div>' + nameSelect('left', a) + '<div class="sub">' + aw + ' победи</div></div>' +
       '<div class="score">' + aw + '–' + bw + '</div>' +
-      '<div><div class="name">' + BGT.esc(b) + '</div><div class="sub">' + bw + ' победи</div></div>' +
+      '<div>' + nameSelect('right', b) + '<div class="sub">' + bw + ' победи</div></div>' +
       '</div>' +
       '<div class="home-h2h-bar"><i style="width:' + pct + '%"></i></div>' +
-      '<div class="hint" style="margin-top:8px">' + n + ' директни 1v1 · смяна в Още → Изглед</div></div>';
+      '<div class="hint" style="margin-top:8px">' + n + ' директни 1v1</div></div>';
   };
 
   BGT.renderHomeWinsTable = function () {
