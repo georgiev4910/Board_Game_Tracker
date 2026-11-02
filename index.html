@@ -172,18 +172,8 @@
     <div id="statsBody"></div>
   </section>
 
-  <!-- SHELF -->
-  <section class="screen" id="screen-shelf">
-    <div class="section-title"><img class="icon" src="./icons/nav-shelf.svg" alt=""> Рафт / колекция</div>
-    <div class="panel">
-      <div class="hint">Маркирай кои игри притежава всеки играч. Рандомайзерът ползва твоята колекция.</div>
-      <div class="field">
-        <label>Играч</label>
-        <select id="shelfPlayer" onchange="BGT.renderShelfList()"></select>
-      </div>
-      <div id="shelfList"></div>
-    </div>
-  </section>
+  <!-- SHELF removed: collection = active games in Library -->
+  <section class="screen" id="screen-shelf"></section>
 
   <!-- GAMES (unified library) -->
   <section class="screen" id="screen-library">
@@ -192,7 +182,7 @@
       Игри
     </div>
     <div class="panel">
-      <div class="hint">Един списък. Активните влизат в Запис и Рандом. „Притежавам“ е за твоя рафт.</div>
+      <div class="hint">Активна = влиза в Запис и Рандом. ✎ = играчи, тип, разширения. Изключена = скрита от избора.</div>
       <div class="field"><label>Търсене</label><input type="text" id="libSearch" placeholder="Филтър…" oninput="BGT.renderLibrary()"></div>
       <div class="chip-row">
         <button type="button" class="chip active" data-lib-filter="active" onclick="BGT.setLibFilter('active')">Активни</button>
@@ -225,7 +215,6 @@
       <button type="button" class="ql" onclick="BGT.go('library')"><img class="icon" src="./icons/nav-shelf.svg" alt=""><span>Игри</span></button>
       <button type="button" class="ql" onclick="BGT.openLogsSheet()"><img class="icon" src="./icons/nav-log.svg" alt=""><span>История</span></button>
       <button type="button" class="ql" onclick="BGT.toggleAcc('accApps');BGT.renderCompanionList()"><img class="icon" src="./icons/nav-apps.svg" alt=""><span>Companions</span></button>
-      <button type="button" class="ql" onclick="BGT.go('shelf')"><img class="icon" src="./icons/ui-user.svg" alt=""><span>Рафт</span></button>
     </div>
 
     <div class="acc open" id="accAccount">

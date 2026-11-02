@@ -772,9 +772,8 @@
       return;
     }
     if (!(BGT.state.gameLogs || []).length) {
-      out.innerHTML = '<div class="empty">Няма записани партии на това устройство.</div>' +
-        '<button type="button" class="btn btn-primary" onclick="BGT.forcePullCloud()">Изтегли от облака</button>' +
-        '<button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.go(\'log\')">Първи запис</button>';
+      out.innerHTML = '<div class="empty">Още няма записани партии. Запиши първата от лентата Запис — или ако историята е на друго устройство, Още → Данни → Изтегли от облака.</div>' +
+        '<button type="button" class="btn btn-primary" onclick="BGT.go(\'log\')">Към запис</button>';
       return;
     }
     document.querySelectorAll('[data-stats-tab]').forEach(function (b) {
