@@ -139,10 +139,56 @@ async function loadFromCloud() {
   }
 }
 
+function stripUndefined(value) {
+  if (value === undefined) return undefined;
+  if (value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) {
+    return value.map(stripUndefined).filter(function (x) { return x !== undefined; });
+  }
+  const out = {};
+  Object.keys(value).forEach(function (k) {
+    const v = stripUndefined(value[k]);
+    if (v !== undefined) out[k] = v;
+  });
+  return out;
+}
+
+function sanitizeLog(l) {
+  if (!l || typeof l !== 'object') return null;
+  const o = {
+    id: BGT.ensureLogId(l),
+    game: l.game || '',
+    type: l.type === 'coop' ? 'coop' : 'pvp',
+    date: l.date || new Date().toISOString()
+  };
+  if (o.type === 'coop') {
+    o.participants = Array.isArray(l.participants) ? l.participants.filter(Boolean) : [];
+    o.coopResult = l.coopResult === 'win' ? 'win' : 'loss';
+  } else {
+    o.scores = {};
+    const sc = l.scores || {};
+    Object.keys(sc).forEach(function (p) {
+      const n = Number(sc[p]);
+      if (Number.isFinite(n)) o.scores[p] = n;
+    });
+    o.winners = Array.isArray(l.winners) ? l.winners.filter(Boolean) : BGT.getPvpWinners(l);
+    if (l.winner) o.winner = l.winner;
+  }
+  if (l.notes) o.notes = String(l.notes).slice(0, 500);
+  return o;
+}
+
 async function saveToCloud(opts) {
   opts = opts || {};
-  if (!auth.currentUser) return false;
-  if (!cloudReady && !opts.forceLogs) return false;
+  window.__bgtLastCloudError = '';
+  if (!auth.currentUser) {
+    window.__bgtLastCloudError = 'Няма логнат потребител';
+    return false;
+  }
+  if (!cloudReady && !opts.forceLogs) {
+    window.__bgtLastCloudError = 'Облакът още не е готов (cloudReady=false)';
+    return false;
+  }
   try {
     isSaving = true;
     let cloudLogs = [];
@@ -155,6 +201,7 @@ async function saveToCloud(opts) {
       }
     } catch (e) {
       cloudLogs = null;
+      console.warn('getDoc during save failed', e);
     }
 
     const delSet = new Set(BGT.state.deletedLogIds || []);
@@ -168,7 +215,6 @@ async function saveToCloud(opts) {
       if (!logsWithId.length && cloudLogs.length && delSet.size === 0) {
         logsWithId = cloudLogs.slice();
       }
-      /* Ако локалният архив е ясно по-богат и forcePush — не позволявай cloud-only subset да „победи“ */
       if (opts.forcePush && localLogs.length > (cloudLogs ? cloudLogs.length : 0)) {
         logsWithId = BGT.mergeLogsById(localLogs, cloudLogs || []).filter(function (l) { return !delSet.has(l.id); });
       }
@@ -180,42 +226,64 @@ async function saveToCloud(opts) {
       BGT.persistLocal();
     }
 
-    const payload = {
-      myGamesObj: BGT.state.myGamesObj,
-      myPlayers: BGT.state.myPlayers,
+    const cleanLogs = (logsWithId || []).map(sanitizeLog).filter(Boolean);
+
+    const payload = stripUndefined({
+      myGamesObj: BGT.state.myGamesObj || {},
+      myPlayers: BGT.state.myPlayers || [],
       gamePlayers: BGT.state.gamePlayers || {},
       gameExpansions: BGT.state.gameExpansions || {},
       playerPrefs: collectPrefs(),
       lastUpdated: new Date().toISOString(),
       updatedBy: auth.currentUser.uid
-    };
-    /* Само админ пише admins — иначе друг акаунт със празен локал би ги нулирал */
+    });
     if (typeof BGT.isAdmin === 'function' && BGT.isAdmin()) {
       payload.admins = BGT.getAdmins();
     }
-    if (logsWithId !== null && (logsWithId.length > 0 || opts.allowEmptyLogs)) {
-      payload.gameLogs = logsWithId;
+    if (cleanLogs.length > 0 || opts.allowEmptyLogs) {
+      payload.gameLogs = cleanLogs;
     }
 
-    await setDoc(docRef, payload, { merge: true });
+    try {
+      await setDoc(docRef, payload, { merge: true });
+    } catch (e1) {
+      /* ако документът е твърде голям — опитай без expansions/prefs тежести */
+      const msg = String(e1 && e1.message || e1);
+      if (/exceeds|too large|size/i.test(msg) && payload.gameLogs) {
+        const slim = Object.assign({}, payload, {
+          gameLogs: payload.gameLogs.map(function (l) {
+            return {
+              id: l.id, game: l.game, type: l.type, date: l.date,
+              scores: l.scores, winners: l.winners, winner: l.winner,
+              participants: l.participants, coopResult: l.coopResult
+            };
+          })
+        });
+        await setDoc(docRef, stripUndefined(slim), { merge: true });
+      } else {
+        throw e1;
+      }
+    }
     lastKnownUpdated = payload.lastUpdated;
     if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
 
-    if (logsWithId && logsWithId.length > 0) {
+    if (cleanLogs.length > 0) {
       try {
-        await setDoc(backupDocRef, {
-          gameLogs: logsWithId,
-          myGamesObj: BGT.state.myGamesObj,
-          myPlayers: BGT.state.myPlayers,
-          playerPrefs: collectPrefs(),
+        await setDoc(backupDocRef, stripUndefined({
+          gameLogs: cleanLogs,
+          myGamesObj: BGT.state.myGamesObj || {},
+          myPlayers: BGT.state.myPlayers || [],
           savedAt: new Date().toISOString(),
-          count: logsWithId.length
-        }, { merge: true });
-      } catch (e) {}
+          count: cleanLogs.length
+        }), { merge: true });
+      } catch (e) {
+        console.warn('backup save failed', e);
+      }
     }
     return true;
   } catch (e) {
     console.error(e);
+    window.__bgtLastCloudError = (e && (e.code || e.message)) ? String(e.code || e.message) : String(e);
     return false;
   } finally {
     setTimeout(function () { isSaving = false; }, 800);

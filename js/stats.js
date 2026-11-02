@@ -437,6 +437,12 @@
     BGT.renderStatsBody();
   };
 
+  BGT.openStatsGameDetail = function (game) {
+    BGT._detailMode = 'game';
+    BGT._detailGame = game || '';
+    BGT.setStatsTab('detail');
+  };
+
   function allLogs() {
     return (BGT.state.gameLogs || []).slice();
   }
@@ -461,58 +467,72 @@
     return { n: n, w: w, rate: n ? Math.round(w / n * 100) : 0 };
   }
 
+
   function renderOverviewTab() {
     const list = allLogs();
     if (!list.length) return '<div class="empty">Няма записани партии.</div>';
     const players = allPlayersFromLogs(list);
+    if (!players.length) return '<div class="empty">Няма играчи в архива.</div>';
+
+    const gamesMap = {};
+    list.forEach(function (l) {
+      if (!l.game) return;
+      if (!gamesMap[l.game]) {
+        gamesMap[l.game] = { n: 0, wins: {} };
+        players.forEach(function (p) { gamesMap[l.game].wins[p] = 0; });
+      }
+      gamesMap[l.game].n++;
+      if (l.type === 'coop') {
+        if (l.coopResult === 'win') {
+          (l.participants || []).forEach(function (p) {
+            if (gamesMap[l.game].wins[p] != null) gamesMap[l.game].wins[p]++;
+          });
+        }
+      } else {
+        BGT.getPvpWinners(l).forEach(function (p) {
+          if (gamesMap[l.game].wins[p] != null) gamesMap[l.game].wins[p]++;
+        });
+      }
+    });
+
+    const games = Object.keys(gamesMap).sort(function (a, b) {
+      return gamesMap[b].n - gamesMap[a].n || a.localeCompare(b, 'bg');
+    });
+
     let html = '<div class="panel"><h3>Общ преглед</h3><div class="grid-3">';
     html += '<div class="stat-pill"><div class="n">' + list.length + '</div><div class="l">Партии</div></div>';
-    const games = {};
-    list.forEach(function (l) { games[l.game] = (games[l.game] || 0) + 1; });
-    html += '<div class="stat-pill"><div class="n">' + Object.keys(games).length + '</div><div class="l">Игри</div></div>';
+    html += '<div class="stat-pill"><div class="n">' + games.length + '</div><div class="l">Игри</div></div>';
     html += '<div class="stat-pill"><div class="n">' + players.length + '</div><div class="l">Играчи</div></div>';
     html += '</div></div>';
 
-    html += '<div class="panel"><h3>Победи по играч</h3>';
-    html += players.map(function (p) {
-      const s = playerWinCount(p, list);
-      return '<div class="list-row list-tap" onclick="BGT.setStatsTab(\'player\');BGT.setStatsPlayer(\'' +
-        String(p).replace(/'/g, "\\'") + '\')"><div class="meta"><div class="title">' + BGT.esc(p) +
-        '</div><div class="sub">' + s.n + ' партии · ' + s.rate + '% win</div></div>' +
-        '<div class="sheet-score">' + s.w + '</div></div>';
-    }).join('') || '<div class="empty">—</div>';
-    html += '</div>';
+    html += '<div class="panel"><h3>Победи по игри</h3>';
+    html += '<div class="hint">Тапни игра → подробна статистика за нея. Зелено = водач · жълто = равенство.</div>';
+    html += '<div class="stats-table-wrap"><table class="home-wins-table stats-wins-table"><thead><tr>';
+    html += '<th class="col-game">Игра</th>';
+    players.forEach(function (p) {
+      html += '<th>' + BGT.esc(p) + '</th>';
+    });
+    html += '</tr></thead><tbody>';
 
-    html += '<div class="panel"><h3>По игри</h3>';
-    const gameRows = Object.entries(games).sort(function (a, b) { return b[1] - a[1]; });
-    html += gameRows.map(function (e) {
-      const g = e[0], n = e[1];
-      /* wins per player for this game */
-      const gLogs = list.filter(function (l) { return l.game === g; });
-      const pw = {};
-      gLogs.forEach(function (l) {
-        if (l.type === 'coop') {
-          if (l.coopResult === 'win') (l.participants || []).forEach(function (p) {
-            pw[p] = pw[p] || { w: 0, n: 0 }; pw[p].n++; pw[p].w++;
-          });
-          else (l.participants || []).forEach(function (p) {
-            pw[p] = pw[p] || { w: 0, n: 0 }; pw[p].n++;
-          });
-        } else {
-          Object.keys(l.scores || {}).forEach(function (p) {
-            pw[p] = pw[p] || { w: 0, n: 0 }; pw[p].n++;
-            if (BGT.getPvpWinners(l).includes(p)) pw[p].w++;
-          });
-        }
+    games.forEach(function (g) {
+      const row = gamesMap[g];
+      const vals = players.map(function (p) { return row.wins[p] || 0; });
+      const max = Math.max.apply(null, vals.concat([0]));
+      const leadCount = max > 0 ? vals.filter(function (v) { return v === max; }).length : 0;
+      const gSafe = String(g).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      html += '<tr>';
+      html += '<td class="col-game"><button type="button" class="game-stat-btn" onclick="BGT.openStatsGameDetail(\'' + gSafe + '\')">' +
+        BGT.esc(g) + '<span class="g-n">' + row.n + ' парт.</span></button></td>';
+      players.forEach(function (p, i) {
+        const v = vals[i];
+        let cls = '';
+        if (max > 0 && v === max) cls = leadCount > 1 ? 'tie' : 'lead';
+        html += '<td class="' + cls + '">' + v + '</td>';
       });
-      const sub = Object.entries(pw).sort(function (a, b) { return b[1].w - a[1].w; })
-        .map(function (x) { return x[0] + ' ' + x[1].w + '/' + x[1].n; }).join(' · ');
-      return '<div class="list-row list-tap" onclick="BGT.setStatsTab(\'detail\');BGT.setDetailMode(\'game\');BGT.setDetailGame(\'' +
-        String(g).replace(/'/g, "\\'") + '\')"><div class="meta"><div class="title">' + BGT.esc(g) +
-        '</div><div class="sub">' + BGT.esc(sub || (n + ' партии')) + '</div></div>' +
-        '<div class="sheet-score">' + n + '</div></div>';
-    }).join('');
-    html += '</div>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div></div>';
     return html;
   }
 
@@ -522,7 +542,7 @@
     if (sel && players.indexOf(sel) === -1 && players.length) sel = players[0];
     BGT._statsPlayer = sel;
 
-    let html = '<div class="panel"><h3>Хайлайт на играч</h3>';
+    let html = '<div class="panel"><h3>Статистика по играч</h3>';
     html += '<div class="field"><label>Играч</label><select id="statsPlayerSelect" onchange="BGT.setStatsPlayer(this.value)">';
     html += players.map(function (p) {
       return '<option value="' + BGT.esc(p) + '"' + (p === sel ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
@@ -535,65 +555,141 @@
     }
 
     const list = allLogs().filter(function (l) { return BGT.playerInLog(l, sel); });
+    const pvpList = list.filter(function (l) { return l.type !== 'coop'; });
+    const coopList = list.filter(function (l) { return l.type === 'coop'; });
     const st = playerWinCount(sel, list);
+    const pvpW = playerWinCount(sel, pvpList);
+    const coopW = playerWinCount(sel, coopList);
+
     const byG = {};
     list.forEach(function (l) {
-      if (!byG[l.game]) byG[l.game] = { n: 0, w: 0 };
+      if (!byG[l.game]) byG[l.game] = { n: 0, w: 0, l: 0 };
       byG[l.game].n++;
       if (won(l, sel)) byG[l.game].w++;
+      else byG[l.game].l++;
     });
-    const byArr = Object.entries(byG).map(function (e) {
-      return { game: e[0], n: e[1].n, w: e[1].w };
+    const byArr = Object.keys(byG).map(function (g) {
+      return {
+        game: g,
+        n: byG[g].n,
+        w: byG[g].w,
+        l: byG[g].l,
+        rate: byG[g].n ? Math.round(byG[g].w / byG[g].n * 100) : 0
+      };
     });
-    const mostPlayed = byArr.slice().sort(function (a, b) { return b.n - a.n; })[0];
+    const mostPlayed = byArr.slice().sort(function (a, b) { return b.n - a.n || b.w - a.w; })[0];
     const mostWins = byArr.slice().sort(function (a, b) { return b.w - a.w || b.n - a.n; })[0];
-    const streak = (function () {
-      /* local streak on filtered list */
-      const newest = list.filter(function (l) { return l.type !== 'coop'; }).sort(function (a, b) {
-        return new Date(b.date || 0) - new Date(a.date || 0);
-      });
-      if (!newest.length) return null;
-      const first = won(newest[0], sel);
-      let c = 1;
+    const mostLosses = byArr.slice().sort(function (a, b) { return b.l - a.l || b.n - a.n; })[0];
+    const bestRate = byArr.filter(function (x) { return x.n >= 2; }).sort(function (a, b) {
+      return b.rate - a.rate || b.n - a.n;
+    })[0];
+    const worstRate = byArr.filter(function (x) { return x.n >= 2; }).sort(function (a, b) {
+      return a.rate - b.rate || b.n - a.n;
+    })[0];
+
+    let bestScore = null, bestGame = null, worstScore = null, worstGame = null, sumPts = 0, ptsN = 0;
+    pvpList.forEach(function (l) {
+      if (!l.scores || l.scores[sel] == null) return;
+      const s = Number(l.scores[sel]);
+      if (!Number.isFinite(s)) return;
+      sumPts += s; ptsN++;
+      if (bestScore === null || s > bestScore) { bestScore = s; bestGame = l; }
+      if (worstScore === null || s < worstScore) { worstScore = s; worstGame = l; }
+    });
+
+    const newest = pvpList.slice().sort(function (a, b) {
+      return new Date(b.date || 0) - new Date(a.date || 0);
+    });
+    let streakN = 0, streakWin = null;
+    if (newest.length) {
+      streakWin = won(newest[0], sel);
+      streakN = 1;
       for (let i = 1; i < newest.length; i++) {
-        if (won(newest[i], sel) === first) c++; else break;
+        if (won(newest[i], sel) === streakWin) streakN++;
+        else break;
       }
-      return { n: c, win: first };
-    })();
-    const rec = records(sel);
+    }
+
+    /* unique games played */
+    const uniqueGames = byArr.length;
 
     html += '<div class="grid-3" style="margin-top:10px">';
     html += '<div class="stat-pill"><div class="n">' + st.n + '</div><div class="l">Партии</div></div>';
     html += '<div class="stat-pill"><div class="n">' + st.w + '</div><div class="l">Победи</div></div>';
     html += '<div class="stat-pill"><div class="n">' + st.rate + '%</div><div class="l">Win rate</div></div>';
     html += '</div>';
+    html += '<div class="grid-3" style="margin-top:8px">';
+    html += '<div class="stat-pill"><div class="n">' + uniqueGames + '</div><div class="l">Различни игри</div></div>';
+    html += '<div class="stat-pill"><div class="n">' + pvpW.w + '/' + pvpW.n + '</div><div class="l">PvP</div></div>';
+    html += '<div class="stat-pill"><div class="n">' + coopW.w + '/' + coopW.n + '</div><div class="l">Co-op успех</div></div>';
+    html += '</div></div>';
 
-    html += '<div class="list-row" style="margin-top:8px"><div class="meta"><div class="title">Най-играна</div><div class="sub">' +
-      (mostPlayed ? BGT.esc(mostPlayed.game) + ' · ' + mostPlayed.n + '×' : '—') + '</div></div></div>';
-    html += '<div class="list-row"><div class="meta"><div class="title">Най-много победи в</div><div class="sub">' +
-      (mostWins && mostWins.w ? BGT.esc(mostWins.game) + ' · ' + mostWins.w + 'W' : '—') + '</div></div></div>';
-    if (streak) {
-      html += '<div class="list-row"><div class="meta"><div class="title">Серия</div><div class="sub">' +
-        streak.n + ' ' + (streak.win ? 'победи' : 'загуби') + ' подред</div></div></div>';
+    html += '<div class="panel"><h3>Акценти</h3>';
+    function row(title, sub, game) {
+      const gSafe = game ? String(game).replace(/\\/g, '\\\\').replace(/'/g, "\\'") : '';
+      const tap = game
+        ? ' list-tap" onclick="BGT.openStatsGameDetail(\'' + gSafe + '\')'
+        : '"';
+      return '<div class="list-row' + tap + '><div class="meta"><div class="title">' + title +
+        '</div><div class="sub">' + BGT.esc(sub) + '</div></div>' +
+        (game ? '<span class="chev">›</span>' : '') + '</div>';
     }
-    if (rec.bestScore != null) {
-      html += '<div class="list-row"><div class="meta"><div class="title">Рекорд точки</div><div class="sub">' +
-        rec.bestScore + (rec.bestGame ? ' · ' + BGT.esc(rec.bestGame.game) : '') + '</div></div></div>';
+    if (mostPlayed) {
+      html += row('Най-играна', mostPlayed.game + ' · ' + mostPlayed.n + ' партии · ' + mostPlayed.w + 'W', mostPlayed.game);
+    }
+    if (mostWins && mostWins.w) {
+      html += row('Най-много победи', mostWins.game + ' · ' + mostWins.w + ' победи / ' + mostWins.n, mostWins.game);
+    }
+    if (mostLosses && mostLosses.l) {
+      html += row('Най-много загуби', mostLosses.game + ' · ' + mostLosses.l + ' загуби / ' + mostLosses.n, mostLosses.game);
+    }
+    if (bestRate) {
+      html += row('Най-успешна (≥2 парт.)', bestRate.game + ' · ' + bestRate.rate + '% · ' + bestRate.w + '/' + bestRate.n, bestRate.game);
+    }
+    if (worstRate) {
+      html += row('Най-трудна (≥2 парт.)', worstRate.game + ' · ' + worstRate.rate + '% · ' + worstRate.w + '/' + worstRate.n, worstRate.game);
+    }
+    if (streakN) {
+      html += row('Текуща серия', streakN + ' ' + (streakWin ? 'победни' : 'загуби') + ' подред', null);
+    }
+    if (bestScore != null) {
+      html += row('Рекорд точки', bestScore + (bestGame ? ' · ' + bestGame.game : ''), bestGame && bestGame.game);
+    }
+    if (worstScore != null) {
+      html += row('Най-ниски точки', worstScore + (worstGame ? ' · ' + worstGame.game : ''), worstGame && worstGame.game);
+    }
+    if (ptsN) {
+      html += row('Средни точки (PvP)', String(Math.round(sumPts / ptsN)), null);
     }
     html += '</div>';
 
-    /* H2H срещу други на масата */
-    const others = allPlayersFromLogs().filter(function (p) { return p !== sel; });
+    /* H2H */
+    const others = players.filter(function (p) { return p !== sel; });
     if (others.length) {
       html += '<div class="panel"><h3>Директни двубои</h3>';
       html += others.map(function (o) {
         const h = h2hPair(sel, o);
         if (!h.n) return '';
+        const cls = h.a > h.b ? 'lead' : (h.a < h.b ? '' : 'tie');
         return '<div class="list-row"><div class="meta"><div class="title">' + BGT.esc(sel) + ' vs ' + BGT.esc(o) +
-          '</div><div class="sub">' + h.n + ' партии</div></div><div class="sheet-score">' + h.a + '–' + h.b + '</div></div>';
+          '</div><div class="sub">' + h.n + ' партии</div></div><div class="sheet-score ' + cls + '">' + h.a + '–' + h.b + '</div></div>';
       }).join('') || '<div class="empty">Няма 1v1</div>';
       html += '</div>';
     }
+
+    /* breakdown by game */
+    if (byArr.length) {
+      html += '<div class="panel"><h3>По всяка игра</h3>';
+      byArr.sort(function (a, b) { return b.n - a.n; }).forEach(function (x) {
+        const gSafe = String(x.game).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        html += '<div class="list-row list-tap" onclick="BGT.openStatsGameDetail(\'' + gSafe + '\')">' +
+          '<div class="meta"><div class="title">' + BGT.esc(x.game) + '</div>' +
+          '<div class="sub">' + x.w + 'W · ' + x.l + 'L · ' + x.rate + '%</div></div>' +
+          '<div class="sheet-score">' + x.n + '</div></div>';
+      });
+      html += '</div>';
+    }
+
     return html;
   }
 

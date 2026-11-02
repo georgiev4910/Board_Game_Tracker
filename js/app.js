@@ -1175,10 +1175,13 @@
         BGT.toast('Облакът е обновен (' + (BGT.state.gameLogs || []).length + ' партии)');
         if (typeof BGT.updateSyncPill === 'function') BGT.updateSyncPill('ok');
       } else {
-        BGT.toast('Качването не успя — опитай пак след 2 сек', 'info');
+        const why = window.__bgtLastCloudError || 'неизвестна грешка';
+        BGT.toast('Качването не успя: ' + why, 'info');
+        console.error('forcePush failed', why);
       }
     } catch (e) {
-      BGT.toast('Грешка: ' + (e.message || 'sync'), 'info');
+      BGT.toast('Грешка: ' + (e.message || e.code || 'sync'), 'info');
+      console.error(e);
     }
   };
 
