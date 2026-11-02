@@ -764,7 +764,17 @@
     const out = document.getElementById('statsBody');
     if (!out) return;
     if (!BGT.canViewStats()) {
-      out.innerHTML = '<div class="empty">Влез и свържи „Аз съм“, за да видиш статистики.</div>';
+      let msg = 'Влез и свържи „Аз съм“, за да видиш статистики.';
+      if (BGT.isLoggedIn() && !BGT.getMyLinkedPlayer()) msg = 'Свържи „Аз съм“ в Още → Акаунт.';
+      else if (!BGT.isLoggedIn()) msg = 'Влез в акаунт (Още), после свържи играч.';
+      out.innerHTML = '<div class="empty">' + msg + '</div>' +
+        '<button type="button" class="btn btn-secondary" onclick="BGT.go(\'more\')">Към акаунт</button>';
+      return;
+    }
+    if (!(BGT.state.gameLogs || []).length) {
+      out.innerHTML = '<div class="empty">Няма записани партии на това устройство.</div>' +
+        '<button type="button" class="btn btn-primary" onclick="BGT.forcePullCloud()">Изтегли от облака</button>' +
+        '<button type="button" class="btn btn-secondary" style="margin-top:8px" onclick="BGT.go(\'log\')">Първи запис</button>';
       return;
     }
     document.querySelectorAll('[data-stats-tab]').forEach(function (b) {

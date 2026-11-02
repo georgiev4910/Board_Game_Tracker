@@ -160,7 +160,7 @@
     let b = BGT.state.homeH2HRight || '';
     if (!b) b = players.find(function (p) { return p !== a; }) || '';
     if (!a || !b || a === b) {
-      return '<div class="panel"><div class="empty">Избери двама различни играчи в Още → Изглед</div></div>';
+      return '<div class="panel"><div class="empty">Добави играчи на масата (Още) или избери двама в Изглед.</div></div>';
     }
     let aw = 0, bw = 0, n = 0;
     (BGT.state.gameLogs || []).forEach(function (l) {
@@ -175,14 +175,23 @@
     });
     const total = aw + bw;
     const pct = total ? Math.round(aw / total * 100) : 50;
+    let selA = '', selB = '';
+    players.forEach(function (p) {
+      selA += '<option value="' + BGT.esc(p) + '"' + (p === a ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+      selB += '<option value="' + BGT.esc(p) + '"' + (p === b ? ' selected' : '') + '>' + BGT.esc(p) + '</option>';
+    });
     return '<div class="panel"><h3>Head-to-head</h3>' +
+      '<div class="btn-row" style="gap:8px;margin-bottom:10px">' +
+      '<select onchange="BGT.state.homeH2HLeft=this.value;BGT.persistLocal();BGT.renderHome()">' + selA + '</select>' +
+      '<select onchange="BGT.state.homeH2HRight=this.value;BGT.persistLocal();BGT.renderHome()">' + selB + '</select>' +
+      '</div>' +
       '<div class="home-h2h">' +
       '<div><div class="name">' + BGT.esc(a) + '</div><div class="sub">' + aw + ' победи</div></div>' +
       '<div class="score">' + aw + '–' + bw + '</div>' +
       '<div><div class="name">' + BGT.esc(b) + '</div><div class="sub">' + bw + ' победи</div></div>' +
       '</div>' +
       '<div class="home-h2h-bar"><i style="width:' + pct + '%"></i></div>' +
-      '<div class="hint" style="margin-top:8px">' + n + ' директни партии (1v1)</div></div>';
+      '<div class="hint" style="margin-top:8px">' + n + ' директни 1v1</div></div>';
   };
 
   BGT.renderHomeWinsTable = function () {
@@ -221,7 +230,8 @@
       const vals = players.map(function (p) { return row[p] || 0; });
       const max = Math.max.apply(null, vals);
       const leaders = vals.filter(function (v) { return v === max && max > 0; }).length;
-      html += '<tr><td>' + BGT.esc(g) + '</td>';
+      const gSafe = String(g).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      html += '<tr><td><button type="button" class="game-stat-btn" onclick="BGT.openStatsGameDetail(\'' + gSafe + '\')">' + BGT.esc(g) + '</button></td>';
       players.forEach(function (p) {
         const v = row[p] || 0;
         let cls = '';
@@ -239,7 +249,23 @@
     const me = BGT.getMyLinkedPlayer();
     const can = BGT.canViewStats();
     const guest = document.getElementById('homeGuest');
-    if (guest) guest.classList.toggle('hidden', can);
+    const guestText = document.getElementById('homeGuestText');
+    if (guest) {
+      let show = false;
+      let msg = '';
+      if (!BGT.isLoggedIn()) {
+        show = true;
+        msg = 'Влез в акаунт, за да sync-ваш между телефон и лаптоп.';
+      } else if (!me) {
+        show = true;
+        msg = 'Свържи „Аз съм“ в Още → Акаунт, за да виждаш лична статистика.';
+      } else if (can && !(BGT.state.gameLogs || []).length) {
+        show = true;
+        msg = 'Няма партии тук. Още → Данни → Изтегли архива от облака (ако има на друго устройство).';
+      }
+      guest.classList.toggle('hidden', !show);
+      if (guestText && msg) guestText.textContent = msg;
+    }
 
     const hello = document.getElementById('homeHello');
     if (hello) {
@@ -263,10 +289,11 @@
 
     const main = document.getElementById('homeMain');
     if (main) {
-      const mode = BGT.state.homeMode || 'buttons';
-      if (mode === 'h2h') main.innerHTML = BGT.renderHomeH2H();
-      else if (mode === 'table') main.innerHTML = BGT.renderHomeWinsTable();
-      else main.innerHTML = BGT.renderHomeButtons();
+      const mode = BGT.state.homeMode || 'h2h';
+      if (mode === 'table') main.innerHTML = BGT.renderHomeWinsTable();
+      else if (mode === 'buttons') main.innerHTML = BGT.renderHomeButtons();
+      else if (mode === 'suggest') main.innerHTML = BGT.renderHomeSuggest();
+      else main.innerHTML = BGT.renderHomeH2H();
     }
 
     const lastBox = document.getElementById('homeLast');
@@ -289,6 +316,20 @@
     }
 
     BGT.renderProfileChip();
+  };
+
+  BGT.openMyStats = function () {
+    if (!BGT.isLoggedIn()) {
+      BGT.toast('Влез в акаунт от Още', 'info');
+      return BGT.go('more');
+    }
+    if (!BGT.getMyLinkedPlayer()) {
+      BGT.toast('Свържи „Аз съм“ в Още → Акаунт', 'info');
+      return BGT.go('more');
+    }
+    BGT._statsPlayer = BGT.getMyLinkedPlayer();
+    BGT.go('stats');
+    if (typeof BGT.setStatsTab === 'function') BGT.setStatsTab('player');
   };
 
   BGT.renderProfileChip = function () {

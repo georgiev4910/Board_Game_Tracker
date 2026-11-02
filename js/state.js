@@ -30,7 +30,7 @@
     deletedLogIds: loadJSON('bgDeletedLogIds', []),
     theme: localStorage.getItem('bgTheme') || 'dark',
     homeH2H: localStorage.getItem('bgHomeH2H') === '1',
-    homeMode: localStorage.getItem('bgHomeMode') || 'buttons',
+    homeMode: localStorage.getItem('bgHomeMode') || 'h2h',
     homeH2HLeft: localStorage.getItem('bgHomeH2HLeft') || '',
     homeH2HRight: localStorage.getItem('bgHomeH2HRight') || '',
     currentLogFilter: 'pvp',
